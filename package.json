@@ -1,5 +1,5 @@
 {
-  "name": "misurchi_service_web_backend",
+  "name": "misurchi-service-web-backend",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
