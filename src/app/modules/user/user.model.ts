@@ -2,6 +2,7 @@ import { model, Schema } from 'mongoose';
 import bcrypt from 'bcrypt';
 import { TRegisterUser, UserModel } from './user.interface';
 import config from '../../config';
+import { AccountType } from './user.constant';
 
 const registerUserSchema = new Schema<TRegisterUser, UserModel>(
   {
@@ -18,6 +19,9 @@ const registerUserSchema = new Schema<TRegisterUser, UserModel>(
       trim: true,
       minlength: [3, 'The length of last name can be minimum 3 characters'],
       maxlength: [20, 'The length of last name can be maximum 20 characters'],
+    },
+    fullName: {
+      type: String,
     },
     email: {
       type: String,
@@ -60,7 +64,7 @@ const registerUserSchema = new Schema<TRegisterUser, UserModel>(
     accountType: {
       type: String,
       enum: {
-        values: ['service provider', 'user', 'admin'],
+        values: AccountType,
         message: '{VALUE} is not valid',
       },
       default: 'user',
@@ -86,8 +90,16 @@ const registerUserSchema = new Schema<TRegisterUser, UserModel>(
       default: false,
     },
   },
-  { timestamps: true },
+  {
+    timestamps: true,
+  },
 );
+
+// ✅ Virtual field: fullName
+registerUserSchema.pre('save', function (next) {
+  this.fullName = `${this.firstName} ${this.lastName}`;
+  next();
+});
 
 registerUserSchema.pre('save', async function (next) {
   const user = this;

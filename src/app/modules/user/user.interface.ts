@@ -1,14 +1,17 @@
 import { Model } from 'mongoose';
 import { ACCOUNT_TYPE } from './user.constant';
 
+export type TAccountType = 'service provider' | 'user' | 'admin';
+
 export type TRegisterUser = {
   firstName: string;
   lastName: string;
+  fullName?: string; // For virtual
   email: string;
   phone: string;
   password: string;
   confirmPassword: string;
-  accountType: 'service provider' | 'user' | 'admin';
+  accountType: TAccountType;
   image?: string;
   country?: string;
   status: 'ongoing' | 'confirmed';
@@ -16,17 +19,10 @@ export type TRegisterUser = {
 };
 
 export interface UserModel extends Model<TRegisterUser> {
-  isUserExistsByCustomId(id: string): Promise<TRegisterUser>;
-
   isPasswordMatched(
     plainTextPassword: string,
     hashPassword: string,
   ): Promise<boolean>;
-
-  isJWTIssuedBeforePasswordChanged(
-    passwordChangedTimestamp: Date,
-    jwtIssuedTimestamp: number,
-  ): boolean;
 }
 
 export type TUserRole = keyof typeof ACCOUNT_TYPE;
