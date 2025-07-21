@@ -9,6 +9,13 @@ export type TJwtPayload = {
   name?: string;
   email: string;
   accountType: TAccountType;
-  iat?: number; // issued at (optional)
-  exp?: number; // expiration (optional)
+  image?: string;
+  iat?: number;
+  exp?: number;
+};
+
+export type TchangePassword = {
+  oldPassword: string;
+  newPassword: string;
+  confirmPassword: string;
 };
