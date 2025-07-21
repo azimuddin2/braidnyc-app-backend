@@ -1,10 +1,10 @@
 import { model, Schema } from 'mongoose';
 import bcrypt from 'bcrypt';
-import { TRegisterUser, UserModel } from './user.interface';
+import { TUser, UserModel } from './user.interface';
 import config from '../../config';
-import { AccountType } from './user.constant';
+import { UserRole, UserStatus } from './user.constant';
 
-const registerUserSchema = new Schema<TRegisterUser, UserModel>(
+const userSchema = new Schema<TUser, UserModel>(
   {
     firstName: {
       type: String,
@@ -61,10 +61,17 @@ const registerUserSchema = new Schema<TRegisterUser, UserModel>(
       minlength: [8, 'Password can be minimum 8 characters'],
       maxlength: [20, 'Password can not be more than 20 characters'],
     },
-    accountType: {
+    needsPasswordChange: {
+      type: Boolean,
+      default: false,
+    },
+    passwordChangeAt: {
+      type: Date,
+    },
+    role: {
       type: String,
       enum: {
-        values: AccountType,
+        values: UserRole,
         message: '{VALUE} is not valid',
       },
       default: 'user',
@@ -80,7 +87,7 @@ const registerUserSchema = new Schema<TRegisterUser, UserModel>(
     status: {
       type: String,
       enum: {
-        values: ['ongoing', 'confirmed'],
+        values: UserStatus,
         message: '{VALUE} is not valid',
       },
       default: 'ongoing',
@@ -96,12 +103,12 @@ const registerUserSchema = new Schema<TRegisterUser, UserModel>(
 );
 
 // ✅ Virtual field: fullName
-registerUserSchema.pre('save', function (next) {
+userSchema.pre('save', function (next) {
   this.fullName = `${this.firstName} ${this.lastName}`;
   next();
 });
 
-registerUserSchema.pre('save', async function (next) {
+userSchema.pre('save', async function (next) {
   const user = this;
 
   user.password = await bcrypt.hash(
@@ -118,20 +125,17 @@ registerUserSchema.pre('save', async function (next) {
 });
 
 // set '' after saving password
-registerUserSchema.post('save', function (doc, next) {
+userSchema.post('save', function (doc, next) {
   doc.password = '';
   doc.confirmPassword = '';
   next();
 });
 
-registerUserSchema.statics.isPasswordMatched = async function (
-  plainTextPassword,
-  hashPassword,
-) {
-  return await bcrypt.compare(plainTextPassword, hashPassword);
+userSchema.statics.isUserExistsByEmail = async function (email: string) {
+  return await User.findOne({ email }).select('+password');
 };
 
-registerUserSchema.statics.isJWTIssuedBeforePasswordChanged = async function (
+userSchema.statics.isJWTIssuedBeforePasswordChanged = async function (
   passwordChangedTimestamp: Date,
   jwtIssuedTimestamp: number,
 ) {
@@ -141,4 +145,21 @@ registerUserSchema.statics.isJWTIssuedBeforePasswordChanged = async function (
   return passwordChangedTime > jwtIssuedTimestamp;
 };
 
-export const User = model<TRegisterUser, UserModel>('User', registerUserSchema);
+userSchema.statics.isPasswordMatched = async function (
+  plainTextPassword,
+  hashPassword,
+) {
+  return await bcrypt.compare(plainTextPassword, hashPassword);
+};
+
+userSchema.statics.isJWTIssuedBeforePasswordChanged = async function (
+  passwordChangedTimestamp: Date,
+  jwtIssuedTimestamp: number,
+) {
+  const passwordChangedTime =
+    new Date(passwordChangedTimestamp).getTime() / 100;
+
+  return passwordChangedTime > jwtIssuedTimestamp;
+};
+
+export const User = model<TUser, UserModel>('User', userSchema);

@@ -1,28 +1,39 @@
 import { Model } from 'mongoose';
-import { ACCOUNT_TYPE } from './user.constant';
+import { USER_ROLE } from './user.constant';
 
-export type TAccountType = 'service provider' | 'user' | 'admin';
+export type TRole = 'service_provider' | 'user' | 'admin';
 
-export type TRegisterUser = {
+export type TStatus = 'ongoing' | 'confirmed' | 'blocked';
+
+export type TUser = {
   firstName: string;
   lastName: string;
-  fullName?: string; // For virtual
+  fullName?: string;
   email: string;
   phone: string;
   password: string;
   confirmPassword: string;
-  accountType: TAccountType;
+  needsPasswordChange: boolean;
+  passwordChangeAt?: Date;
+  role: TRole;
   image?: string;
   country?: string;
-  status: 'ongoing' | 'confirmed';
+  status: TStatus;
   isDeleted: boolean;
 };
 
-export interface UserModel extends Model<TRegisterUser> {
+export interface UserModel extends Model<TUser> {
+  isUserExistsByEmail(email: string): Promise<TUser>;
+
   isPasswordMatched(
     plainTextPassword: string,
     hashPassword: string,
   ): Promise<boolean>;
+
+  isJWTIssuedBeforePasswordChanged(
+    passwordChangedTimestamp: Date,
+    jwtIssuedTimestamp: number,
+  ): boolean;
 }
 
-export type TUserRole = keyof typeof ACCOUNT_TYPE;
+export type TUserRole = keyof typeof USER_ROLE;

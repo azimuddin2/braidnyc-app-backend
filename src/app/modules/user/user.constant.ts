@@ -1,11 +1,21 @@
-export const ACCOUNT_TYPE = {
-  SERVICE_PROVIDER: 'service provider',
-  USER: 'user',
-  ADMIN: 'admin',
+import { TRole, TStatus } from './user.interface';
+
+export const USER_ROLE = {
+  service_provider: 'service_provider',
+  user: 'user',
+  admin: 'admin',
 } as const;
 
-export const AccountType = ['service provider', 'user', 'admin'];
+export const UserRole: TRole[] = ['service_provider', 'user', 'admin'];
 
-export const UserStatus = ['ongoing', 'confirmed'];
+export const UserStatus: TStatus[] = ['ongoing', 'confirmed', 'blocked'];
 
-export const userSearchableFields = ['name', 'email'];
+export const userSearchableFields = [
+  'firstName',
+  'lastName',
+  'fullName',
+  'email',
+  'phone',
+  'country',
+  'status',
+];

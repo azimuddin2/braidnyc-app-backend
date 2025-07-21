@@ -1,11 +1,11 @@
 import mongoose from 'mongoose';
 import AppError from '../../errors/AppError';
 import { TVendor } from '../vendor/vendor.interface';
-import { TRegisterUser } from './user.interface';
+import { TUser } from './user.interface';
 import { User } from './user.model';
 import { Vendor } from '../vendor/vendor.model';
 
-const registerUserIntoDB = async (payload: TRegisterUser) => {
+const registerUserIntoDB = async (payload: TUser) => {
   const filter = { email: payload.email };
 
   const isUserExists = await User.findOne(filter);
@@ -39,7 +39,7 @@ const vendorRegisterUserIntoDB = async (payload: TVendor) => {
     // Prepare user data
     const userData = {
       ...payload,
-      accountType: 'service provider',
+      role: 'service provider',
     };
 
     const createdUser = await User.create([userData], { session });

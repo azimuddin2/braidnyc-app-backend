@@ -24,6 +24,10 @@ const auth = (...requiredRoles: TUserRole[]) => {
       throw new AppError(404, 'This user is not found!');
     }
 
+    if (user?.status === 'blocked') {
+      throw new AppError(403, 'This user is blocked!');
+    }
+
     if (requiredRoles && !requiredRoles.includes(role)) {
       throw new AppError(401, 'You are not authorized!');
     }

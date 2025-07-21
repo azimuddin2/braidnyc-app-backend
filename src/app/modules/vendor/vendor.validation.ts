@@ -1,5 +1,5 @@
 import z from 'zod';
-import { AccountType } from '../user/user.constant';
+import { UserRole } from '../user/user.constant';
 
 const vendorRegisterUserValidationSchema = z.object({
   body: z.object({
@@ -56,8 +56,8 @@ const vendorRegisterUserValidationSchema = z.object({
       required_error: 'Last name is required',
     }),
 
-    accountType: z
-      .enum([...AccountType] as [string, ...string[]])
+    role: z
+      .enum([...UserRole] as [string, ...string[]])
       .default('service provider'),
   }),
 });

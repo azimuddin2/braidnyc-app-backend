@@ -2,6 +2,7 @@ import { model, Schema } from 'mongoose';
 import { TVendor } from './vendor.interface';
 import config from '../../config';
 import bcrypt from 'bcrypt';
+import { UserRole } from '../user/user.constant';
 
 const vendorSchema = new Schema<TVendor>(
   {
@@ -67,10 +68,10 @@ const vendorSchema = new Schema<TVendor>(
       minlength: [8, 'Password can be minimum 8 characters'],
       maxlength: [20, 'Password can not be more than 20 characters'],
     },
-    accountType: {
+    role: {
       type: String,
       enum: {
-        values: ['service provider', 'user', 'admin'],
+        values: UserRole,
         message: '{VALUE} is not valid',
       },
       default: 'service provider',

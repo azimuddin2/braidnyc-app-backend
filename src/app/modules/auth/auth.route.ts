@@ -2,6 +2,7 @@ import express from 'express';
 import { AuthControllers } from './auth.controller';
 import validateRequest from '../../middlewares/validateRequest';
 import { AuthValidations } from './auth.validation';
+import auth from '../../middlewares/auth';
 
 const router = express.Router();
 
@@ -15,6 +16,13 @@ router.post(
   '/refresh-token',
   validateRequest(AuthValidations.refreshTokenValidationSchema),
   AuthControllers.handleRefreshToken,
+);
+
+router.post(
+  '/change-password',
+  auth('admin', 'service_provider', 'user'),
+  validateRequest(AuthValidations.changePasswordValidationSchema),
+  AuthControllers.handleChangePassword,
 );
 
 export const AuthRoutes = router;

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AccountType, UserStatus } from './user.constant';
+import { UserRole, UserStatus } from './user.constant';
 
 const registerUserValidationSchema = z.object({
   body: z.object({
@@ -45,9 +45,7 @@ const registerUserValidationSchema = z.object({
       .min(8, 'Confirm password must be at least 8 characters')
       .max(20, 'Confirm password cannot exceed 20 characters'),
 
-    accountType: z
-      .enum([...AccountType] as [string, ...string[]])
-      .default('user'),
+    role: z.enum([...UserRole] as [string, ...string[]]).default('user'),
 
     image: z.string().optional(),
     location: z.string().optional(),
