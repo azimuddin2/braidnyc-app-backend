@@ -68,14 +68,6 @@ const vendorSchema = new Schema<TVendor>(
       minlength: [8, 'Password can be minimum 8 characters'],
       maxlength: [20, 'Password can not be more than 20 characters'],
     },
-    role: {
-      type: String,
-      enum: {
-        values: UserRole,
-        message: '{VALUE} is not valid',
-      },
-      default: 'service provider',
-    },
   },
   { timestamps: true },
 );

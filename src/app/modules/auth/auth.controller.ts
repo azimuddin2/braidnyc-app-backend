@@ -8,7 +8,7 @@ const handleLoginUser = catchAsync(async (req, res) => {
   const { accessToken, refreshToken } = result;
 
   res.cookie('refreshToken', refreshToken, {
-    secure: config.node_env === 'production',
+    secure: config.NODE_ENV === 'production',
     httpOnly: true,
   });
 
@@ -43,8 +43,21 @@ const handleChangePassword = catchAsync(async (req, res) => {
   });
 });
 
+const handleForgetPassword = catchAsync(async (req, res) => {
+  const email = req.body.email;
+  const result = await AuthServices.forgetPassword(email);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'An OTP has been sent to your email address.',
+    data: result,
+  });
+});
+
 export const AuthControllers = {
   handleLoginUser,
   handleRefreshToken,
   handleChangePassword,
+  handleForgetPassword,
 };

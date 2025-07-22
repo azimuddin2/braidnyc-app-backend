@@ -13,5 +13,4 @@ export type TVendor = {
   lastName: string;
   password: string;
   confirmPassword: string;
-  role: 'service provider' | 'user' | 'admin';
 };

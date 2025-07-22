@@ -53,6 +53,14 @@ const registerUserValidationSchema = z.object({
     status: z.enum([...UserStatus] as [string, ...string[]]).default('ongoing'),
 
     isDeleted: z.boolean().optional().default(false),
+
+    isVerified: z.boolean().default(false),
+
+    verification: z.object({
+      otp: z.string().optional(),
+      expiresAt: z.date().optional(),
+      status: z.boolean().optional(),
+    }).optional(),
   }),
 });
 

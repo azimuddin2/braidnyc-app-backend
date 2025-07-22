@@ -1,5 +1,4 @@
 import z from 'zod';
-import { UserRole } from '../user/user.constant';
 
 const vendorRegisterUserValidationSchema = z.object({
   body: z.object({
@@ -56,9 +55,6 @@ const vendorRegisterUserValidationSchema = z.object({
       required_error: 'Last name is required',
     }),
 
-    role: z
-      .enum([...UserRole] as [string, ...string[]])
-      .default('service provider'),
   }),
 });
 

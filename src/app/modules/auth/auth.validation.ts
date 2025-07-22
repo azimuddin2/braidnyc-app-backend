@@ -43,13 +43,24 @@ export const changePasswordValidationSchema = z.object({
       }),
     })
     .refine((data) => data.newPassword === data.confirmPassword, {
-      message: 'Passwords do not match',
+      message: 'NewPassword & ConfirmPassword do not match',
       path: ['confirmPassword'],
     }),
+});
+
+const forgetPasswordValidationSchema = z.object({
+  body: z.object({
+    email: z
+      .string({
+        required_error: 'Email is required',
+      })
+      .email('Invalid email address'),
+  }),
 });
 
 export const AuthValidations = {
   loginValidationSchema,
   refreshTokenValidationSchema,
   changePasswordValidationSchema,
+  forgetPasswordValidationSchema,
 };

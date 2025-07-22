@@ -96,6 +96,25 @@ const userSchema = new Schema<TUser, UserModel>(
       type: Boolean,
       default: false,
     },
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+    verification: {
+      otp: {
+        type: String,
+        select: 0,
+      },
+      expiresAt: {
+        type: Date,
+        select: 0,
+      },
+      status: {
+        type: Boolean,
+        default: false,
+        select: 0,
+      },
+    },
   },
   {
     timestamps: true,

@@ -1,4 +1,4 @@
-import { Model } from 'mongoose';
+import { Model, ObjectId } from 'mongoose';
 import { USER_ROLE } from './user.constant';
 
 export type TRole = 'service_provider' | 'user' | 'admin';
@@ -6,6 +6,7 @@ export type TRole = 'service_provider' | 'user' | 'admin';
 export type TStatus = 'ongoing' | 'confirmed' | 'blocked';
 
 export type TUser = {
+  _id: ObjectId;
   firstName: string;
   lastName: string;
   fullName?: string;
@@ -20,6 +21,12 @@ export type TUser = {
   country?: string;
   status: TStatus;
   isDeleted: boolean;
+  isVerified: boolean;
+  verification: {
+    otp: string | number;
+    expiresAt: Date;
+    status: boolean;
+  };
 };
 
 export interface UserModel extends Model<TUser> {

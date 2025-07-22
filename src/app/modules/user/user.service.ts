@@ -39,7 +39,7 @@ const vendorRegisterUserIntoDB = async (payload: TVendor) => {
     // Prepare user data
     const userData = {
       ...payload,
-      role: 'service provider',
+      role: 'service_provider',
     };
 
     const createdUser = await User.create([userData], { session });
