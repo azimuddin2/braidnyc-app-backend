@@ -1,3 +1,4 @@
+import { ObjectId } from 'mongoose';
 import { TRole } from '../user/user.interface';
 
 export type TLoginUser = {
@@ -6,7 +7,7 @@ export type TLoginUser = {
 };
 
 export type TJwtPayload = {
-  userId: string;
+  userId: ObjectId | string;
   name?: string;
   email: string;
   role: TRole;

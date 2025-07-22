@@ -169,9 +169,11 @@ const forgetPassword = async (email: string) => {
 
   // create token and sent to the client
   const jwtPayload: TJwtPayload = {
-    userId: user?._id.toString(),
+    userId: user._id.toString(),
+    name: user?.fullName,
     email: user?.email,
     role: user?.role,
+    image: user?.image,
   };
 
   const token = createToken(
