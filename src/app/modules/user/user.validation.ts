@@ -56,11 +56,13 @@ const registerUserValidationSchema = z.object({
 
     isVerified: z.boolean().default(false),
 
-    verification: z.object({
-      otp: z.string().optional(),
-      expiresAt: z.date().optional(),
-      status: z.boolean().optional(),
-    }).optional(),
+    verification: z
+      .object({
+        otp: z.string().optional(),
+        expiresAt: z.date().optional(),
+        status: z.boolean().optional(),
+      })
+      .optional(),
   }),
 });
 

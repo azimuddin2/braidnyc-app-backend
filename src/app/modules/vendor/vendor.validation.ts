@@ -54,7 +54,6 @@ const vendorRegisterUserValidationSchema = z.object({
     lastName: z.string({
       required_error: 'Last name is required',
     }),
-
   }),
 });
 

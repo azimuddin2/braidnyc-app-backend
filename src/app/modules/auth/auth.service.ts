@@ -106,7 +106,7 @@ const refreshToken = async (token: string) => {
 
 const changePassword = async (
   userData: JwtPayload,
-  payload: TChangePassword
+  payload: TChangePassword,
 ) => {
   const user = await User.isUserExistsByEmail(userData?.email);
 
@@ -125,7 +125,7 @@ const changePassword = async (
   // checking if the password is correct
   const isPasswordMatched = await User.isPasswordMatched(
     payload?.oldPassword,
-    user?.password
+    user?.password,
   );
   if (!isPasswordMatched) {
     throw new AppError(403, 'Password do not matched!');
@@ -134,7 +134,7 @@ const changePassword = async (
   // hash new password
   const newHashedPassword = await bcrypt.hash(
     payload.newPassword,
-    Number(config.bcrypt_salt_rounds)
+    Number(config.bcrypt_salt_rounds),
   );
 
   await User.findOneAndUpdate(
@@ -146,7 +146,7 @@ const changePassword = async (
       password: newHashedPassword,
       needsPasswordChange: true,
       passwordChangeAt: new Date(),
-    }
+    },
   );
 
   return null;
@@ -177,12 +177,12 @@ const forgetPassword = async (email: string) => {
   const token = createToken(
     jwtPayload,
     config.jwt_access_secret as string,
-    '2m'
+    '2m',
   );
 
   const currentTime = new Date();
   const otp = generateOtp();
-  const expiresAt = moment(currentTime).add(2, "minute");
+  const expiresAt = moment(currentTime).add(2, 'minute');
   await User.findByIdAndUpdate(user?._id, {
     verification: {
       otp,
@@ -193,7 +193,7 @@ const forgetPassword = async (email: string) => {
 
   await sendEmail(
     email,
-    "Your OTP for Password Reset",
+    'Your OTP for Password Reset',
     `
   <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 24px; border-radius: 10px; border: 1px solid #e0e0e0;">
     <h2 style="color: #4CAF50; text-align: center; margin-top: 0;">Password Reset OTP</h2>
@@ -220,7 +220,7 @@ const forgetPassword = async (email: string) => {
       If you did not request this, please ignore this email.
     </p>
   </div>
-  `
+  `,
   );
 
   return { email, token };
