@@ -58,9 +58,29 @@ const forgetPasswordValidationSchema = z.object({
   }),
 });
 
+export const resetPasswordValidationSchema = z.object({
+  body: z
+    .object({
+      newPassword: z
+        .string({
+          required_error: 'New password is required',
+        })
+        .min(8, 'New password must be at least 8 characters'),
+
+      confirmPassword: z.string({
+        required_error: 'Confirm password is required',
+      }),
+    })
+    .refine((data) => data.newPassword === data.confirmPassword, {
+      message: 'NewPassword & ConfirmPassword do not match',
+      path: ['confirmPassword'],
+    }),
+});
+
 export const AuthValidations = {
   loginValidationSchema,
   refreshTokenValidationSchema,
   changePasswordValidationSchema,
   forgetPasswordValidationSchema,
+  resetPasswordValidationSchema,
 };

@@ -1,5 +1,10 @@
 import AppError from '../../errors/AppError';
-import { TChangePassword, TJwtPayload, TLoginUser } from './auth.interface';
+import {
+  TChangePassword,
+  TJwtPayload,
+  TLoginUser,
+  TResetPassword,
+} from './auth.interface';
 import config from '../../config';
 import { User } from '../user/user.model';
 import { verifyToken } from '../../utils/verifyToken';
@@ -228,9 +233,61 @@ const forgetPassword = async (email: string) => {
   return { email, token };
 };
 
+const resetPassword = async (token: string, payload: TResetPassword) => {
+  if (!token) {
+    throw new AppError(401, 'You are not authorized!');
+  }
+
+  const decoded = verifyToken(token, config.jwt_access_secret as string);
+
+  const { userId, email } = decoded;
+
+  const user = await User.findOne({ email: email }).select(
+    'verification isVerified',
+  );
+
+  if (!user) {
+    throw new AppError(404, 'This user is not found!');
+  }
+
+  if (user?.isDeleted === true) {
+    throw new AppError(403, 'This user is deleted!');
+  }
+
+  if (user?.status === 'blocked') {
+    throw new AppError(403, 'This user is blocked!');
+  }
+
+  const verifyExpiresAt = user?.verification?.expiresAt;
+  if (new Date() > verifyExpiresAt) {
+    throw new AppError(400, 'otp has expired. Please resend it');
+  }
+
+  if (!user?.verification?.status) {
+    throw new AppError(400, 'Otp is not verified yet!');
+  }
+
+  const hashedPassword = await bcrypt.hash(
+    payload?.newPassword,
+    Number(config.bcrypt_salt_rounds),
+  );
+
+  const result = await User.findByIdAndUpdate(userId, {
+    password: hashedPassword,
+    passwordChangedAt: new Date(),
+    verification: {
+      otp: 0,
+      status: false,
+    },
+  });
+
+  return result;
+};
+
 export const AuthServices = {
   loginUser,
   refreshToken,
   changePassword,
   forgetPassword,
+  resetPassword,
 };
