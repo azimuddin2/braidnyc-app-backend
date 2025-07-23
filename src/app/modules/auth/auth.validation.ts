@@ -8,12 +8,9 @@ const loginValidationSchema = z.object({
       })
       .email('Invalid email address'),
 
-    password: z
-      .string({
-        required_error: 'Password is required',
-      })
-      .min(8, 'Password must be at least 8 characters')
-      .max(20, 'Password cannot exceed 20 characters'),
+    password: z.string({
+      required_error: 'Password is required',
+    }),
   }),
 });
 
@@ -36,7 +33,20 @@ export const changePasswordValidationSchema = z.object({
         .string({
           required_error: 'New password is required',
         })
-        .min(8, 'New password must be at least 8 characters'),
+        .min(8, 'New Password must be at least 8 characters')
+        .regex(
+          /[a-z]/,
+          'New Password must contain at least one lowercase letter',
+        )
+        .regex(
+          /[A-Z]/,
+          'New Password must contain at least one uppercase letter',
+        )
+        .regex(/[0-9]/, 'New Password must contain at least one number')
+        .regex(
+          /[!@#$%^&*]/,
+          'New Password must contain at least one special character',
+        ),
 
       confirmPassword: z.string({
         required_error: 'Confirm password is required',
@@ -65,7 +75,20 @@ export const resetPasswordValidationSchema = z.object({
         .string({
           required_error: 'New password is required',
         })
-        .min(8, 'New password must be at least 8 characters'),
+        .min(8, 'New Password must be at least 8 characters')
+        .regex(
+          /[a-z]/,
+          'New Password must contain at least one lowercase letter',
+        )
+        .regex(
+          /[A-Z]/,
+          'New Password must contain at least one uppercase letter',
+        )
+        .regex(/[0-9]/, 'New Password must contain at least one number')
+        .regex(
+          /[!@#$%^&*]/,
+          'New Password must contain at least one special character',
+        ),
 
       confirmPassword: z.string({
         required_error: 'Confirm password is required',
