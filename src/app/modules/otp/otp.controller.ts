@@ -11,7 +11,7 @@ const handleVerifyOtp = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: 200,
     success: true,
-    message: 'Otp verified successfully',
+    message: 'Account verified successfully',
     data: result,
   });
 });

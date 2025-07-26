@@ -157,7 +157,7 @@ const changePassword = async (
   return null;
 };
 
-const forgetPassword = async (email: string) => {
+const forgotPassword = async (email: string) => {
   const user = await User.isUserExistsByEmail(email);
 
   if (!user) {
@@ -181,7 +181,7 @@ const forgetPassword = async (email: string) => {
     image: user?.image,
   };
 
-  const token = createToken(
+  const accessToken = createToken(
     jwtPayload,
     config.jwt_access_secret as string,
     '2m',
@@ -189,12 +189,13 @@ const forgetPassword = async (email: string) => {
 
   const currentTime = new Date();
   const otp = generateOtp();
-  const expiresAt = moment(currentTime).add(2, 'minute');
+  const expiresAt = moment(currentTime).add(5, 'minute');
   await User.findByIdAndUpdate(user?._id, {
     verification: {
       otp,
       expiresAt,
       status: true,
+      isPasswordReset: true,
     },
   });
 
@@ -230,7 +231,7 @@ const forgetPassword = async (email: string) => {
   `,
   );
 
-  return { email, token };
+  return { email, accessToken };
 };
 
 const resetPassword = async (token: string, payload: TResetPassword) => {
@@ -288,6 +289,6 @@ export const AuthServices = {
   loginUser,
   refreshToken,
   changePassword,
-  forgetPassword,
+  forgotPassword,
   resetPassword,
 };

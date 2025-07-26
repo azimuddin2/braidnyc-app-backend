@@ -10,6 +10,8 @@ const handleLoginUser = catchAsync(async (req, res) => {
   res.cookie('refreshToken', refreshToken, {
     secure: config.NODE_ENV === 'production',
     httpOnly: true,
+    sameSite: 'none',
+    maxAge: 1000 * 60 * 60 * 24 * 365,
   });
 
   sendResponse(res, {
@@ -43,9 +45,9 @@ const handleChangePassword = catchAsync(async (req, res) => {
   });
 });
 
-const handleForgetPassword = catchAsync(async (req, res) => {
+const handleForgotPassword = catchAsync(async (req, res) => {
   const email = req.body.email;
-  const result = await AuthServices.forgetPassword(email);
+  const result = await AuthServices.forgotPassword(email);
 
   sendResponse(res, {
     statusCode: 200,
@@ -71,6 +73,6 @@ export const AuthControllers = {
   handleLoginUser,
   handleRefreshToken,
   handleChangePassword,
-  handleForgetPassword,
+  handleForgotPassword,
   handleResetPassword,
 };

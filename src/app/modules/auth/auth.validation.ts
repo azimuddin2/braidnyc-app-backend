@@ -58,7 +58,7 @@ export const changePasswordValidationSchema = z.object({
     }),
 });
 
-const forgetPasswordValidationSchema = z.object({
+const forgotPasswordValidationSchema = z.object({
   body: z.object({
     email: z
       .string({
@@ -104,6 +104,6 @@ export const AuthValidations = {
   loginValidationSchema,
   refreshTokenValidationSchema,
   changePasswordValidationSchema,
-  forgetPasswordValidationSchema,
+  forgotPasswordValidationSchema,
   resetPasswordValidationSchema,
 };

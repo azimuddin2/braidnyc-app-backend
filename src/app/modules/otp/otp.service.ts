@@ -35,12 +35,12 @@ const verifyOtp = async (token: string, otp: TVerifyOtp) => {
 
   const verifyExpiresAt = user?.verification?.expiresAt;
   if (new Date() > verifyExpiresAt) {
-    throw new AppError(400, 'otp has expired. Please resend it');
+    throw new AppError(400, 'Otp has expired. Please resend it');
   }
 
   const verifyOtpCode = Number(user?.verification?.otp);
   if (Number(otp) !== verifyOtpCode) {
-    throw new AppError(400, 'otp did not match');
+    throw new AppError(400, 'Otp did not match');
   }
 
   const updateUser = await User.findByIdAndUpdate(
