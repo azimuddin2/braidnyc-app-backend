@@ -13,7 +13,7 @@ export const uploadToS3 = async ({
   file,
   fileName,
 }: {
-  file: any;
+  file: Express.Multer.File;
   fileName: string;
 }): Promise<string | null> => {
   const s3Client = getS3Client();
@@ -58,7 +58,7 @@ export const deleteFromS3 = async (key: string): Promise<void> => {
 // Upload multiple files to S3
 export const uploadManyToS3 = async (
   files: {
-    file: any;
+    file: Express.Multer.File;
     path: string;
     key?: string;
     extension?: string;
@@ -116,7 +116,7 @@ export const deleteManyFromS3 = async (keys: string[]): Promise<void> => {
 
 // Upload a file with progress tracking
 export const uploadWithProgress = async (
-  { file, fileName }: { file: any; fileName: string },
+  { file, fileName }: { file: Express.Multer.File; fileName: string },
   onProgress: (progress: number) => void,
 ): Promise<string> => {
   const s3Client = getS3Client();
