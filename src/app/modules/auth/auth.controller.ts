@@ -64,7 +64,7 @@ const handleResetPassword = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: 200,
     success: true,
-    message: 'Password changed successfully',
+    message: 'Your password has been updated successfully.',
     data: result,
   });
 });
