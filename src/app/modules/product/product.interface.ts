@@ -1,3 +1,8 @@
+export type TProductImage = {
+  url: string;
+  key: string;
+};
+
 export type TProductStatus =
   | 'Available'
   | 'Out of Stock'
@@ -6,10 +11,7 @@ export type TProductStatus =
 
 export type TProduct = {
   name: string;
-  images: {
-    url: string;
-    key: string;
-  }[];
+  images: TProductImage[];
   productType: string;
   quantity: number;
   price: number;
