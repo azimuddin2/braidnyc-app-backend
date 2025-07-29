@@ -27,21 +27,11 @@ const multyUploader = async (
         const upload = await uploadManyToS3([{ file, path }]);
         console.log(upload);
         return;
-        // uploadedUrls.push(...upload);
       }
     }
 
-    // ✅ Validate combined data
-    // const validatedData = await ProductValidations.createProductValidationSchema.parseAsync({
-    //   ...parsedData,
-    //   profilePictures: uploadedUrls,      // now supports array of images
-    //   profilePicturePaths: imagePaths,    // keep track of original paths
-    // });
-
     console.log({ ...parsedData, uploadedUrls, imagePaths });
 
-    return;
-    req.body = { ...parsedData, uploadedUrls, imagePaths };
     next();
   } catch (error) {
     next(error);

@@ -3,21 +3,18 @@ import {
   DeleteObjectsCommand,
   PutObjectCommand,
 } from '@aws-sdk/client-s3';
-import { Upload } from '@aws-sdk/lib-storage';
-import AppError from '../errors/AppError';
 import config from '../config';
-import { getS3Client } from '../constant/aws';
+import { s3Client } from '../constant/aws';
+import AppError from '../errors/AppError';
 
-// Upload a single file to S3
+//upload a single file
 export const uploadToS3 = async ({
   file,
   fileName,
 }: {
-  file: Express.Multer.File;
+  file: any;
   fileName: string;
 }): Promise<string | null> => {
-  const s3Client = getS3Client();
-
   const command = new PutObjectCommand({
     Bucket: config.aws_bucket,
     Key: fileName,
@@ -26,36 +23,37 @@ export const uploadToS3 = async ({
   });
 
   try {
-    const result = await s3Client.send(command);
-
-    if (!result) {
-      throw new AppError(400, 'File upload failed');
+    const key = await s3Client.send(command);
+    if (!key) {
+      throw new AppError(400, 'File Upload failed');
     }
 
-    return `https://${config.aws_bucket}.s3.${config.aws_region}.amazonaws.com/${fileName}`;
+    const url = `https://${config.aws_bucket}.s3.${config.aws_region}.amazonaws.com/${fileName}`;
+
+    return url;
   } catch (error) {
-    console.error('uploadToS3 error:', error);
-    throw new AppError(400, 'File upload failed');
+    throw new AppError(400, 'File Upload failed');
   }
 };
 
-// Delete a single file from S3
-export const deleteFromS3 = async (key: string): Promise<void> => {
-  const s3Client = getS3Client();
-
+// delete file from s3 bucket
+export const deleteFromS3 = async (url: string) => {
   try {
+    const urlObj = new URL(url);
+    const key = urlObj?.pathname;
+    console.log(key);
     const command = new DeleteObjectCommand({
       Bucket: config.aws_bucket,
       Key: key,
     });
     await s3Client.send(command);
   } catch (error) {
-    console.error('deleteFromS3 error:', error);
-    throw new AppError(400, 'S3 file delete failed');
+    console.log('🚀 ~ deleteFromS3 ~ error:', error);
+    throw new Error('s3 file delete failed');
   }
 };
 
-// Upload multiple files to S3
+// upload multiple files
 export const uploadManyToS3 = async (
   files: {
     file: Express.Multer.File;
@@ -64,86 +62,53 @@ export const uploadManyToS3 = async (
     extension?: string;
   }[],
 ): Promise<{ url: string; key: string }[]> => {
-  const s3Client = getS3Client();
-
   try {
-    const uploadPromises = files.map(async ({ file, path, key, extension }) => {
-      const uniqueKey =
-        key || `${Math.floor(100000 + Math.random() * 900000)}${Date.now()}`;
-      const fileKey = `${path}/${uniqueKey}.${extension}`;
+    const uploadPromises = files.map(async ({ file, path, key }) => {
+      const newFileName = key
+        ? key
+        : `${Math.floor(100000 + Math.random() * 900000)}${Date.now()}`;
 
+      const fileKey = `${path}/${newFileName}`;
       const command = new PutObjectCommand({
-        Bucket: config.aws_bucket,
+        Bucket: config.aws_bucket as string,
         Key: fileKey,
-        Body: file.buffer,
-        ContentType: file.mimetype,
+        Body: file?.buffer,
       });
 
       await s3Client.send(command);
 
-      return {
-        url: `https://${config.aws_bucket}.s3.${config.aws_region}.amazonaws.com/${fileKey}`,
-        key: uniqueKey,
-      };
+      const url = `https://${config.aws_bucket}.s3.${config.aws_region}.amazonaws.com/${fileKey}`;
+      return { url, key: newFileName };
     });
 
-    return await Promise.all(uploadPromises);
+    const uploadedUrls = await Promise.all(uploadPromises);
+    return uploadedUrls;
   } catch (error) {
-    console.error('uploadManyToS3 error:', error);
-    throw new AppError(400, 'Multiple file upload failed');
+    throw new Error('File Upload failed');
   }
 };
 
-// Delete multiple files from S3
-export const deleteManyFromS3 = async (keys: string[]): Promise<void> => {
-  const s3Client = getS3Client();
-
+export const deleteManyFromS3 = async (keys: string[]) => {
+  const Objects = keys.map((key) => {
+    const urlObj = new URL(key);
+    return { Key: urlObj?.pathname };
+  });
   try {
-    const command = new DeleteObjectsCommand({
+    const deleteParams = {
       Bucket: config.aws_bucket,
       Delete: {
-        Objects: keys.map((key) => ({ Key: key })),
+        Objects,
         Quiet: false,
       },
-    });
+    };
 
-    await s3Client.send(command);
+    const command = new DeleteObjectsCommand(deleteParams);
+
+    const response = await s3Client.send(command);
+
+    return response;
   } catch (error) {
-    console.error('deleteManyFromS3 error:', error);
-    throw new AppError(400, 'Multiple S3 file delete failed');
-  }
-};
-
-// Upload a file with progress tracking
-export const uploadWithProgress = async (
-  { file, fileName }: { file: Express.Multer.File; fileName: string },
-  onProgress: (progress: number) => void,
-): Promise<string> => {
-  const s3Client = getS3Client();
-
-  try {
-    const upload = new Upload({
-      client: s3Client,
-      params: {
-        Bucket: config.aws_bucket,
-        Key: fileName,
-        Body: file.buffer,
-        ContentType: file.mimetype,
-      },
-    });
-
-    upload.on('httpUploadProgress', (progress) => {
-      if (progress.total && progress.loaded) {
-        const percentage = Math.round((progress.loaded / progress.total) * 100);
-        onProgress(percentage);
-      }
-    });
-
-    await upload.done();
-
-    return `https://${config.aws_bucket}.s3.${config.aws_region}.amazonaws.com/${fileName}`;
-  } catch (error) {
-    console.error('uploadWithProgress error:', error);
-    throw new AppError(400, 'File upload with progress failed');
+    console.error('Error deleting S3 files:', error);
+    throw new AppError(400, 'S3 file delete failed');
   }
 };

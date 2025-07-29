@@ -7,10 +7,14 @@ const productSchema = new Schema<TProduct>(
     name: {
       type: String,
       required: true,
-      trim: true,
     },
-    imageUrls: {
-      type: [String],
+    images: {
+      type: [
+        {
+          url: { type: String, required: true },
+          key: { type: String, required: true },
+        },
+      ],
       required: true,
     },
     productType: {
@@ -27,7 +31,7 @@ const productSchema = new Schema<TProduct>(
       required: true,
       min: 0,
     },
-    discount: {
+    discountPrice: {
       type: Number,
       default: null,
       min: 0,
