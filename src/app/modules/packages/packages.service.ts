@@ -122,13 +122,13 @@ const updatePackagesIntoDB = async (
       new: true,
     });
     if (!result) {
-      throw new AppError(400, 'Product update failed');
+      throw new AppError(400, 'Service update failed');
     }
 
     return result;
   } catch (error: any) {
     console.log(error);
-    throw new AppError(500, 'Product update failed');
+    throw new AppError(500, 'Service update failed');
   }
 };
 
@@ -145,7 +145,7 @@ const deletePackagesFromDB = async (id: string) => {
     { new: true },
   );
   if (!result) {
-    throw new AppError(400, 'Failed to delete products');
+    throw new AppError(400, 'Failed to delete service');
   }
 
   return result;

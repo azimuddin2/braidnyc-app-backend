@@ -20,4 +20,6 @@ export type TProduct = {
   size: string; // e.g., "5 ml"
   status: TProductStatus;
   description: string;
+  deleteKey: string[];
+  isDeleted: boolean;
 };

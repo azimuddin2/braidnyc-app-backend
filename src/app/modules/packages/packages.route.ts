@@ -3,6 +3,8 @@ import multer, { memoryStorage } from 'multer';
 import parseData from '../../middlewares/parseData';
 import auth from '../../middlewares/auth';
 import { PackagesControllers } from './packages.controller';
+import validateRequest from '../../middlewares/validateRequest';
+import { PackagesValidations } from './packages.validation';
 
 const router = express.Router();
 const upload = multer({ storage: memoryStorage() });
@@ -12,6 +14,7 @@ router.post(
   auth('service_provider'),
   upload.fields([{ name: 'images', maxCount: 10 }]),
   parseData(),
+  validateRequest(PackagesValidations.createPackagesValidationSchema),
   PackagesControllers.createPackages,
 );
 
@@ -23,6 +26,7 @@ router.patch(
   auth('service_provider'),
   upload.fields([{ name: 'images', maxCount: 10 }]),
   parseData(),
+  validateRequest(PackagesValidations.updatePackagesValidationSchema),
   PackagesControllers.updatePackages,
 );
 

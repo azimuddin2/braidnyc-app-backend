@@ -1,12 +1,5 @@
 import { z } from 'zod';
 
-const imageSchema = z.object({
-  url: z
-    .string({ required_error: 'Image URL is required' })
-    .url({ message: 'Invalid image URL' }),
-  key: z.string({ required_error: 'Image key is required' }),
-});
-
 const timeSlotSchema = z.object({
   date: z.string({ required_error: 'Date is required' }),
   day: z.string({ required_error: 'Day is required' }),
@@ -33,9 +26,6 @@ const createPackagesValidationSchema = z.object({
     discountPrice: z.number().optional(),
     status: z.enum(['available', 'unavailable']).optional(),
     description: z.string().optional(),
-    images: z
-      .array(imageSchema, { required_error: 'Images are required' })
-      .min(1, 'At least one image is required'),
 
     weeklySchedule: z
       .array(timeSlotSchema, { required_error: 'Weekly schedule is required' })

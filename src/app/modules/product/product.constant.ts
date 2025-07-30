@@ -6,3 +6,5 @@ export const ProductStatus: TProductStatus[] = [
   'TBC',
   'Discontinued',
 ];
+
+export const productSearchableFields = ['name'];
