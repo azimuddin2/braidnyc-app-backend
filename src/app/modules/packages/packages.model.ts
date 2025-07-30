@@ -1,4 +1,5 @@
 import { Schema, model } from 'mongoose';
+import { TPackages } from './packages.interface';
 
 const imageSchema = new Schema(
   {
@@ -31,7 +32,7 @@ const holidaySlotSchema = new Schema(
   { _id: false },
 );
 
-const serviceSchema = new Schema(
+const packagesSchema = new Schema<TPackages>(
   {
     name: { type: String, required: true },
     serviceType: { type: String, required: true },
@@ -63,4 +64,4 @@ const serviceSchema = new Schema(
   { timestamps: true },
 );
 
-export const Service = model('Service', serviceSchema);
+export const Packages = model('Packages', packagesSchema);

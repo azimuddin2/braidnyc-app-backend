@@ -24,7 +24,7 @@ const holidaySlotSchema = z.object({
   isClosed: z.boolean().optional(),
 });
 
-const createServiceValidationSchema = z.object({
+const createPackagesValidationSchema = z.object({
   body: z.object({
     name: z.string({ required_error: 'Service name is required' }),
     serviceType: z.string({ required_error: 'Service type is required' }),
@@ -45,6 +45,6 @@ const createServiceValidationSchema = z.object({
   }),
 });
 
-export const ServiceValidations = {
-  createServiceValidationSchema,
+export const PackagesValidations = {
+  createPackagesValidationSchema,
 };

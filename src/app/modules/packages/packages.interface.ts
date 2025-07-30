@@ -20,7 +20,7 @@ export type THolidaySlot = {
   isClosed?: boolean;
 };
 
-export type TService = {
+export type TPackages = {
   _id?: string;
   name: string;
   serviceType: string;
