@@ -15,4 +15,15 @@ router.post(
   PackagesControllers.createPackages,
 );
 
+router.get('/', PackagesControllers.getAllPackages);
+router.get('/:id', PackagesControllers.getPackagesById);
+
+router.patch(
+  '/:id',
+  // auth('service_provider'),
+  upload.fields([{ name: 'images', maxCount: 10 }]),
+  parseData(),
+  PackagesControllers.updatePackages,
+);
+
 export const PackagesRoutes = router;

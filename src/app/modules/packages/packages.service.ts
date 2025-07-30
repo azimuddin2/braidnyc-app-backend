@@ -1,26 +1,30 @@
+import QueryBuilder from '../../builder/QueryBuilder';
 import AppError from '../../errors/AppError';
 import { UploadedFiles } from '../../interface/common.interface';
-import { uploadManyToS3 } from '../../utils/awsS3FileUploader';
+import {
+  deleteManyFromS3,
+  uploadManyToS3,
+} from '../../utils/awsS3FileUploader';
+import { packageSearchableFields } from './packages.constant';
 import { TPackages } from './packages.interface';
 import { Packages } from './packages.model';
 
 const createPackagesIntoDB = async (payload: TPackages, files: any) => {
+  // Handle image upload to S3
   if (files) {
     const { images } = files as UploadedFiles;
 
-    if (images) {
+    if (images?.length) {
       const imgsArray = images.map((image) => ({
         file: image,
-        path: `images/services/images`,
+        path: `images/service`,
       }));
 
-      const uploaded = await uploadManyToS3(imgsArray);
-
-      // ✅ Assign url and key
-      payload.images = uploaded.map((item) => ({
-        url: item.url,
-        key: item.key,
-      }));
+      try {
+        payload.images = await uploadManyToS3(imgsArray); // Await all uploads before proceeding
+      } catch (error) {
+        throw new AppError(500, 'Image upload failed');
+      }
     }
   }
 
@@ -32,6 +36,105 @@ const createPackagesIntoDB = async (payload: TPackages, files: any) => {
   return result;
 };
 
+const getAllPackagesFromDB = async (query: Record<string, unknown>) => {
+  const packagesQuery = new QueryBuilder(Packages.find(), query)
+    .search(packageSearchableFields)
+    .filter()
+    .sort()
+    .paginate()
+    .fields();
+
+  const meta = await packagesQuery.countTotal();
+  const result = await packagesQuery.modelQuery;
+
+  return { meta, result };
+};
+
+const getPackagesByIdFromDB = async (id: string) => {
+  const result = await Packages.findById(id);
+
+  if (!result) {
+    throw new AppError(404, 'This service not found');
+  }
+
+  return result;
+};
+
+const updatePackagesIntoDB = async (
+  id: string,
+  payload: Partial<TPackages>,
+  files: any,
+) => {
+  const { deleteKey, ...updateData } = payload; // color isn't used, so removed it
+
+  // Handle image upload to S3
+  if (files) {
+    const { images } = files as UploadedFiles;
+
+    if (images?.length) {
+      const imgsArray = images.map((image) => ({
+        file: image,
+        path: `images/service`,
+      }));
+
+      try {
+        payload.images = await uploadManyToS3(imgsArray); // Await all uploads before proceeding
+      } catch (error) {
+        throw new AppError(500, 'Image upload failed');
+      }
+    }
+  }
+
+  // Handle image deletions (if any)
+  if (deleteKey && deleteKey.length > 0) {
+    const newKey = deleteKey.map((key: any) => `images/service/${key}`);
+
+    if (newKey.length > 0) {
+      await deleteManyFromS3(newKey); // Delete images from S3
+      // Remove deleted images from the product
+      await Packages.findByIdAndUpdate(
+        id,
+        {
+          $pull: { images: { key: { $in: deleteKey } } },
+        },
+        { new: true },
+      );
+    }
+  }
+
+  // If new images are provided, push them to the product
+  if (payload?.images && payload.images.length > 0) {
+    try {
+      await Packages.findByIdAndUpdate(
+        id,
+        { $addToSet: { images: { $each: payload.images } } }, // Push new images to the product
+        { new: true },
+      );
+      delete payload.images; // Remove images from the payload after pushing
+    } catch (error) {
+      throw new AppError(400, 'Failed to update images');
+    }
+  }
+
+  // Update other product details
+  try {
+    const result = await Packages.findByIdAndUpdate(id, updateData, {
+      new: true,
+    });
+    if (!result) {
+      throw new AppError(400, 'Product update failed');
+    }
+
+    return result;
+  } catch (error: any) {
+    console.log(error);
+    throw new AppError(500, 'Product update failed');
+  }
+};
+
 export const PackagesServices = {
   createPackagesIntoDB,
+  getAllPackagesFromDB,
+  getPackagesByIdFromDB,
+  updatePackagesIntoDB,
 };

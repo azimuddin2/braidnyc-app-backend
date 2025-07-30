@@ -11,7 +11,7 @@ const createProductIntoDB = async (payload: TProduct, files: any) => {
     if (images) {
       const imgsArray = images.map((image) => ({
         file: image,
-        path: `images/products/images`,
+        path: `images/product`,
       }));
 
       const uploaded = await uploadManyToS3(imgsArray);

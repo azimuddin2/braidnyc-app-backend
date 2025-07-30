@@ -21,6 +21,7 @@ export type THolidaySlot = {
 };
 
 export type TPackages = {
+  deleteKey: string[];
   _id?: string;
   name: string;
   serviceType: string;
