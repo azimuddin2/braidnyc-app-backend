@@ -36,6 +36,7 @@ export type TPackages = {
   weeklySchedule: TTimeSlot[];
   holidaySlots?: THolidaySlot[];
 
+  isDeleted: boolean;
   createdAt?: string;
   updatedAt?: string;
 };

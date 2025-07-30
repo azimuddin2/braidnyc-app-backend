@@ -132,9 +132,29 @@ const updatePackagesIntoDB = async (
   }
 };
 
+const deletePackagesFromDB = async (id: string) => {
+  const isPackagesExists = await Packages.findById(id);
+
+  if (!isPackagesExists) {
+    throw new AppError(404, 'This service is not found');
+  }
+
+  const result = await Packages.findByIdAndUpdate(
+    id,
+    { isDeleted: true },
+    { new: true },
+  );
+  if (!result) {
+    throw new AppError(400, 'Failed to delete products');
+  }
+
+  return result;
+};
+
 export const PackagesServices = {
   createPackagesIntoDB,
   getAllPackagesFromDB,
   getPackagesByIdFromDB,
   updatePackagesIntoDB,
+  deletePackagesFromDB,
 };

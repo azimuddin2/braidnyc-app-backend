@@ -60,6 +60,11 @@ const packagesSchema = new Schema<TPackages>(
       type: [holidaySlotSchema],
       default: [],
     },
+
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true },
 );

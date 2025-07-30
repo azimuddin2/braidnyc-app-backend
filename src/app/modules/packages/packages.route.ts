@@ -9,7 +9,7 @@ const upload = multer({ storage: memoryStorage() });
 
 router.post(
   '/',
-  // auth('service_provider'),
+  auth('service_provider'),
   upload.fields([{ name: 'images', maxCount: 10 }]),
   parseData(),
   PackagesControllers.createPackages,
@@ -20,10 +20,12 @@ router.get('/:id', PackagesControllers.getPackagesById);
 
 router.patch(
   '/:id',
-  // auth('service_provider'),
+  auth('service_provider'),
   upload.fields([{ name: 'images', maxCount: 10 }]),
   parseData(),
   PackagesControllers.updatePackages,
 );
+
+router.delete('/:id', PackagesControllers.deletePackages);
 
 export const PackagesRoutes = router;
