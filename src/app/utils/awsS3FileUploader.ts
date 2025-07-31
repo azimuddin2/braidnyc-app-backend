@@ -88,6 +88,7 @@ export const uploadManyToS3 = async (
   }
 };
 
+// delete multiple files
 export const deleteManyFromS3 = async (keys: string[]) => {
   try {
     const rawObjects = keys.map((key) => {

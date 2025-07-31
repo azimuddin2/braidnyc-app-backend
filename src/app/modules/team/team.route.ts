@@ -18,4 +18,23 @@ router.post(
   TeamControllers.createTeamMember,
 );
 
+router.get('/', auth('vendor', 'admin'), TeamControllers.getAllTeamMember);
+
+router.get('/:id', auth('vendor', 'admin'), TeamControllers.getTeamMemberById);
+
+router.patch(
+  '/:id',
+  auth('vendor'),
+  upload.single('image'),
+  parseData(),
+  validateRequest(TeamValidations.updateTeamMemberValidationSchema),
+  TeamControllers.updateTeamMember,
+);
+
+router.delete(
+  '/:id',
+  auth('vendor', 'admin'),
+  TeamControllers.deleteTeamMember,
+);
+
 export const TeamRoutes = router;
