@@ -2,6 +2,10 @@ import { z } from 'zod';
 
 const createTeamMemberValidationSchema = z.object({
   body: z.object({
+    user: z.string({
+      required_error: 'User Id is required',
+    }),
+
     name: z.string({
       required_error: 'Name is required',
     }),
@@ -42,6 +46,12 @@ const createTeamMemberValidationSchema = z.object({
 
 const updateTeamMemberValidationSchema = z.object({
   body: z.object({
+    user: z
+      .string({
+        required_error: 'User Id is required',
+      })
+      .optional(),
+
     name: z
       .string({
         required_error: 'Name is required',

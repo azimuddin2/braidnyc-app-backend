@@ -27,7 +27,10 @@ const createTeamMemberIntoDB = async (payload: TTeam, file: any) => {
 const getAllTeamMemberFromDB = async (query: Record<string, unknown>) => {
   const baseQuery = { ...query, isDeleted: false };
 
-  const teamMemberQuery = new QueryBuilder(Team.find(baseQuery), baseQuery)
+  const teamMemberQuery = new QueryBuilder(
+    Team.find(baseQuery).populate('user'),
+    baseQuery,
+  )
     .search(teamMemberSearchableFields)
     .filter()
     .sort()
@@ -41,7 +44,7 @@ const getAllTeamMemberFromDB = async (query: Record<string, unknown>) => {
 };
 
 const getTeamMemberByIdFromDB = async (id: string) => {
-  const result = await Team.findById(id);
+  const result = await Team.findById(id).populate('user');
 
   if (!result) {
     throw new AppError(404, 'This team member not found');
