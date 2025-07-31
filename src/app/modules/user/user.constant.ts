@@ -1,12 +1,12 @@
 import { TRole, TStatus } from './user.interface';
 
 export const USER_ROLE = {
-  service_provider: 'service_provider',
+  vendor: 'vendor',
   user: 'user',
   admin: 'admin',
 } as const;
 
-export const UserRole: TRole[] = ['service_provider', 'user', 'admin'];
+export const UserRole: TRole[] = ['vendor', 'user', 'admin'];
 
 export const UserStatus: TStatus[] = ['ongoing', 'confirmed', 'blocked'];
 

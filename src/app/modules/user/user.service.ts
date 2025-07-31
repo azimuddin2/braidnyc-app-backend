@@ -137,7 +137,7 @@ export const vendorRegisterUserIntoDB = async (payload: TVendor) => {
 
     const userData = {
       ...payload,
-      role: 'service_provider',
+      role: 'vendor',
       isVerified: false,
       verification: {
         otp,

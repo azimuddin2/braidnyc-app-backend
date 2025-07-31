@@ -9,4 +9,5 @@ export type TTeam = {
   workHours: string;
   assignTask: string[];
   phone: string;
+  isDeleted: boolean;
 };
