@@ -36,7 +36,9 @@ const createProductIntoDB = async (payload: TProduct, files: any) => {
 };
 
 const getAllProductFromDB = async (query: Record<string, unknown>) => {
-  const productQuery = new QueryBuilder(Product.find(), query)
+  const baseQuery = { ...query, isDeleted: false };
+
+  const productQuery = new QueryBuilder(Product.find(baseQuery), baseQuery)
     .search(productSearchableFields)
     .filter()
     .sort()
@@ -64,6 +66,12 @@ const updateProductIntoDB = async (
   payload: Partial<TProduct>,
   files: any,
 ) => {
+  const isProductExists = await Product.findById(id);
+
+  if (!isProductExists) {
+    throw new AppError(404, 'This product not found');
+  }
+
   const { deleteKey, ...updateData } = payload; // color isn't used, so removed it
 
   // Handle image upload to S3
@@ -86,7 +94,7 @@ const updateProductIntoDB = async (
 
   // Handle image deletions (if any)
   if (deleteKey && deleteKey.length > 0) {
-    const newKey = deleteKey.map((key: any) => `images/product/${key}`);
+    const newKey = deleteKey?.map((key: any) => `images/product/${key}`);
 
     if (newKey.length > 0) {
       await deleteManyFromS3(newKey); // Delete images from S3

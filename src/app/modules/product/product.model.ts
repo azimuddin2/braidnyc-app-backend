@@ -2,6 +2,14 @@ import { model, Schema } from 'mongoose';
 import { TProduct } from './product.interface';
 import { ProductStatus } from './product.constant';
 
+const imageSchema = new Schema(
+  {
+    url: { type: String, required: true },
+    key: { type: String, required: true },
+  },
+  { _id: false },
+);
+
 const productSchema = new Schema<TProduct>(
   {
     name: {
@@ -9,12 +17,7 @@ const productSchema = new Schema<TProduct>(
       required: true,
     },
     images: {
-      type: [
-        {
-          url: { type: String, required: true },
-          key: { type: String, required: true },
-        },
-      ],
+      type: [imageSchema],
       required: true,
     },
     productType: {

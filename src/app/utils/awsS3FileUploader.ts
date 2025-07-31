@@ -63,7 +63,7 @@ export const uploadManyToS3 = async (
   }[],
 ): Promise<{ url: string; key: string }[]> => {
   try {
-    const uploadPromises = files.map(async ({ file, path, key }) => {
+    const uploadPromises = files?.map(async ({ file, path, key }) => {
       const newFileName = key
         ? key
         : `${Math.floor(100000 + Math.random() * 900000)}${Date.now()}`;
@@ -89,11 +89,31 @@ export const uploadManyToS3 = async (
 };
 
 export const deleteManyFromS3 = async (keys: string[]) => {
-  const Objects = keys.map((key) => {
-    const urlObj = new URL(key);
-    return { Key: urlObj?.pathname };
-  });
   try {
+    const rawObjects = keys.map((key) => {
+      try {
+        if (key.startsWith('http://') || key.startsWith('https://')) {
+          const urlObj = new URL(key);
+          const fileKey = urlObj.pathname.startsWith('/')
+            ? urlObj.pathname.slice(1)
+            : urlObj.pathname;
+          return { Key: fileKey };
+        }
+        return { Key: key };
+      } catch (err) {
+        console.warn(`Invalid key or URL skipped: ${key}`);
+        return null;
+      }
+    });
+
+    const Objects: { Key: string }[] = rawObjects.filter(
+      (obj): obj is { Key: string } => obj !== null,
+    );
+
+    if (!Objects.length) {
+      throw new AppError(400, 'No valid S3 keys to delete');
+    }
+
     const deleteParams = {
       Bucket: config.aws_bucket,
       Delete: {
@@ -103,7 +123,6 @@ export const deleteManyFromS3 = async (keys: string[]) => {
     };
 
     const command = new DeleteObjectsCommand(deleteParams);
-
     const response = await s3Client.send(command);
 
     return response;

@@ -37,7 +37,9 @@ const createPackagesIntoDB = async (payload: TPackages, files: any) => {
 };
 
 const getAllPackagesFromDB = async (query: Record<string, unknown>) => {
-  const packagesQuery = new QueryBuilder(Packages.find(), query)
+  const baseQuery = { ...query, isDeleted: false };
+
+  const packagesQuery = new QueryBuilder(Packages.find(baseQuery), baseQuery)
     .search(packageSearchableFields)
     .filter()
     .sort()
@@ -65,6 +67,12 @@ const updatePackagesIntoDB = async (
   payload: Partial<TPackages>,
   files: any,
 ) => {
+  const isPackagesExists = await Packages.findById(id);
+
+  if (!isPackagesExists) {
+    throw new AppError(404, 'This service is not found');
+  }
+
   const { deleteKey, ...updateData } = payload; // color isn't used, so removed it
 
   // Handle image upload to S3
