@@ -32,7 +32,7 @@ router.patch(
 
 router.delete(
   '/:id',
-  // auth('service_provider', 'admin'),
+  auth('service_provider', 'admin'),
   ProductControllers.deleteProduct,
 );
 

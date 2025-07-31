@@ -4,6 +4,7 @@ import { AuthRoutes } from '../modules/auth/auth.route';
 import { OtpRoutes } from '../modules/otp/otp.route';
 import { ProductRoutes } from '../modules/product/product.route';
 import { PackagesRoutes } from '../modules/packages/packages.route';
+import { TeamRoutes } from '../modules/team/team.route';
 
 const router = Router();
 
@@ -27,6 +28,10 @@ const moduleRoutes = [
   {
     path: '/services',
     route: PackagesRoutes,
+  },
+  {
+    path: '/teams',
+    route: TeamRoutes,
   },
 ];
 
