@@ -5,7 +5,7 @@ const teamSchema = new Schema<TTeam>(
   {
     user: {
       type: Schema.Types.ObjectId,
-      required: true,
+      required: [true, 'User Id is required'],
       ref: 'User',
     },
     name: {

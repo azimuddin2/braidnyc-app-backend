@@ -12,6 +12,11 @@ const imageSchema = new Schema(
 
 const productSchema = new Schema<TProduct>(
   {
+    user: {
+      type: Schema.Types.ObjectId,
+      required: [true, 'User Id is required'],
+      ref: 'User',
+    },
     name: {
       type: String,
       required: true,

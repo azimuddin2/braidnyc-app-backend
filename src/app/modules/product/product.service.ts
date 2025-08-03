@@ -38,21 +38,29 @@ const createProductIntoDB = async (payload: TProduct, files: any) => {
 const getAllProductFromDB = async (query: Record<string, unknown>) => {
   const baseQuery = { ...query, isDeleted: false };
 
-  const productQuery = new QueryBuilder(Product.find(baseQuery), baseQuery)
+  const queryBuilder = new QueryBuilder(
+    Product.find().populate('user'),
+    baseQuery,
+  )
     .search(productSearchableFields)
     .filter()
     .sort()
     .paginate()
     .fields();
 
-  const meta = await productQuery.countTotal();
-  const result = await productQuery.modelQuery;
+  // Apply merged filters to the query only once
+  queryBuilder.modelQuery = queryBuilder.modelQuery.find(
+    queryBuilder.finalFilter,
+  );
+
+  const meta = await queryBuilder.countTotal();
+  const result = await queryBuilder.modelQuery;
 
   return { meta, result };
 };
 
 const getProductByIdFromDB = async (id: string) => {
-  const result = await Product.findById(id);
+  const result = await Product.findById(id).populate('user');
 
   if (!result) {
     throw new AppError(404, 'This service not found');

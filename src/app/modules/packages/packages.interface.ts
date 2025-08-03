@@ -1,3 +1,5 @@
+import { Types } from 'mongoose';
+
 export type TImage = {
   url: string;
   key: string;
@@ -21,6 +23,7 @@ export type THolidaySlot = {
 };
 
 export type TPackages = {
+  user: Types.ObjectId;
   deleteKey: string[];
   _id?: string;
   name: string;

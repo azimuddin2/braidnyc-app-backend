@@ -27,18 +27,20 @@ const createTeamMemberIntoDB = async (payload: TTeam, file: any) => {
 const getAllTeamMemberFromDB = async (query: Record<string, unknown>) => {
   const baseQuery = { ...query, isDeleted: false };
 
-  const teamMemberQuery = new QueryBuilder(
-    Team.find(baseQuery).populate('user'),
-    baseQuery,
-  )
+  const queryBuilder = new QueryBuilder(Team.find().populate('user'), baseQuery)
     .search(teamMemberSearchableFields)
     .filter()
     .sort()
     .paginate()
     .fields();
 
-  const meta = await teamMemberQuery.countTotal();
-  const result = await teamMemberQuery.modelQuery;
+  // Apply merged filters to the query only once
+  queryBuilder.modelQuery = queryBuilder.modelQuery.find(
+    queryBuilder.finalFilter,
+  );
+
+  const meta = await queryBuilder.countTotal();
+  const result = await queryBuilder.modelQuery;
 
   return { meta, result };
 };

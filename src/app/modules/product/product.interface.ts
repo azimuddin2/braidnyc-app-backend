@@ -1,3 +1,5 @@
+import { Types } from 'mongoose';
+
 export type TProductImage = {
   url: string;
   key: string;
@@ -10,6 +12,7 @@ export type TProductStatus =
   | 'Discontinued';
 
 export type TProduct = {
+  user: Types.ObjectId;
   name: string;
   images: TProductImage[];
   productType: string;

@@ -39,21 +39,29 @@ const createPackagesIntoDB = async (payload: TPackages, files: any) => {
 const getAllPackagesFromDB = async (query: Record<string, unknown>) => {
   const baseQuery = { ...query, isDeleted: false };
 
-  const packagesQuery = new QueryBuilder(Packages.find(baseQuery), baseQuery)
+  const queryBuilder = new QueryBuilder(
+    Packages.find().populate('user'),
+    baseQuery,
+  )
     .search(packageSearchableFields)
     .filter()
     .sort()
     .paginate()
     .fields();
 
-  const meta = await packagesQuery.countTotal();
-  const result = await packagesQuery.modelQuery;
+  // Apply merged filters to the query only once
+  queryBuilder.modelQuery = queryBuilder.modelQuery.find(
+    queryBuilder.finalFilter,
+  );
+
+  const meta = await queryBuilder.countTotal();
+  const result = await queryBuilder.modelQuery;
 
   return { meta, result };
 };
 
 const getPackagesByIdFromDB = async (id: string) => {
-  const result = await Packages.findById(id);
+  const result = await Packages.findById(id).populate('user');
 
   if (!result) {
     throw new AppError(404, 'This service not found');

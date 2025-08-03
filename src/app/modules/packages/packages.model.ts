@@ -34,6 +34,11 @@ const holidaySlotSchema = new Schema(
 
 const packagesSchema = new Schema<TPackages>(
   {
+    user: {
+      type: Schema.Types.ObjectId,
+      required: [true, 'User Id is required'],
+      ref: 'User',
+    },
     name: { type: String, required: true },
     serviceType: { type: String, required: true },
     duration: { type: String, required: true },
