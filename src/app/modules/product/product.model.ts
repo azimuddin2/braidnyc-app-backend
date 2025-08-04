@@ -1,6 +1,6 @@
 import { model, Schema } from 'mongoose';
 import { TProduct } from './product.interface';
-import { ProductStatus } from './product.constant';
+import { HighlightStatus, ProductStatus } from './product.constant';
 
 const imageSchema = new Schema(
   {
@@ -60,6 +60,14 @@ const productSchema = new Schema<TProduct>(
         message: '{VALUE} is not valid',
       },
       default: 'Available',
+    },
+    highlightStatus: {
+      type: String,
+      enum: {
+        values: HighlightStatus,
+        message: '{VALUE} is not valid',
+      },
+      default: 'Highlight',
     },
     description: {
       type: String,

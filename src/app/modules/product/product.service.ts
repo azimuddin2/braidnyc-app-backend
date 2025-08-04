@@ -48,11 +48,6 @@ const getAllProductFromDB = async (query: Record<string, unknown>) => {
     .paginate()
     .fields();
 
-  // Apply merged filters to the query only once
-  queryBuilder.modelQuery = queryBuilder.modelQuery.find(
-    queryBuilder.finalFilter,
-  );
-
   const meta = await queryBuilder.countTotal();
   const result = await queryBuilder.modelQuery;
 

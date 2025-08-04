@@ -11,6 +11,8 @@ export type TProductStatus =
   | 'TBC'
   | 'Discontinued';
 
+export type THighlightStatus = 'Highlighted' | 'Highlight';
+
 export type TProduct = {
   user: Types.ObjectId;
   name: string;
@@ -22,6 +24,7 @@ export type TProduct = {
   colors: string[]; // e.g., ["Crimson Red", "Soft Nude"]
   size: string; // e.g., "5 ml"
   status: TProductStatus;
+  highlightStatus: THighlightStatus;
   description: string;
   deleteKey: string[];
   isDeleted: boolean;

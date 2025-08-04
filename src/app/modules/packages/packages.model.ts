@@ -1,5 +1,6 @@
 import { Schema, model } from 'mongoose';
 import { TPackages } from './packages.interface';
+import { HighlightStatus } from './packages.constant';
 
 const imageSchema = new Schema(
   {
@@ -48,6 +49,14 @@ const packagesSchema = new Schema<TPackages>(
       type: String,
       enum: ['available', 'unavailable'],
       default: 'available',
+    },
+    highlightStatus: {
+      type: String,
+      enum: {
+        values: HighlightStatus,
+        message: '{VALUE} is not valid',
+      },
+      default: 'Highlight',
     },
     description: { type: String },
 

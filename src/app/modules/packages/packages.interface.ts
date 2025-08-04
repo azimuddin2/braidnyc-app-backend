@@ -5,6 +5,8 @@ export type TImage = {
   key: string;
 };
 
+export type THighlightStatus = 'Highlighted' | 'Highlight';
+
 export type TTimeSlot = {
   date: string;
   day: string; // e.g., "Monday"
@@ -32,6 +34,7 @@ export type TPackages = {
   price: number;
   discountPrice?: number;
   status?: 'available' | 'unavailable';
+  highlightStatus: THighlightStatus;
   description?: string;
 
   images: TImage[];

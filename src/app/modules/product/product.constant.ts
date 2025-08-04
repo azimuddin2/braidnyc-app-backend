@@ -1,4 +1,4 @@
-import { TProductStatus } from './product.interface';
+import { THighlightStatus, TProductStatus } from './product.interface';
 
 export const ProductStatus: TProductStatus[] = [
   'Available',
@@ -6,5 +6,7 @@ export const ProductStatus: TProductStatus[] = [
   'TBC',
   'Discontinued',
 ];
+
+export const HighlightStatus: THighlightStatus[] = ['Highlight', 'Highlighted'];
 
 export const productSearchableFields = ['name'];
