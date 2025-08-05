@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ProductStatus } from './product.constant';
+import { HighlightStatus, ProductStatus } from './product.constant';
 
 const createProductValidationSchema = z.object({
   body: z.object({
@@ -103,7 +103,21 @@ const updateProductValidationSchema = z.object({
   }),
 });
 
+const updateProductStatusValidationSchema = z.object({
+  body: z.object({
+    status: z.enum([...ProductStatus] as [string, ...string[]]),
+  }),
+});
+
+const updateProductHighlightStatusValidationSchema = z.object({
+  body: z.object({
+    highlightStatus: z.enum([...HighlightStatus] as [string, ...string[]]),
+  }),
+});
+
 export const ProductValidations = {
   createProductValidationSchema,
   updateProductValidationSchema,
+  updateProductStatusValidationSchema,
+  updateProductHighlightStatusValidationSchema,
 };

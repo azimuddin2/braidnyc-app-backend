@@ -142,6 +142,34 @@ const updateProductIntoDB = async (
   }
 };
 
+const updateProductStatusIntoDB = async (
+  id: string,
+  payload: { status: string },
+) => {
+  const isProductExists = await Product.findById(id);
+
+  if (!isProductExists) {
+    throw new AppError(404, 'This product is not found');
+  }
+
+  const result = await Product.findByIdAndUpdate(id, payload, { new: true });
+  return result;
+};
+
+const updateProductHighlightStatusIntoDB = async (
+  id: string,
+  payload: { highlightStatus: string },
+) => {
+  const isProductExists = await Product.findById(id);
+
+  if (!isProductExists) {
+    throw new AppError(404, 'This product is not found');
+  }
+
+  const result = await Product.findByIdAndUpdate(id, payload, { new: true });
+  return result;
+};
+
 const deleteProductFromDB = async (id: string) => {
   const isProductExists = await Product.findById(id);
 
@@ -166,5 +194,7 @@ export const ProductServices = {
   getAllProductFromDB,
   getProductByIdFromDB,
   updateProductIntoDB,
+  updateProductStatusIntoDB,
+  updateProductHighlightStatusIntoDB,
   deleteProductFromDB,
 };

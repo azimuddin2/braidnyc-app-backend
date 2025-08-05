@@ -30,6 +30,22 @@ router.patch(
   ProductControllers.updateProduct,
 );
 
+router.put(
+  '/update-status/:id',
+  // auth('admin', 'vendor'),
+  validateRequest(ProductValidations.updateProductStatusValidationSchema),
+  ProductControllers.updateProductStatus,
+);
+
+router.put(
+  '/highlight-status/:id',
+  auth('admin', 'vendor'),
+  validateRequest(
+    ProductValidations.updateProductHighlightStatusValidationSchema,
+  ),
+  ProductControllers.updateProductHighlightStatus,
+);
+
 router.delete(
   '/:id',
   auth('vendor', 'admin'),

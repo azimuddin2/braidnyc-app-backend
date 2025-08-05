@@ -53,6 +53,33 @@ const updateProduct = catchAsync(async (req, res) => {
   });
 });
 
+const updateProductStatus = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const result = await ProductServices.updateProductStatusIntoDB(id, req.body);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Status updated successfully.',
+    data: result,
+  });
+});
+
+const updateProductHighlightStatus = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const result = await ProductServices.updateProductHighlightStatusIntoDB(
+    id,
+    req.body,
+  );
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Highlight status updated successfully.',
+    data: result,
+  });
+});
+
 const deleteProduct = catchAsync(async (req, res) => {
   const { id } = req.params;
   const result = await ProductServices.deleteProductFromDB(id);
@@ -70,5 +97,7 @@ export const ProductControllers = {
   getAllProduct,
   getProductById,
   updateProduct,
+  updateProductStatus,
+  updateProductHighlightStatus,
   deleteProduct,
 };
