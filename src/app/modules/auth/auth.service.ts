@@ -68,7 +68,7 @@ const loginUser = async (payload: TLoginUser) => {
 
 const refreshToken = async (token: string) => {
   if (!token) {
-    throw new AppError(401, 'You are not authorized!');
+    throw new AppError(401, 'You are not authorized! Please Login');
   }
 
   const decoded = verifyToken(token, config.jwt_refresh_secret as string);

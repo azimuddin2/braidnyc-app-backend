@@ -32,4 +32,20 @@ router.patch(
 
 router.delete('/:id', PackagesControllers.deletePackages);
 
+router.put(
+  '/update-status/:id',
+  auth('admin', 'vendor'),
+  validateRequest(PackagesValidations.updatePackagesStatusValidationSchema),
+  PackagesControllers.updatePackagesStatus,
+);
+
+router.put(
+  '/highlight-status/:id',
+  auth('admin', 'vendor'),
+  validateRequest(
+    PackagesValidations.updatePackagesHighlightStatusValidationSchema,
+  ),
+  PackagesControllers.updatePackagesHighlightStatus,
+);
+
 export const PackagesRoutes = router;

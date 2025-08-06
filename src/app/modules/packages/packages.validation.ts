@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { HighlightStatus, ServiceStatus } from './packages.constant';
 
 const timeSlotSchema = z.object({
   date: z.string({ required_error: 'Date is required' }),
@@ -24,7 +25,7 @@ const createPackagesValidationSchema = z.object({
     duration: z.string({ required_error: 'Duration is required' }),
     price: z.number({ required_error: 'Price is required' }),
     discountPrice: z.number().optional(),
-    status: z.enum(['available', 'unavailable']).optional(),
+    status: z.enum([...ServiceStatus] as [string, ...string[]]).optional(),
     description: z.string().optional(),
 
     weeklySchedule: z
@@ -44,7 +45,7 @@ const updatePackagesValidationSchema = z.object({
     duration: z.string({ required_error: 'Duration is required' }).optional(),
     price: z.number({ required_error: 'Price is required' }).optional(),
     discountPrice: z.number().optional(),
-    status: z.enum(['available', 'unavailable']).optional(),
+    status: z.enum([...ServiceStatus] as [string, ...string[]]).optional(),
     description: z.string().optional(),
 
     weeklySchedule: z
@@ -56,7 +57,21 @@ const updatePackagesValidationSchema = z.object({
   }),
 });
 
+const updatePackagesStatusValidationSchema = z.object({
+  body: z.object({
+    status: z.enum([...ServiceStatus] as [string, ...string[]]),
+  }),
+});
+
+const updatePackagesHighlightStatusValidationSchema = z.object({
+  body: z.object({
+    highlightStatus: z.enum([...HighlightStatus] as [string, ...string[]]),
+  }),
+});
+
 export const PackagesValidations = {
   createPackagesValidationSchema,
   updatePackagesValidationSchema,
+  updatePackagesStatusValidationSchema,
+  updatePackagesHighlightStatusValidationSchema,
 };

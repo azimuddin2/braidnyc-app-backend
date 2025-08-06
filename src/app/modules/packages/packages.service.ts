@@ -30,7 +30,7 @@ const createPackagesIntoDB = async (payload: TPackages, files: any) => {
 
   const result = await Packages.create(payload);
   if (!result) {
-    throw new AppError(400, 'Failed to create products');
+    throw new AppError(400, 'Failed to create service');
   }
 
   return result;
@@ -167,10 +167,40 @@ const deletePackagesFromDB = async (id: string) => {
   return result;
 };
 
+const updatePackagesStatusIntoDB = async (
+  id: string,
+  payload: { status: string },
+) => {
+  const isPackagesExists = await Packages.findById(id);
+
+  if (!isPackagesExists) {
+    throw new AppError(404, 'This service is not found');
+  }
+
+  const result = await Packages.findByIdAndUpdate(id, payload, { new: true });
+  return result;
+};
+
+const updatePackagesHighlightStatusIntoDB = async (
+  id: string,
+  payload: { highlightStatus: string },
+) => {
+  const isPackagesExists = await Packages.findById(id);
+
+  if (!isPackagesExists) {
+    throw new AppError(404, 'This service is not found');
+  }
+
+  const result = await Packages.findByIdAndUpdate(id, payload, { new: true });
+  return result;
+};
+
 export const PackagesServices = {
   createPackagesIntoDB,
   getAllPackagesFromDB,
   getPackagesByIdFromDB,
   updatePackagesIntoDB,
   deletePackagesFromDB,
+  updatePackagesStatusIntoDB,
+  updatePackagesHighlightStatusIntoDB,
 };

@@ -32,7 +32,7 @@ router.patch(
 
 router.put(
   '/update-status/:id',
-  // auth('admin', 'vendor'),
+  auth('admin', 'vendor'),
   validateRequest(ProductValidations.updateProductStatusValidationSchema),
   ProductControllers.updateProductStatus,
 );

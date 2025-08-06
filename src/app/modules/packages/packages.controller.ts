@@ -68,10 +68,42 @@ const deletePackages = catchAsync(async (req, res) => {
   });
 });
 
+const updatePackagesStatus = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const result = await PackagesServices.updatePackagesStatusIntoDB(
+    id,
+    req.body,
+  );
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Status updated successfully.',
+    data: result,
+  });
+});
+
+const updatePackagesHighlightStatus = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const result = await PackagesServices.updatePackagesHighlightStatusIntoDB(
+    id,
+    req.body,
+  );
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Highlight status updated successfully.',
+    data: result,
+  });
+});
+
 export const PackagesControllers = {
   createPackages,
   getAllPackages,
   getPackagesById,
   updatePackages,
   deletePackages,
+  updatePackagesStatus,
+  updatePackagesHighlightStatus,
 };

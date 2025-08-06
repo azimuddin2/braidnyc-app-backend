@@ -10,7 +10,7 @@ import { TVerifyOtp } from './otp.interface';
 
 const verifyOtp = async (token: string, otp: TVerifyOtp) => {
   if (!token) {
-    throw new AppError(401, 'You are not authorized!');
+    throw new AppError(401, 'You are not authorized! Please Login.');
   }
 
   const decoded = verifyToken(token, config.jwt_access_secret as string);
