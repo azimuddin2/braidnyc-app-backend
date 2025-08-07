@@ -14,6 +14,10 @@ const createProductIntoDB = async (payload: TProduct, files: any) => {
   if (files) {
     const { images } = files as UploadedFiles;
 
+    if (!images?.length) {
+      throw new AppError(404, 'At least one image is required');
+    }
+
     if (images?.length) {
       const imgsArray = images.map((image) => ({
         file: image,
