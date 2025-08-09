@@ -62,7 +62,7 @@ const getProductByIdFromDB = async (id: string) => {
   const result = await Product.findById(id).populate('user');
 
   if (!result) {
-    throw new AppError(404, 'This service not found');
+    throw new AppError(404, 'This product not found');
   }
 
   return result;

@@ -30,7 +30,7 @@ const moduleRoutes = [
     route: PackagesRoutes,
   },
   {
-    path: '/teams',
+    path: '/team-members',
     route: TeamRoutes,
   },
 ];

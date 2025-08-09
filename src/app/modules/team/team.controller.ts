@@ -60,7 +60,7 @@ const deleteTeamMember = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: 200,
     success: true,
-    message: 'Product deleted successfully',
+    message: 'Team member deleted successfully',
     data: result,
   });
 });
