@@ -1,0 +1,27 @@
+import express from 'express';
+import multer, { memoryStorage } from 'multer';
+import parseData from '../../middlewares/parseData';
+import validateRequest from '../../middlewares/validateRequest';
+import auth from '../../middlewares/auth';
+import { VendorControllers } from './vendor.controller';
+import { VendorValidations } from './vendor.validation';
+
+const router = express.Router();
+const upload = multer({ storage: memoryStorage() });
+
+router.get(
+  '/:email',
+  auth('vendor', 'admin'),
+  VendorControllers.getVendorProfile,
+);
+
+router.patch(
+  '/:email',
+  auth('vendor'),
+  upload.single('profile'),
+  parseData(),
+  validateRequest(VendorValidations.updateVendorUserValidationSchema),
+  VendorControllers.updateVendorProfile,
+);
+
+export const VendorRoutes = router;

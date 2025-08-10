@@ -1,4 +1,7 @@
+import { Types } from 'mongoose';
+
 export type TVendor = {
+  userId: Types.ObjectId;
   businessName: string;
   email: string;
   phone: string;
@@ -9,6 +12,7 @@ export type TVendor = {
   currency: string;
   timeZone: string;
   workHours: string;
+  image?: string | null;
   firstName: string;
   lastName: string;
   password: string;

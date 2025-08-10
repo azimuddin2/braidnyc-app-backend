@@ -2,10 +2,13 @@ import { model, Schema } from 'mongoose';
 import { TVendor } from './vendor.interface';
 import config from '../../config';
 import bcrypt from 'bcrypt';
-import { UserRole } from '../user/user.constant';
 
 const vendorSchema = new Schema<TVendor>(
   {
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+    },
     businessName: {
       type: String,
       required: [true, 'Business name is required'],
@@ -45,6 +48,10 @@ const vendorSchema = new Schema<TVendor>(
     workHours: {
       type: String,
       required: [true, 'Work hours are required'],
+    },
+    image: {
+      type: String,
+      trim: true,
     },
     firstName: {
       type: String,

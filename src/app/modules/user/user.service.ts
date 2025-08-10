@@ -151,7 +151,12 @@ export const vendorRegisterUserIntoDB = async (payload: TVendor) => {
       throw new AppError(400, 'Failed to create user');
     }
 
-    const createdVendor = await Vendor.create([payload], { session });
+    const vendorData = {
+      ...payload,
+      userId: createdUser?.map((user) => user._id),
+    };
+
+    const createdVendor = await Vendor.create([vendorData], { session });
     if (!createdVendor.length) {
       throw new AppError(400, 'Failed to create vendor');
     }

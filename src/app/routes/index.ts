@@ -5,6 +5,7 @@ import { OtpRoutes } from '../modules/otp/otp.route';
 import { ProductRoutes } from '../modules/product/product.route';
 import { PackagesRoutes } from '../modules/packages/packages.route';
 import { TeamRoutes } from '../modules/team/team.route';
+import { VendorRoutes } from '../modules/vendor/vendor.route';
 
 const router = Router();
 
@@ -12,6 +13,10 @@ const moduleRoutes = [
   {
     path: '/users',
     route: UserRoutes,
+  },
+  {
+    path: '/vendors',
+    route: VendorRoutes,
   },
   {
     path: '/auth',

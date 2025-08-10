@@ -48,6 +48,8 @@ const vendorRegisterUserValidationSchema = z.object({
         required_error: 'Work hours are required',
       }),
 
+      image: z.string().optional(),
+
       firstName: z.string({
         required_error: 'First name is required',
       }),
@@ -81,6 +83,88 @@ const vendorRegisterUserValidationSchema = z.object({
     }),
 });
 
+const updateVendorUserValidationSchema = z.object({
+  body: z.object({
+    businessName: z
+      .string({
+        required_error: 'Business name is required',
+        invalid_type_error: 'Business name must be a string',
+      })
+      .optional(),
+
+    email: z
+      .string({
+        required_error: 'Email is required',
+      })
+      .email('Invalid email address')
+      .optional(),
+
+    phone: z
+      .string({
+        required_error: 'Phone number is required',
+      })
+      .min(7, 'Phone number seems too short')
+      .optional(),
+
+    country: z
+      .string({
+        required_error: 'Country is required',
+      })
+      .optional(),
+
+    street: z
+      .string({
+        required_error: 'Street address is required',
+      })
+      .optional(),
+
+    state: z
+      .string({
+        required_error: 'State is required',
+      })
+      .optional(),
+
+    zipCode: z
+      .string({
+        required_error: 'Zip code is required',
+      })
+      .optional(),
+
+    currency: z
+      .string({
+        required_error: 'Currency is required',
+      })
+      .optional(),
+
+    timeZone: z
+      .string({
+        required_error: 'Time zone is required',
+      })
+      .optional(),
+
+    workHours: z
+      .string({
+        required_error: 'Work hours are required',
+      })
+      .optional(),
+
+    image: z.string().optional(),
+
+    firstName: z
+      .string({
+        required_error: 'First name is required',
+      })
+      .optional(),
+
+    lastName: z
+      .string({
+        required_error: 'Last name is required',
+      })
+      .optional(),
+  }),
+});
+
 export const VendorValidations = {
   vendorRegisterUserValidationSchema,
+  updateVendorUserValidationSchema,
 };
