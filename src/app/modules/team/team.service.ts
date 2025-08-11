@@ -55,7 +55,7 @@ const getTeamMemberByIdFromDB = async (id: string) => {
   return result;
 };
 
-export const updateTeamMemberIntoDB = async (
+const updateTeamMemberIntoDB = async (
   id: string,
   payload: Partial<TTeam>,
   file?: Express.Multer.File,

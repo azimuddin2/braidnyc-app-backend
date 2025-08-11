@@ -6,6 +6,7 @@ import { ProductRoutes } from '../modules/product/product.route';
 import { PackagesRoutes } from '../modules/packages/packages.route';
 import { TeamRoutes } from '../modules/team/team.route';
 import { VendorRoutes } from '../modules/vendor/vendor.route';
+import { TaskRoutes } from '../modules/task/task.route';
 
 const router = Router();
 
@@ -37,6 +38,10 @@ const moduleRoutes = [
   {
     path: '/team-members',
     route: TeamRoutes,
+  },
+  {
+    path: '/tasks',
+    route: TaskRoutes,
   },
 ];
 

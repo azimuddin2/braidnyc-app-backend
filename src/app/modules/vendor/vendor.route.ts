@@ -10,13 +10,13 @@ const router = express.Router();
 const upload = multer({ storage: memoryStorage() });
 
 router.get(
-  '/:email',
+  '/profile/:email',
   auth('vendor', 'admin'),
   VendorControllers.getVendorProfile,
 );
 
 router.patch(
-  '/:email',
+  '/profile/:email',
   auth('vendor'),
   upload.single('profile'),
   parseData(),
