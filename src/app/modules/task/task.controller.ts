@@ -49,6 +49,18 @@ const updateTask = catchAsync(async (req, res) => {
   });
 });
 
+const updateTaskStatus = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const result = await TaskServices.updateTaskStatusIntoDB(id, req.body);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Status updated successfully.',
+    data: result,
+  });
+});
+
 const deleteTask = catchAsync(async (req, res) => {
   const { id } = req.params;
   const result = await TaskServices.deleteTaskFromDB(id);
@@ -66,5 +78,6 @@ export const TaskControllers = {
   getAllTasks,
   getTaskById,
   updateTask,
+  updateTaskStatus,
   deleteTask,
 };

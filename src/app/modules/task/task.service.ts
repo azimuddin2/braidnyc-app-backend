@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import QueryBuilder from '../../builder/QueryBuilder';
 import AppError from '../../errors/AppError';
 import { taskSearchableFields } from './task.constant';
@@ -13,16 +14,21 @@ const createTaskIntoDB = async (payload: TTask) => {
 };
 
 const getAllTasksFromDB = async (query: Record<string, unknown>) => {
-  const baseQuery = { ...query, isDeleted: false };
+  const { user, ...filters } = query;
 
-  const queryBuilder = new QueryBuilder(Task.find(), baseQuery)
+  if (!user || !mongoose.Types.ObjectId.isValid(user as string)) {
+    throw new Error('Invalid user ID');
+  }
+
+  let productQuery = Task.find({ user });
+
+  const queryBuilder = new QueryBuilder(productQuery, filters)
     .search(taskSearchableFields)
     .filter()
     .sort()
     .paginate()
     .fields();
 
-  // Apply merged filters to the query only once
   queryBuilder.modelQuery = queryBuilder.modelQuery.find(
     queryBuilder.finalFilter,
   );
@@ -70,6 +76,20 @@ const updateTaskIntoDB = async (id: string, payload: Partial<TTask>) => {
   return updatedTask;
 };
 
+const updateTaskStatusIntoDB = async (
+  id: string,
+  payload: { status: string },
+) => {
+  const isTaskExists = await Task.findById(id);
+
+  if (!isTaskExists) {
+    throw new AppError(404, 'This task is not found');
+  }
+
+  const result = await Task.findByIdAndUpdate(id, payload, { new: true });
+  return result;
+};
+
 const deleteTaskFromDB = async (id: string) => {
   const isTaskExists = await Task.findById(id);
 
@@ -94,5 +114,6 @@ export const TaskServices = {
   getAllTasksFromDB,
   getTaskByIdFromDB,
   updateTaskIntoDB,
+  updateTaskStatusIntoDB,
   deleteTaskFromDB,
 };

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { TaskStatus } from './task.constant';
 
 const createTaskValidationSchema = z.object({
   body: z.object({
@@ -58,7 +59,14 @@ const updateTaskValidationSchema = z.object({
   }),
 });
 
+const updateTaskStatusValidationSchema = z.object({
+  body: z.object({
+    status: z.enum([...TaskStatus] as [string, ...string[]]),
+  }),
+});
+
 export const TaskValidations = {
   createTaskValidationSchema,
   updateTaskValidationSchema,
+  updateTaskStatusValidationSchema,
 };

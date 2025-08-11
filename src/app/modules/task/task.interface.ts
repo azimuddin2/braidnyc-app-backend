@@ -1,3 +1,5 @@
+import { Types } from 'mongoose';
+
 export type TStatus =
   | 'To-Do'
   | 'In Progress'
@@ -7,6 +9,7 @@ export type TStatus =
   | 'Obsolete';
 
 export type TTask = {
+  user: Types.ObjectId;
   _id?: string;
   title: string;
   description: string;
