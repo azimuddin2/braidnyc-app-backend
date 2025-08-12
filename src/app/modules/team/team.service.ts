@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import QueryBuilder from '../../builder/QueryBuilder';
 import AppError from '../../errors/AppError';
 import { deleteFromS3, uploadToS3 } from '../../utils/awsS3FileUploader';
@@ -25,16 +26,21 @@ const createTeamMemberIntoDB = async (payload: TTeam, file: any) => {
 };
 
 const getAllTeamMemberFromDB = async (query: Record<string, unknown>) => {
-  const baseQuery = { ...query, isDeleted: false };
+  const { user, ...filters } = query;
 
-  const queryBuilder = new QueryBuilder(Team.find().populate('user'), baseQuery)
+  if (!user || !mongoose.Types.ObjectId.isValid(user as string)) {
+    throw new AppError(400, 'Invalid user ID');
+  }
+
+  let teamMemberQuery = Team.find({ user });
+
+  const queryBuilder = new QueryBuilder(teamMemberQuery, filters)
     .search(teamMemberSearchableFields)
     .filter()
     .sort()
     .paginate()
     .fields();
 
-  // Apply merged filters to the query only once
   queryBuilder.modelQuery = queryBuilder.modelQuery.find(
     queryBuilder.finalFilter,
   );

@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import QueryBuilder from '../../builder/QueryBuilder';
 import AppError from '../../errors/AppError';
 import { UploadedFiles } from '../../interface/common.interface';
@@ -40,17 +41,24 @@ const createProductIntoDB = async (payload: TProduct, files: any) => {
 };
 
 const getAllProductFromDB = async (query: Record<string, unknown>) => {
-  const baseQuery = { ...query, isDeleted: false };
+  const { user, ...filters } = query;
 
-  const queryBuilder = new QueryBuilder(
-    Product.find().populate('user'),
-    baseQuery,
-  )
+  if (!user || !mongoose.Types.ObjectId.isValid(user as string)) {
+    throw new AppError(400, 'Invalid user ID');
+  }
+
+  let productQuery = Product.find({ user });
+
+  const queryBuilder = new QueryBuilder(productQuery, filters)
     .search(productSearchableFields)
     .filter()
     .sort()
     .paginate()
     .fields();
+
+  queryBuilder.modelQuery = queryBuilder.modelQuery.find(
+    queryBuilder.finalFilter,
+  );
 
   const meta = await queryBuilder.countTotal();
   const result = await queryBuilder.modelQuery;

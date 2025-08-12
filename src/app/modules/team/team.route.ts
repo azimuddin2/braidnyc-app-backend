@@ -18,7 +18,7 @@ router.post(
   TeamControllers.createTeamMember,
 );
 
-router.get('/', auth('vendor', 'admin'), TeamControllers.getAllTeamMember);
+router.get('/', auth('vendor'), TeamControllers.getAllTeamMember);
 
 router.get('/:id', auth('vendor', 'admin'), TeamControllers.getTeamMemberById);
 

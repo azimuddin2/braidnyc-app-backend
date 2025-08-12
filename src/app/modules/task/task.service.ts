@@ -17,12 +17,12 @@ const getAllTasksFromDB = async (query: Record<string, unknown>) => {
   const { user, ...filters } = query;
 
   if (!user || !mongoose.Types.ObjectId.isValid(user as string)) {
-    throw new Error('Invalid user ID');
+    throw new AppError(400, 'Invalid user ID');
   }
 
-  let productQuery = Task.find({ user });
+  let taskQuery = Task.find({ user });
 
-  const queryBuilder = new QueryBuilder(productQuery, filters)
+  const queryBuilder = new QueryBuilder(taskQuery, filters)
     .search(taskSearchableFields)
     .filter()
     .sort()
