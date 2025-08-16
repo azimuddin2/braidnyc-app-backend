@@ -44,7 +44,8 @@ const getAllPackagesFromDB = async (query: Record<string, unknown>) => {
     throw new AppError(400, 'Invalid user ID');
   }
 
-  let packagesQuery = Packages.find({ user });
+  // Base query -> always exclude deleted packages service
+  let packagesQuery = Packages.find({ user, isDeleted: false });
 
   const queryBuilder = new QueryBuilder(packagesQuery, filters)
     .search(packageSearchableFields)
@@ -53,9 +54,11 @@ const getAllPackagesFromDB = async (query: Record<string, unknown>) => {
     .paginate()
     .fields();
 
-  queryBuilder.modelQuery = queryBuilder.modelQuery.find(
-    queryBuilder.finalFilter,
-  );
+  // Ensure final filter includes isDeleted = false
+  queryBuilder.modelQuery = queryBuilder.modelQuery.find({
+    ...queryBuilder.finalFilter,
+    isDeleted: false,
+  });
 
   const meta = await queryBuilder.countTotal();
   const result = await queryBuilder.modelQuery;

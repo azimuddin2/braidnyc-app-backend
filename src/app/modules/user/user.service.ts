@@ -10,8 +10,10 @@ import config from '../../config';
 import { sendEmail } from '../../utils/sendEmail';
 import { TJwtPayload } from '../auth/auth.interface';
 import { createToken } from '../auth/auth.utils';
+import QueryBuilder from '../../builder/QueryBuilder';
+import { userSearchableFields } from './user.constant';
 
-export const registerUserIntoDB = async (payload: TUser) => {
+const registerUserIntoDB = async (payload: TUser) => {
   // 1. Check if user already exists
   const existingUser = await User.findOne({ email: payload.email });
   if (existingUser) {
@@ -117,7 +119,7 @@ export const registerUserIntoDB = async (payload: TUser) => {
   return { accessToken };
 };
 
-export const vendorRegisterUserIntoDB = async (payload: TVendor) => {
+const vendorRegisterUserIntoDB = async (payload: TVendor) => {
   if (payload.password !== payload.confirmPassword) {
     throw new AppError(400, 'Passwords do not match!');
   }
@@ -249,7 +251,39 @@ export const vendorRegisterUserIntoDB = async (payload: TVendor) => {
   }
 };
 
+const getAllUsersFromDB = async (query: Record<string, unknown>) => {
+  const baseQuery = {
+    ...query,
+    isDeleted: false,
+    role: { $nin: ['admin'] }, // ✅ exclude admins
+  };
+
+  const queryBuilder = new QueryBuilder(User.find(), baseQuery)
+    .search(userSearchableFields)
+    .filter()
+    .sort()
+    .paginate()
+    .fields();
+
+  const meta = await queryBuilder.countTotal();
+  const result = await queryBuilder.modelQuery;
+
+  return { meta, result };
+};
+
+const getSingleUserFromDB = async (id: string) => {
+  const user = await User.findById(id);
+
+  if (!user) {
+    throw new AppError(404, 'User not found');
+  }
+
+  return user;
+};
+
 export const UserServices = {
   registerUserIntoDB,
   vendorRegisterUserIntoDB,
+  getAllUsersFromDB,
+  getSingleUserFromDB,
 };

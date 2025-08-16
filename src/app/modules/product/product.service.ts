@@ -47,7 +47,8 @@ const getAllProductFromDB = async (query: Record<string, unknown>) => {
     throw new AppError(400, 'Invalid user ID');
   }
 
-  let productQuery = Product.find({ user });
+  // Base query -> always exclude deleted products
+  let productQuery = Product.find({ user, isDeleted: false });
 
   const queryBuilder = new QueryBuilder(productQuery, filters)
     .search(productSearchableFields)
@@ -56,9 +57,11 @@ const getAllProductFromDB = async (query: Record<string, unknown>) => {
     .paginate()
     .fields();
 
-  queryBuilder.modelQuery = queryBuilder.modelQuery.find(
-    queryBuilder.finalFilter,
-  );
+  // Ensure final filter includes isDeleted = false
+  queryBuilder.modelQuery = queryBuilder.modelQuery.find({
+    ...queryBuilder.finalFilter,
+    isDeleted: false,
+  });
 
   const meta = await queryBuilder.countTotal();
   const result = await queryBuilder.modelQuery;

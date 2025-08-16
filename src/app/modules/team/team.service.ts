@@ -32,18 +32,21 @@ const getAllTeamMemberFromDB = async (query: Record<string, unknown>) => {
     throw new AppError(400, 'Invalid user ID');
   }
 
-  let teamMemberQuery = Team.find({ user });
+  // Base query -> always exclude deleted teams
+  let teamQuery = Team.find({ user, isDeleted: false });
 
-  const queryBuilder = new QueryBuilder(teamMemberQuery, filters)
+  const queryBuilder = new QueryBuilder(teamQuery, filters)
     .search(teamMemberSearchableFields)
     .filter()
     .sort()
     .paginate()
     .fields();
 
-  queryBuilder.modelQuery = queryBuilder.modelQuery.find(
-    queryBuilder.finalFilter,
-  );
+  // Ensure final filter includes isDeleted = false
+  queryBuilder.modelQuery = queryBuilder.modelQuery.find({
+    ...queryBuilder.finalFilter,
+    isDeleted: false,
+  });
 
   const meta = await queryBuilder.countTotal();
   const result = await queryBuilder.modelQuery;

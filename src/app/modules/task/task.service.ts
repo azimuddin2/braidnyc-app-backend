@@ -20,7 +20,8 @@ const getAllTasksFromDB = async (query: Record<string, unknown>) => {
     throw new AppError(400, 'Invalid user ID');
   }
 
-  let taskQuery = Task.find({ user });
+  // Base query -> always exclude deleted tasks
+  let taskQuery = Task.find({ user, isDeleted: false });
 
   const queryBuilder = new QueryBuilder(taskQuery, filters)
     .search(taskSearchableFields)
@@ -29,9 +30,11 @@ const getAllTasksFromDB = async (query: Record<string, unknown>) => {
     .paginate()
     .fields();
 
-  queryBuilder.modelQuery = queryBuilder.modelQuery.find(
-    queryBuilder.finalFilter,
-  );
+  // Ensure final filter includes isDeleted = false
+  queryBuilder.modelQuery = queryBuilder.modelQuery.find({
+    ...queryBuilder.finalFilter,
+    isDeleted: false,
+  });
 
   const meta = await queryBuilder.countTotal();
   const result = await queryBuilder.modelQuery;
