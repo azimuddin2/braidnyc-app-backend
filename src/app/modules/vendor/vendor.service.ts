@@ -4,6 +4,22 @@ import { deleteFromS3, uploadToS3 } from '../../utils/awsS3FileUploader';
 import { User } from '../user/user.model';
 import { TVendor } from './vendor.interface';
 import { Vendor } from './vendor.model';
+import QueryBuilder from '../../builder/QueryBuilder';
+import { vendorSearchableFields } from './vendor.constant';
+
+const getAllVendorsFromDB = async (query: Record<string, unknown>) => {
+  const vendorQuery = new QueryBuilder(Vendor.find(), query)
+    .search(vendorSearchableFields)
+    .filter()
+    .sort()
+    .paginate()
+    .fields();
+
+  const meta = await vendorQuery.countTotal();
+  const result = await vendorQuery.modelQuery;
+
+  return { meta, result };
+};
 
 const getVendorProfileFromDB = async (email: string) => {
   const result = await Vendor.findOne({ email: email });
@@ -80,6 +96,7 @@ export const updateVendorProfileIntoDB = async (
 };
 
 export const VendorServices = {
+  getAllVendorsFromDB,
   getVendorProfileFromDB,
   updateVendorProfileIntoDB,
 };

@@ -15,6 +15,7 @@ export type TVendor = {
   image?: string | null;
   firstName: string;
   lastName: string;
+  description?: string;
   password: string;
   confirmPassword: string;
 };

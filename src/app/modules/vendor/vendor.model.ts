@@ -61,6 +61,9 @@ const vendorSchema = new Schema<TVendor>(
       type: String,
       required: [true, 'Contact person’s last name is required'],
     },
+    description: {
+      type: String,
+    },
     password: {
       type: String,
       required: [true, 'Password is required'],

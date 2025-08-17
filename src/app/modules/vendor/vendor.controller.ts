@@ -2,6 +2,18 @@ import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
 import { VendorServices } from './vendor.service';
 
+const getAllVendors = catchAsync(async (req, res) => {
+  const result = await VendorServices.getAllVendorsFromDB(req.query);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Vendor retrieved successfully',
+    meta: result.meta,
+    data: result.result,
+  });
+});
+
 const getVendorProfile = catchAsync(async (req, res) => {
   const { email } = req.params;
   const result = await VendorServices.getVendorProfileFromDB(email);
@@ -31,6 +43,7 @@ const updateVendorProfile = catchAsync(async (req, res) => {
 });
 
 export const VendorControllers = {
+  getAllVendors,
   getVendorProfile,
   updateVendorProfile,
 };
