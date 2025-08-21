@@ -1,50 +1,51 @@
 import { Schema, model } from 'mongoose';
-import { TPackages } from './packages.interface';
+import {
+  TDaySchedule,
+  THolidaySchedule,
+  TPackages,
+  TServicePricing,
+} from './packages.interface';
 import { HighlightStatus } from './packages.constant';
 
-const imageSchema = new Schema(
+const ServicePricingSchema = new Schema<TServicePricing>(
   {
-    url: { type: String, required: true },
-    key: { type: String, required: true },
+    id: { type: String, required: true },
+    duration: { type: String, required: true },
+    price: { type: String, required: true },
+    discount: { type: String },
+    finalPrice: { type: String, required: true },
   },
   { _id: false },
 );
 
-const timeSlotSchema = new Schema(
+const DayScheduleSchema = new Schema<TDaySchedule>(
   {
-    date: { type: String, required: true },
-    day: { type: String, required: true },
-    startTime: { type: String },
-    endTime: { type: String },
-    seatCapacity: { type: Number },
-    isClosed: { type: Boolean, default: false },
+    enabled: { type: Boolean, required: true, default: false },
+    startTime: { type: String, required: true },
+    endTime: { type: String, required: true },
+    seats: { type: Number, required: true, default: 1 },
   },
   { _id: false },
 );
 
-const holidaySlotSchema = new Schema(
+const HolidayScheduleSchema = new Schema<THolidaySchedule>(
   {
     date: { type: String, required: true },
-    startTime: { type: String },
-    endTime: { type: String },
-    seatCapacity: { type: Number },
-    isClosed: { type: Boolean, default: false },
+    startTime: { type: String, required: true },
+    endTime: { type: String, required: true },
+    seats: { type: Number, required: true },
   },
   { _id: false },
 );
 
 const packagesSchema = new Schema<TPackages>(
   {
-    user: {
-      type: Schema.Types.ObjectId,
-      required: [true, 'User Id is required'],
-      ref: 'User',
-    },
+    user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    deleteKey: [{ type: String, required: true }],
     name: { type: String, required: true },
-    serviceType: { type: String, required: true },
-    duration: { type: String, required: true },
-    price: { type: Number, required: true },
-    discountPrice: { type: Number, default: null },
+    type: { type: String, required: true },
+    savedServices: { type: [ServicePricingSchema], required: true },
+    description: { type: String },
     status: {
       type: String,
       enum: ['available', 'unavailable'],
@@ -58,27 +59,15 @@ const packagesSchema = new Schema<TPackages>(
       },
       default: 'Highlight',
     },
-    description: { type: String },
-
-    images: {
-      type: [imageSchema],
-      required: true,
+    availability: {
+      weeklySchedule: {
+        type: Map,
+        of: DayScheduleSchema,
+        default: {},
+      },
+      holidays: { type: [HolidayScheduleSchema], default: [] },
     },
-
-    weeklySchedule: {
-      type: [timeSlotSchema],
-      required: true,
-    },
-
-    holidaySlots: {
-      type: [holidaySlotSchema],
-      default: [],
-    },
-
-    isDeleted: {
-      type: Boolean,
-      default: false,
-    },
+    isDeleted: { type: Boolean, default: false },
   },
   { timestamps: true },
 );
