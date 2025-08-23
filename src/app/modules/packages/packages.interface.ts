@@ -48,6 +48,7 @@ export type TPackages = {
   user: Types.ObjectId;
   deleteKey: string[];
   _id?: string;
+  serviceId: string;
   name: string;
   type: string;
   savedServices: TServicePricing[];

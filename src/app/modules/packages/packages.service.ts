@@ -9,11 +9,19 @@ import {
 import { packageSearchableFields } from './packages.constant';
 import { TPackages } from './packages.interface';
 import { Packages } from './packages.model';
+import { generateServiceId } from './packages.utils';
 
 const createPackagesIntoDB = async (payload: TPackages, files: any) => {
+  // Assign backend-specific service code
+  payload.serviceId = generateServiceId();
+
   // Handle image upload to S3
   if (files) {
     const { images } = files as UploadedFiles;
+
+    if (!images?.length) {
+      throw new AppError(404, 'At least one image is required');
+    }
 
     if (images?.length) {
       const imgsArray = images.map((image) => ({

@@ -16,6 +16,7 @@ export type THighlightStatus = 'Highlighted' | 'Highlight';
 export type TProduct = {
   user: Types.ObjectId;
   name: string;
+  productCode: string;
   images: TProductImage[];
   productType: string;
   quantity: number;

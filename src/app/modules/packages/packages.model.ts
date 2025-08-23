@@ -7,6 +7,14 @@ import {
 } from './packages.interface';
 import { HighlightStatus } from './packages.constant';
 
+const imageSchema = new Schema(
+  {
+    url: { type: String, required: true },
+    key: { type: String, required: true },
+  },
+  { _id: false },
+);
+
 const ServicePricingSchema = new Schema<TServicePricing>(
   {
     id: { type: String, required: true },
@@ -42,7 +50,12 @@ const packagesSchema = new Schema<TPackages>(
   {
     user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     deleteKey: [{ type: String, required: true }],
+    serviceId: { type: String, required: true },
     name: { type: String, required: true },
+    images: {
+      type: [imageSchema],
+      required: true,
+    },
     type: { type: String, required: true },
     savedServices: { type: [ServicePricingSchema], required: true },
     description: { type: String },

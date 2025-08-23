@@ -21,6 +21,10 @@ const productSchema = new Schema<TProduct>(
       type: String,
       required: true,
     },
+    productCode: {
+      type: String,
+      required: true,
+    },
     images: {
       type: [imageSchema],
       required: true,

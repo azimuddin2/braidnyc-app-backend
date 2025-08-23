@@ -9,8 +9,12 @@ import {
 import { productSearchableFields } from './product.constant';
 import { TProduct } from './product.interface';
 import { Product } from './product.model';
+import { generateProductCode } from './product.utils';
 
 const createProductIntoDB = async (payload: TProduct, files: any) => {
+  // Assign backend-specific product code
+  payload.productCode = generateProductCode();
+
   // Handle image upload to S3
   if (files) {
     const { images } = files as UploadedFiles;
