@@ -21,7 +21,7 @@ export type TProduct = {
   productType: string;
   quantity: number;
   price: number;
-  discountPrice?: number | null;
+  discountPrice?: string | null;
   colors: string[]; // e.g., ["Crimson Red", "Soft Nude"]
   size: string; // e.g., "5 ml"
   status: TProductStatus;

@@ -45,6 +45,20 @@ const createProductIntoDB = async (payload: TProduct, files: any) => {
 };
 
 const getAllProductFromDB = async (query: Record<string, unknown>) => {
+  const productQuery = new QueryBuilder(Product.find().populate('user'), query)
+    .search(productSearchableFields)
+    .filter()
+    .sort()
+    .paginate()
+    .fields();
+
+  const meta = await productQuery.countTotal();
+  const result = await productQuery.modelQuery;
+
+  return { meta, result };
+};
+
+const getAllProductByUserFromDB = async (query: Record<string, unknown>) => {
   const { user, ...filters } = query;
 
   if (!user || !mongoose.Types.ObjectId.isValid(user as string)) {
@@ -211,6 +225,7 @@ const deleteProductFromDB = async (id: string) => {
 export const ProductServices = {
   createProductIntoDB,
   getAllProductFromDB,
+  getAllProductByUserFromDB,
   getProductByIdFromDB,
   updateProductIntoDB,
   updateProductStatusIntoDB,

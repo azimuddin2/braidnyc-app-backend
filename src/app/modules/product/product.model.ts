@@ -44,7 +44,7 @@ const productSchema = new Schema<TProduct>(
       min: 0,
     },
     discountPrice: {
-      type: Number,
+      type: String,
       default: null,
       min: 0,
       max: 100,

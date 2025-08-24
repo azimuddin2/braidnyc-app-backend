@@ -19,6 +19,7 @@ router.post(
 );
 
 router.get('/', PackagesControllers.getAllPackages);
+router.get('/', PackagesControllers.getAllPackagesByUser);
 router.get('/:id', PackagesControllers.getPackagesById);
 
 router.patch(

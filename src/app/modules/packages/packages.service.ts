@@ -46,6 +46,23 @@ const createPackagesIntoDB = async (payload: TPackages, files: any) => {
 };
 
 const getAllPackagesFromDB = async (query: Record<string, unknown>) => {
+  const packagesQuery = new QueryBuilder(
+    Packages.find().populate('user'),
+    query,
+  )
+    .search(packageSearchableFields)
+    .filter()
+    .sort()
+    .paginate()
+    .fields();
+
+  const meta = await packagesQuery.countTotal();
+  const result = await packagesQuery.modelQuery;
+
+  return { meta, result };
+};
+
+const getAllPackagesByUserFromDB = async (query: Record<string, unknown>) => {
   const { user, ...filters } = query;
 
   if (!user || !mongoose.Types.ObjectId.isValid(user as string)) {
@@ -212,6 +229,7 @@ const updatePackagesHighlightStatusIntoDB = async (
 export const PackagesServices = {
   createPackagesIntoDB,
   getAllPackagesFromDB,
+  getAllPackagesByUserFromDB,
   getPackagesByIdFromDB,
   updatePackagesIntoDB,
   deletePackagesFromDB,

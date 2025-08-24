@@ -19,6 +19,7 @@ router.post(
 );
 
 router.get('/', ProductControllers.getAllProduct);
+router.get('/', ProductControllers.getAllProductByUser);
 router.get('/:id', ProductControllers.getProductById);
 
 router.patch(

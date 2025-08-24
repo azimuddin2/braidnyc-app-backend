@@ -19,12 +19,7 @@ const createProductValidationSchema = z.object({
       required_error: 'Price is required',
     }),
 
-    discountPrice: z
-      .number()
-      .min(0, 'Discount must be at least 0')
-      .max(100, "Discount can't exceed 100")
-      .nullable()
-      .optional(),
+    discountPrice: z.string().optional(),
 
     colors: z.array(z.string(), {
       required_error: 'At least one color is required',
@@ -71,7 +66,7 @@ const updateProductValidationSchema = z.object({
       .optional(),
 
     discountPrice: z
-      .number()
+      .string()
       .min(0, 'Discount must be at least 0')
       .max(100, "Discount can't exceed 100")
       .nullable()

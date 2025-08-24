@@ -28,6 +28,18 @@ const getAllPackages = catchAsync(async (req, res) => {
   });
 });
 
+const getAllPackagesByUser = catchAsync(async (req, res) => {
+  const result = await PackagesServices.getAllPackagesByUserFromDB(req.query);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Services retrieved successfully',
+    meta: result.meta,
+    data: result.result,
+  });
+});
+
 const getPackagesById = catchAsync(async (req, res) => {
   const { id } = req.params;
   const result = await PackagesServices.getPackagesByIdFromDB(id);
@@ -101,6 +113,7 @@ const updatePackagesHighlightStatus = catchAsync(async (req, res) => {
 export const PackagesControllers = {
   createPackages,
   getAllPackages,
+  getAllPackagesByUser,
   getPackagesById,
   updatePackages,
   deletePackages,
