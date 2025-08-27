@@ -1,10 +1,5 @@
 import { Schema, model } from 'mongoose';
-import {
-  TDaySchedule,
-  THolidaySchedule,
-  TPackages,
-  TServicePricing,
-} from './packages.interface';
+import { TDaySchedule, TPackages, TServicePricing } from './packages.interface';
 import { HighlightStatus } from './packages.constant';
 
 const imageSchema = new Schema(
@@ -31,17 +26,6 @@ const DayScheduleSchema = new Schema<TDaySchedule>(
     enabled: { type: Boolean, required: true, default: false },
     startTime: { type: String, required: true },
     endTime: { type: String, required: true },
-    seats: { type: Number, required: true, default: 1 },
-  },
-  { _id: false },
-);
-
-const HolidayScheduleSchema = new Schema<THolidaySchedule>(
-  {
-    date: { type: String, required: true },
-    startTime: { type: String, required: true },
-    endTime: { type: String, required: true },
-    seats: { type: Number, required: true },
   },
   { _id: false },
 );
@@ -78,7 +62,6 @@ const packagesSchema = new Schema<TPackages>(
         of: DayScheduleSchema,
         default: {},
       },
-      holidays: { type: [HolidayScheduleSchema], default: [] },
     },
     isDeleted: { type: Boolean, default: false },
   },

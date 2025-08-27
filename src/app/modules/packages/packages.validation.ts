@@ -14,16 +14,6 @@ const DayScheduleSchema = z.object({
   enabled: z.boolean().default(false),
   startTime: z.string({ required_error: 'Start time is required' }), // e.g. "09:00"
   endTime: z.string({ required_error: 'End time is required' }), // e.g. "17:00"
-  seats: z.number().min(1, 'Seats must be at least 1').default(1),
-});
-
-const HolidayScheduleSchema = z.object({
-  date: z
-    .string({ required_error: 'Date is required' })
-    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD'),
-  startTime: z.string({ required_error: 'Start time is required' }),
-  endTime: z.string({ required_error: 'End time is required' }),
-  seats: z.number().min(1, 'Seats must be at least 1'),
 });
 
 // ---------- Main Create Validation ----------
@@ -46,7 +36,6 @@ export const createPackagesValidationSchema = z.object({
       .default('Highlight'),
     availability: z.object({
       weeklySchedule: z.record(DayScheduleSchema).default({}),
-      holidays: z.array(HolidayScheduleSchema).default([]),
     }),
     isDeleted: z.boolean().default(false),
   }),
@@ -68,7 +57,6 @@ export const updatePackagesValidationSchema = z.object({
     availability: z
       .object({
         weeklySchedule: z.record(DayScheduleSchema).optional(),
-        holidays: z.array(HolidayScheduleSchema).optional(),
       })
       .optional(),
     isDeleted: z.boolean().optional(),
