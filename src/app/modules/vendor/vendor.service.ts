@@ -22,12 +22,17 @@ const getAllVendorsFromDB = async (query: Record<string, unknown>) => {
 };
 
 const getVendorProfileFromDB = async (email: string) => {
-  const result = await Vendor.findOne({ email: email });
+  const result = await Vendor.findOne({ email: email }).populate('userId');
 
   if (!result) {
     throw new AppError(404, 'This vendor user not found');
   }
 
+  return result;
+};
+
+const getVendorUserByIdFromDB = async (id: string) => {
+  const result = await Vendor.findById(id).populate('userId');
   return result;
 };
 
@@ -98,5 +103,6 @@ export const updateVendorProfileIntoDB = async (
 export const VendorServices = {
   getAllVendorsFromDB,
   getVendorProfileFromDB,
+  getVendorUserByIdFromDB,
   updateVendorProfileIntoDB,
 };

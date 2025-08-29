@@ -11,6 +11,8 @@ const upload = multer({ storage: memoryStorage() });
 
 router.get('/', VendorControllers.getAllVendors);
 
+router.get('/:id', VendorControllers.getVendorUserById);
+
 router.get(
   '/profile/:email',
   auth('vendor', 'admin'),

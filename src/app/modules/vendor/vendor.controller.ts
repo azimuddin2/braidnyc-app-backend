@@ -26,6 +26,18 @@ const getVendorProfile = catchAsync(async (req, res) => {
   });
 });
 
+const getVendorUserById = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const result = await VendorServices.getVendorUserByIdFromDB(id);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'User retrieved successfully',
+    data: result,
+  });
+});
+
 const updateVendorProfile = catchAsync(async (req, res) => {
   const { email } = req.params;
   const result = await VendorServices.updateVendorProfileIntoDB(
@@ -45,5 +57,6 @@ const updateVendorProfile = catchAsync(async (req, res) => {
 export const VendorControllers = {
   getAllVendors,
   getVendorProfile,
+  getVendorUserById,
   updateVendorProfile,
 };
