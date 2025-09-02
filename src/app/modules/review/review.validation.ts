@@ -12,7 +12,7 @@ const objectId = z
 export const createReviewValidationSchema = z.object({
   body: z
     .object({
-      user: objectId.required({ message: 'User ID is required' }),
+      user: objectId,
       product: objectId.optional(),
       service: objectId.optional(),
       review: z
@@ -32,3 +32,7 @@ export const createReviewValidationSchema = z.object({
       path: ['service'],
     }),
 });
+
+export const ReviewValidation = {
+  createReviewValidationSchema,
+};

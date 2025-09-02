@@ -52,6 +52,9 @@ export type TPackages = {
     weeklySchedule: Partial<Record<TWeekDay, TDaySchedule>>; // not all days required
   };
 
+  reviews?: Types.ObjectId[]; // can store populated reviews
+  avgRating?: number;
+
   isDeleted: boolean;
   createdAt?: string;
   updatedAt?: string;

@@ -77,6 +77,16 @@ const productSchema = new Schema<TProduct>(
       type: String,
       required: true,
     },
+    reviews: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'Review',
+      },
+    ],
+    avgRating: {
+      type: Number,
+      default: 0,
+    },
     isDeleted: {
       type: Boolean,
       default: false,

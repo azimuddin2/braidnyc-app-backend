@@ -28,5 +28,7 @@ export type TProduct = {
   highlightStatus: THighlightStatus;
   description: string;
   deleteKey: string[];
+  reviews?: Types.ObjectId[]; // can store populated reviews
+  avgRating?: number;
   isDeleted: boolean;
 };
