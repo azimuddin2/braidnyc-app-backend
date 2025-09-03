@@ -7,9 +7,10 @@ import {
   uploadManyToS3,
 } from '../../utils/awsS3FileUploader';
 import { packageSearchableFields } from './packages.constant';
-import { TPackages } from './packages.interface';
+import { TPackages, TServiceSlots, TSlot } from './packages.interface';
 import { Packages } from './packages.model';
-import { generateServiceId } from './packages.utils';
+import { generateServiceId, generateTimeSlots } from './packages.utils';
+import { Booking } from '../booking/booking.model';
 
 const createPackagesIntoDB = async (payload: TPackages, files: any) => {
   // Assign backend-specific service code
@@ -226,6 +227,63 @@ const updatePackagesHighlightStatusIntoDB = async (
   return result;
 };
 
+// Availability Service
+export const getAvailabilityFromDB = async (
+  query: Record<string, unknown>,
+): Promise<TServiceSlots[]> => {
+  const { serviceId, date } = query as { serviceId: string; date: string };
+  if (!serviceId || !date) throw new AppError(400, 'Missing serviceId or date');
+
+  const service = await Packages.findOne({ serviceId }).lean();
+  if (!service) throw new AppError(404, 'Service not found');
+
+  const selectedDate = new Date(date);
+  const dayOfWeek = selectedDate
+    .toLocaleDateString('en-US', { weekday: 'long' })
+    .toLowerCase();
+
+  const weeklySchedule = service.availability?.weeklySchedule || {};
+  const schedule = weeklySchedule[dayOfWeek as keyof typeof weeklySchedule];
+  if (!schedule?.enabled) return [];
+
+  const result: TServiceSlots[] = [];
+
+  for (const savedService of service.savedServices) {
+    let slotDuration = 60;
+    if (savedService.duration.includes('hr'))
+      slotDuration = parseFloat(savedService.duration) * 60;
+    else if (savedService.duration.includes('min'))
+      slotDuration = parseInt(savedService.duration, 10);
+
+    const slots = generateTimeSlots(
+      schedule.startTime,
+      schedule.endTime,
+      slotDuration,
+    );
+
+    const bookedTimesAgg = await Booking.aggregate([
+      { $match: { serviceId, date, serviceItemId: savedService.id } },
+      { $project: { time: 1, _id: 0 } },
+    ]);
+    const bookedTimesSet = new Set(bookedTimesAgg.map((b: any) => b.time));
+
+    const slotsWithStatus: TSlot[] = slots.map((slot) => ({
+      ...slot,
+      status: bookedTimesSet.has(slot.time) ? 'booked' : 'available',
+    }));
+
+    result.push({
+      serviceItemId: savedService.id,
+      name: service.name,
+      duration: savedService.duration,
+      finalPrice: savedService.finalPrice,
+      slots: slotsWithStatus,
+    });
+  }
+
+  return result;
+};
+
 export const PackagesServices = {
   createPackagesIntoDB,
   getAllPackagesFromDB,
@@ -235,4 +293,5 @@ export const PackagesServices = {
   deletePackagesFromDB,
   updatePackagesStatusIntoDB,
   updatePackagesHighlightStatusIntoDB,
+  getAvailabilityFromDB,
 };

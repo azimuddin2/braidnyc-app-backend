@@ -78,4 +78,4 @@ const packagesSchema = new Schema<TPackages>(
   { timestamps: true },
 );
 
-export const Packages = model('Packages', packagesSchema);
+export const Packages = model<TPackages>('Packages', packagesSchema);

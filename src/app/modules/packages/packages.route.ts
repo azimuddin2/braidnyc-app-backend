@@ -18,6 +18,8 @@ router.post(
   PackagesControllers.createPackages,
 );
 
+router.get('/availability', PackagesControllers.getAvailability);
+
 router.get('/', PackagesControllers.getAllPackages);
 router.get('/', PackagesControllers.getAllPackagesByUser);
 router.get('/:id', PackagesControllers.getPackagesById);

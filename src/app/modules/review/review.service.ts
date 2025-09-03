@@ -67,7 +67,7 @@ const getAllReviewsFromDB = async (query: Record<string, any>) => {
   const reviewsModel = new QueryBuilder(
     Review.find().populate([
       { path: 'product', select: 'name images productType' },
-      { path: 'service', select: 'name type, images' },
+      { path: 'service', select: 'name type images' },
       { path: 'user', select: 'fullName email image' },
     ]),
     query,

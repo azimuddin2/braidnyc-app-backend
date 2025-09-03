@@ -110,6 +110,17 @@ const updatePackagesHighlightStatus = catchAsync(async (req, res) => {
   });
 });
 
+const getAvailability = catchAsync(async (req, res) => {
+  const result = await PackagesServices.getAvailabilityFromDB(req.query);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Slots retrieved successfully',
+    data: result,
+  });
+});
+
 export const PackagesControllers = {
   createPackages,
   getAllPackages,
@@ -119,4 +130,5 @@ export const PackagesControllers = {
   deletePackages,
   updatePackagesStatus,
   updatePackagesHighlightStatus,
+  getAvailability,
 };
