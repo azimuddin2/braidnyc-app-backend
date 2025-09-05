@@ -8,6 +8,7 @@ import { TeamRoutes } from '../modules/team/team.route';
 import { VendorRoutes } from '../modules/vendor/vendor.route';
 import { TaskRoutes } from '../modules/task/task.route';
 import { ReviewRoutes } from '../modules/review/review.route';
+import { BookingRoutes } from '../modules/booking/booking.route';
 
 const router = Router();
 
@@ -47,6 +48,10 @@ const moduleRoutes = [
   {
     path: '/reviews',
     route: ReviewRoutes,
+  },
+  {
+    path: '/bookings',
+    route: BookingRoutes,
   },
 ];
 
