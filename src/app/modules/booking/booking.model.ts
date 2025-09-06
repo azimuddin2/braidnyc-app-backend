@@ -4,10 +4,18 @@ import { BookingStatus, PaymentStatus, PaymentType } from './booking.constant';
 
 const bookingSchema = new Schema<TBooking>(
   {
+    serviceId: {
+      type: String,
+      required: true,
+    },
     service: {
       type: Schema.Types.ObjectId,
       required: [true, 'Service Id is required'],
       ref: 'Packages',
+    },
+    serviceItemId: {
+      type: String,
+      required: true,
     },
     name: {
       type: String,

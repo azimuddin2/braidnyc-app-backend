@@ -26,7 +26,7 @@ export function generateTimeSlots(
     return date;
   };
 
-  const formatTime = (date: Date): string => {
+  const formatTime = (date: Date) => {
     let hours = date.getHours();
     const minutes = date.getMinutes();
     const ampm = hours >= 12 ? 'PM' : 'AM';
