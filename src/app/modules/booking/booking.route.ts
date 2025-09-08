@@ -8,9 +8,11 @@ const router = express.Router();
 
 router.post(
   '/',
-  // auth('user'),
+  auth('user'),
   validateRequest(BookingValidation.createBookingValidationSchema),
   BookingControllers.createBooking,
 );
+
+router.get('/', BookingControllers.getBookingsByEmail);
 
 export const BookingRoutes = router;

@@ -22,8 +22,9 @@ const createBookingIntoDB = async (payload: TBooking) => {
     .toLowerCase() as TWeekDay;
 
   const schedule = serviceData.availability?.weeklySchedule?.[dayOfWeek];
-  if (!schedule?.enabled)
+  if (!schedule?.enabled) {
     throw new AppError(400, 'Service not available on this day');
+  }
 
   // 4️⃣ Validate slot within schedule
   const parseTimeToMinutes = (str: string) => {
@@ -61,6 +62,24 @@ const createBookingIntoDB = async (payload: TBooking) => {
   return booking;
 };
 
+const getBookingsByEmailFromDB = async (email: string) => {
+  // ✅ Validate email
+  if (!email) {
+    throw new AppError(400, 'Email is required');
+  }
+
+  // ✅ Fetch bookings directly by email
+  const bookings = await Booking.find({ email, isDeleted: false })
+    // .populate('service')
+    .sort({ createdAt: -1 }) // latest first
+    .select('-__v -isDeleted'); // exclude unwanted fields
+
+  const total = await Booking.countDocuments({ email, isDeleted: false });
+
+  return { total, bookings };
+};
+
 export const BookingServices = {
   createBookingIntoDB,
+  getBookingsByEmailFromDB,
 };

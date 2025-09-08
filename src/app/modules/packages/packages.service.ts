@@ -227,7 +227,6 @@ const updatePackagesHighlightStatusIntoDB = async (
   return result;
 };
 
-// Availability Service
 export const getAvailabilityFromDB = async (
   query: Record<string, unknown>,
 ): Promise<TServiceSlots[]> => {
