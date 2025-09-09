@@ -27,7 +27,20 @@ const getBookingsByEmail = catchAsync(async (req, res) => {
   });
 });
 
+const getBookingById = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const result = await BookingServices.getBookingByIdFromDB(id);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Booking retrieved successfully',
+    data: result,
+  });
+});
+
 export const BookingControllers = {
   createBooking,
   getBookingsByEmail,
+  getBookingById,
 };

@@ -70,16 +70,29 @@ const getBookingsByEmailFromDB = async (email: string) => {
 
   // ✅ Fetch bookings directly by email
   const bookings = await Booking.find({ email, isDeleted: false })
-    // .populate('service')
+    .populate('service')
     .sort({ createdAt: -1 }) // latest first
     .select('-__v -isDeleted'); // exclude unwanted fields
 
-  const total = await Booking.countDocuments({ email, isDeleted: false });
+  return bookings;
+};
 
-  return { total, bookings };
+const getBookingByIdFromDB = async (id: string) => {
+  const result = await Booking.findById(id).populate('service');
+
+  if (!result) {
+    throw new AppError(404, 'This Booking not found');
+  }
+
+  if (result.isDeleted === true) {
+    throw new AppError(400, 'This Booking has been deleted');
+  }
+
+  return result;
 };
 
 export const BookingServices = {
   createBookingIntoDB,
   getBookingsByEmailFromDB,
+  getBookingByIdFromDB,
 };
