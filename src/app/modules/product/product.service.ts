@@ -45,7 +45,10 @@ const createProductIntoDB = async (payload: TProduct, files: any) => {
 };
 
 const getAllProductFromDB = async (query: Record<string, unknown>) => {
-  const productQuery = new QueryBuilder(Product.find().populate('user'), query)
+  const productQuery = new QueryBuilder(
+    Product.find().populate('vendor'),
+    query,
+  )
     .search(productSearchableFields)
     .filter()
     .sort()
@@ -59,14 +62,16 @@ const getAllProductFromDB = async (query: Record<string, unknown>) => {
 };
 
 const getAllProductByUserFromDB = async (query: Record<string, unknown>) => {
-  const { user, ...filters } = query;
+  const { vendor, ...filters } = query;
 
-  if (!user || !mongoose.Types.ObjectId.isValid(user as string)) {
-    throw new AppError(400, 'Invalid user ID');
+  if (!vendor || !mongoose.Types.ObjectId.isValid(vendor as string)) {
+    throw new AppError(400, 'Invalid Vendor ID');
   }
 
   // Base query -> always exclude deleted products
-  let productQuery = Product.find({ user, isDeleted: false });
+  let productQuery = Product.find({ vendor, isDeleted: false }).populate(
+    'vendor',
+  );
 
   const queryBuilder = new QueryBuilder(productQuery, filters)
     .search(productSearchableFields)
@@ -88,7 +93,12 @@ const getAllProductByUserFromDB = async (query: Record<string, unknown>) => {
 };
 
 const getProductByIdFromDB = async (id: string) => {
-  const result = await Product.findById(id).populate('user');
+  const result = await Product.findById(id)
+    .populate('vendor')
+    .populate({
+      path: 'reviews',
+      select: '_id rating review user', // include the fields you need
+    });
 
   if (!result) {
     throw new AppError(404, 'This product not found');

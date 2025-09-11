@@ -9,6 +9,7 @@ export type TPaymentType = 'half' | 'full' | 'later';
 export type TPaymentStatus = 'pending' | 'paid' | 'refunded' | 'failed';
 
 export type TBooking = {
+  vendor: Types.ObjectId;
   serviceId: string;
   service: Types.ObjectId;
   serviceItemId: string;

@@ -19,7 +19,7 @@ const DayScheduleSchema = z.object({
 // ---------- Main Create Validation ----------
 export const createPackagesValidationSchema = z.object({
   body: z.object({
-    user: z.string({ required_error: 'User ID is required' }), // ObjectId (string)
+    vendor: z.string({ required_error: 'Vendor ID is required' }), // ObjectId (string)
     name: z.string({ required_error: 'Name is required' }),
     type: z.string({ required_error: 'Type is required' }),
     savedServices: z
@@ -44,7 +44,6 @@ export const createPackagesValidationSchema = z.object({
 // ---------- Update Validation (all optional) ----------
 export const updatePackagesValidationSchema = z.object({
   body: z.object({
-    user: z.string().optional(),
     deleteKey: z.array(z.string()).optional(),
     name: z.string().optional(),
     type: z.string().optional(),

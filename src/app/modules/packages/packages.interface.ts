@@ -36,7 +36,7 @@ export type TImage = {
 
 // Main ServiceData type
 export type TPackages = {
-  user: Types.ObjectId;
+  vendor: Types.ObjectId;
   deleteKey: string[];
   _id?: string;
   serviceId: string;

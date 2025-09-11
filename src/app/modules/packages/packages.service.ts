@@ -48,7 +48,7 @@ const createPackagesIntoDB = async (payload: TPackages, files: any) => {
 
 const getAllPackagesFromDB = async (query: Record<string, unknown>) => {
   const packagesQuery = new QueryBuilder(
-    Packages.find().populate('user'),
+    Packages.find().populate('vendor'),
     query,
   )
     .search(packageSearchableFields)
@@ -64,14 +64,16 @@ const getAllPackagesFromDB = async (query: Record<string, unknown>) => {
 };
 
 const getAllPackagesByUserFromDB = async (query: Record<string, unknown>) => {
-  const { user, ...filters } = query;
+  const { vendor, ...filters } = query;
 
-  if (!user || !mongoose.Types.ObjectId.isValid(user as string)) {
-    throw new AppError(400, 'Invalid user ID');
+  if (!vendor || !mongoose.Types.ObjectId.isValid(vendor as string)) {
+    throw new AppError(400, 'Invalid Vendor ID');
   }
 
   // Base query -> always exclude deleted packages service
-  let packagesQuery = Packages.find({ user, isDeleted: false });
+  let packagesQuery = Packages.find({ vendor, isDeleted: false }).populate(
+    'vendor',
+  );
 
   const queryBuilder = new QueryBuilder(packagesQuery, filters)
     .search(packageSearchableFields)
@@ -93,7 +95,12 @@ const getAllPackagesByUserFromDB = async (query: Record<string, unknown>) => {
 };
 
 const getPackagesByIdFromDB = async (id: string) => {
-  const result = await Packages.findById(id).populate('user');
+  const result = await Packages.findById(id)
+    .populate('vendor')
+    .populate({
+      path: 'reviews',
+      select: '_id rating review user', // include the fields you need
+    });
 
   if (!result) {
     throw new AppError(404, 'This service not found');

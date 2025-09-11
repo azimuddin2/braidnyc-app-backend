@@ -2,7 +2,7 @@ import { Types } from 'mongoose';
 
 export type TTeam = {
   _id?: string;
-  user: Types.ObjectId;
+  vendor: Types.ObjectId;
   name: string;
   email: string;
   image: string | null;

@@ -32,7 +32,11 @@ const DayScheduleSchema = new Schema<TDaySchedule>(
 
 const packagesSchema = new Schema<TPackages>(
   {
-    user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    vendor: {
+      type: Schema.Types.ObjectId,
+      required: [true, 'Vendor Id is required'],
+      ref: 'Vendor',
+    },
     deleteKey: [{ type: String, required: true }],
     serviceId: { type: String, required: true },
     name: { type: String, required: true },
