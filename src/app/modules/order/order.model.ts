@@ -1,0 +1,60 @@
+import { model, Schema } from 'mongoose';
+import { TOrder } from './order.interface';
+import { OrderStatus } from './order.constant';
+
+const orderSchema = new Schema<TOrder>(
+  {
+    product: {
+      type: Schema.Types.ObjectId,
+      required: [true, 'Product Id is required'],
+      ref: 'Product',
+    },
+    vendor: {
+      type: Schema.Types.ObjectId,
+      required: [true, 'Vendor Id is required'],
+      ref: 'Vendor',
+    },
+    buyer: {
+      type: Schema.Types.ObjectId,
+      required: [true, 'User Id is required'],
+      ref: 'User',
+    },
+
+    customerName: { type: String, required: true, trim: true },
+    customerEmail: {
+      type: String,
+      required: true,
+      lowercase: true,
+      trim: true,
+    },
+    customerPhone: { type: String, required: true, trim: true },
+
+    totalPrice: { type: Number, required: true },
+    discount: { type: Number, default: 0 },
+    quantity: { type: Number, required: true },
+
+    status: {
+      type: String,
+      enum: {
+        values: OrderStatus,
+        message: '{VALUE} is not valid',
+      },
+      default: 'pending',
+    },
+
+    isPaid: { type: Boolean, default: false },
+
+    billingDetails: {
+      country: { type: String, required: true },
+      city: { type: String, required: true },
+      state: { type: String, required: true },
+      zipCode: { type: String, required: true },
+      address: { type: String, required: true },
+    },
+
+    isDeleted: { type: Boolean, default: false },
+  },
+  { timestamps: true },
+);
+
+export const Order = model<TOrder>('Order', orderSchema);
