@@ -26,14 +26,14 @@ const createTeamMemberIntoDB = async (payload: TTeam, file: any) => {
 };
 
 const getAllTeamMemberFromDB = async (query: Record<string, unknown>) => {
-  const { user, ...filters } = query;
+  const { vendor, ...filters } = query;
 
-  if (!user || !mongoose.Types.ObjectId.isValid(user as string)) {
+  if (!vendor || !mongoose.Types.ObjectId.isValid(vendor as string)) {
     throw new AppError(400, 'Invalid user ID');
   }
 
   // Base query -> always exclude deleted teams
-  let teamQuery = Team.find({ user, isDeleted: false });
+  let teamQuery = Team.find({ vendor, isDeleted: false }).populate('vendor');
 
   const queryBuilder = new QueryBuilder(teamQuery, filters)
     .search(teamMemberSearchableFields)
@@ -42,12 +42,6 @@ const getAllTeamMemberFromDB = async (query: Record<string, unknown>) => {
     .paginate()
     .fields();
 
-  // Ensure final filter includes isDeleted = false
-  queryBuilder.modelQuery = queryBuilder.modelQuery.find({
-    ...queryBuilder.finalFilter,
-    isDeleted: false,
-  });
-
   const meta = await queryBuilder.countTotal();
   const result = await queryBuilder.modelQuery;
 
@@ -55,7 +49,7 @@ const getAllTeamMemberFromDB = async (query: Record<string, unknown>) => {
 };
 
 const getTeamMemberByIdFromDB = async (id: string) => {
-  const result = await Team.findById(id).populate('user');
+  const result = await Team.findById(id).populate('vendor');
 
   if (!result) {
     throw new AppError(404, 'This team member not found');

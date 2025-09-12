@@ -48,7 +48,7 @@ const createPackagesIntoDB = async (payload: TPackages, files: any) => {
 
 const getAllPackagesFromDB = async (query: Record<string, unknown>) => {
   const packagesQuery = new QueryBuilder(
-    Packages.find().populate('vendor'),
+    Packages.find({ isDeleted: false }).populate('vendor'),
     query,
   )
     .search(packageSearchableFields)
@@ -82,12 +82,6 @@ const getAllPackagesByUserFromDB = async (query: Record<string, unknown>) => {
     .paginate()
     .fields();
 
-  // Ensure final filter includes isDeleted = false
-  queryBuilder.modelQuery = queryBuilder.modelQuery.find({
-    ...queryBuilder.finalFilter,
-    isDeleted: false,
-  });
-
   const meta = await queryBuilder.countTotal();
   const result = await queryBuilder.modelQuery;
 
@@ -95,12 +89,10 @@ const getAllPackagesByUserFromDB = async (query: Record<string, unknown>) => {
 };
 
 const getPackagesByIdFromDB = async (id: string) => {
-  const result = await Packages.findById(id)
-    .populate('vendor')
-    .populate({
-      path: 'reviews',
-      select: '_id rating review user', // include the fields you need
-    });
+  const result = await Packages.findById(id).populate('vendor').populate({
+    path: 'reviews',
+    select: '_id rating review user', // include the fields you need
+  });
 
   if (!result) {
     throw new AppError(404, 'This service not found');

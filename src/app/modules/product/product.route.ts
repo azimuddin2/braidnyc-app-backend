@@ -49,7 +49,7 @@ router.put(
 
 router.delete(
   '/:id',
-  auth('vendor', 'admin'),
+  // auth('vendor', 'admin'),
   ProductControllers.deleteProduct,
 );
 

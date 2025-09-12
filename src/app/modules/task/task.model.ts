@@ -4,10 +4,10 @@ import { TaskStatus } from './task.constant';
 
 const taskSchema = new Schema<TTask>(
   {
-    user: {
+    vendor: {
       type: Schema.Types.ObjectId,
-      required: [true, 'User Id is required'],
-      ref: 'User',
+      required: [true, 'Vendor Id is required'],
+      ref: 'Vendor',
     },
     title: {
       type: String,

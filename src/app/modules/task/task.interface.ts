@@ -9,7 +9,7 @@ export type TStatus =
   | 'Obsolete';
 
 export type TTask = {
-  user: Types.ObjectId;
+  vendor: Types.ObjectId;
   _id?: string;
   title: string;
   description: string;

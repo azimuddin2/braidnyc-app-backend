@@ -46,7 +46,7 @@ const createProductIntoDB = async (payload: TProduct, files: any) => {
 
 const getAllProductFromDB = async (query: Record<string, unknown>) => {
   const productQuery = new QueryBuilder(
-    Product.find().populate('vendor'),
+    Product.find({ isDeleted: false }).populate('vendor'),
     query,
   )
     .search(productSearchableFields)
@@ -80,12 +80,6 @@ const getAllProductByUserFromDB = async (query: Record<string, unknown>) => {
     .paginate()
     .fields();
 
-  // Ensure final filter includes isDeleted = false
-  queryBuilder.modelQuery = queryBuilder.modelQuery.find({
-    ...queryBuilder.finalFilter,
-    isDeleted: false,
-  });
-
   const meta = await queryBuilder.countTotal();
   const result = await queryBuilder.modelQuery;
 
@@ -93,12 +87,10 @@ const getAllProductByUserFromDB = async (query: Record<string, unknown>) => {
 };
 
 const getProductByIdFromDB = async (id: string) => {
-  const result = await Product.findById(id)
-    .populate('vendor')
-    .populate({
-      path: 'reviews',
-      select: '_id rating review user', // include the fields you need
-    });
+  const result = await Product.findById(id).populate('vendor').populate({
+    path: 'reviews',
+    select: '_id rating review user', // include the fields you need
+  });
 
   if (!result) {
     throw new AppError(404, 'This product not found');

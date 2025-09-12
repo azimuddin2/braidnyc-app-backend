@@ -3,10 +3,10 @@ import { TTeam } from './team.interface';
 
 const teamSchema = new Schema<TTeam>(
   {
-    user: {
+    vendor: {
       type: Schema.Types.ObjectId,
-      required: [true, 'User Id is required'],
-      ref: 'User',
+      required: [true, 'Vendor Id is required'],
+      ref: 'Vendor',
     },
     name: {
       type: String,

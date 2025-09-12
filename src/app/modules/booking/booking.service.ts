@@ -53,8 +53,9 @@ const createBookingIntoDB = async (payload: TBooking) => {
     slotTime: time,
   }).lean();
 
-  if (existingBooking)
+  if (existingBooking) {
     throw new AppError(409, 'This time slot is already booked');
+  }
 
   // 6️⃣ Create booking
   const booking = await Booking.create(payload);
@@ -71,6 +72,7 @@ const getBookingsByEmailFromDB = async (email: string) => {
   // ✅ Fetch bookings directly by email
   const bookings = await Booking.find({ email, isDeleted: false })
     .populate('service')
+    .populate('vendor')
     .sort({ createdAt: -1 }) // latest first
     .select('-__v -isDeleted'); // exclude unwanted fields
 
