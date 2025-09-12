@@ -1,12 +1,42 @@
+import { Types } from 'mongoose';
 import AppError from '../../errors/AppError';
+import { TProduct } from '../product/product.interface';
+import { Product } from '../product/product.model';
 import { TOrder } from './order.interface';
 import { Order } from './order.model';
 
-const createOrderIntoDB = async (payload: TOrder) => {
+export const createOrderIntoDB = async (payload: TOrder) => {
+  // 1️⃣ Validate ObjectIds
+  if (!Types.ObjectId.isValid(payload?.product)) {
+    throw new AppError(400, 'Invalid Product ID');
+  }
+  if (!Types.ObjectId.isValid(payload?.vendor)) {
+    throw new AppError(400, 'Invalid Vendor ID');
+  }
+  if (!Types.ObjectId.isValid(payload?.buyer)) {
+    throw new AppError(400, 'Invalid Buyer ID');
+  }
+
+  // 2️⃣ Fetch product
+  const product: TProduct | null = await Product.findById(payload?.product);
+  if (!product) {
+    throw new AppError(404, 'Product not found');
+  }
+
+  // 3️⃣ Check stock
+  if (product.quantity < payload.quantity) {
+    throw new AppError(
+      400,
+      `Insufficient stock. Only ${product.quantity} left`,
+    );
+  }
+
+  // 4️⃣ Create order
   const result = await Order.create(payload);
   if (!result) {
     throw new AppError(400, 'Failed to create order');
   }
+
   return result;
 };
 

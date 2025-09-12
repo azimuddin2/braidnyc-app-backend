@@ -14,7 +14,9 @@ const createBookingIntoDB = async (payload: TBooking) => {
 
   // 2️⃣ Fetch service
   const serviceData = await Packages.findById(service).lean();
-  if (!serviceData) throw new AppError(404, 'Service not found');
+  if (!serviceData) {
+    throw new AppError(404, 'Service not found');
+  }
 
   // 3️⃣ Check day schedule
   const dayOfWeek = new Date(date)

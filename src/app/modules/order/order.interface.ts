@@ -23,7 +23,7 @@ export type TOrder = {
   isPaid: boolean;
   billingDetails: {
     country: string;
-    city: string;
+    city?: string;
     state: string;
     zipCode: string;
     address: string;
