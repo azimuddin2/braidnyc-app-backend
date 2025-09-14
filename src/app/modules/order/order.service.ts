@@ -7,9 +7,6 @@ import { Order } from './order.model';
 
 export const createOrderIntoDB = async (payload: TOrder) => {
   // 1️⃣ Validate ObjectIds
-  if (!Types.ObjectId.isValid(payload?.product)) {
-    throw new AppError(400, 'Invalid Product ID');
-  }
   if (!Types.ObjectId.isValid(payload?.vendor)) {
     throw new AppError(400, 'Invalid Vendor ID');
   }
@@ -17,27 +14,40 @@ export const createOrderIntoDB = async (payload: TOrder) => {
     throw new AppError(400, 'Invalid Buyer ID');
   }
 
-  // 2️⃣ Fetch product
-  const product: TProduct | null = await Product.findById(payload?.product);
-  if (!product) {
-    throw new AppError(404, 'Product not found');
-  }
+  // 2️⃣ Validate each product
+  for (const item of payload.products) {
+    if (!Types.ObjectId.isValid(item.product)) {
+      throw new AppError(400, `Invalid Product ID: ${item.product}`);
+    }
 
-  // 3️⃣ Check stock
-  if (product.quantity < payload.quantity) {
-    throw new AppError(
-      400,
-      `Insufficient stock. Only ${product.quantity} left`,
-    );
+    const product: TProduct | null = await Product.findById(item.product);
+    if (!product) {
+      throw new AppError(404, `Product not found: ${item.product}`);
+    }
+
+    // 3️⃣ Check stock
+    if (product.quantity < item.quantity) {
+      throw new AppError(
+        400,
+        `Insufficient stock for ${product.name}. Only ${product.quantity} left`,
+      );
+    }
   }
 
   // 4️⃣ Create order
-  const result = await Order.create(payload);
-  if (!result) {
+  const order = await Order.create(payload);
+  if (!order) {
     throw new AppError(400, 'Failed to create order');
   }
 
-  return result;
+  // 5️⃣ Deduct stock (after order created successfully)
+  for (const item of payload.products) {
+    await Product.findByIdAndUpdate(item.product, {
+      $inc: { quantity: -item.quantity },
+    });
+  }
+
+  return order;
 };
 
 const getOrdersByEmailFromDB = async (email: string) => {

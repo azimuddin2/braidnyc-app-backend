@@ -7,8 +7,15 @@ export type TOrderStatus =
   | 'delivered'
   | 'return';
 
-export type TOrder = {
+export type TOrderProduct = {
   product: Types.ObjectId;
+  quantity: number;
+  price: number;
+  discount: number;
+};
+
+export type TOrder = {
+  products: TOrderProduct[];
   vendor: Types.ObjectId;
   buyer: Types.ObjectId;
 
@@ -17,8 +24,7 @@ export type TOrder = {
   customerPhone: string;
 
   totalPrice: number;
-  discount: number;
-  quantity: number;
+
   status: TOrderStatus;
   isPaid: boolean;
   billingDetails: {

@@ -1,19 +1,34 @@
-import { model, Schema } from 'mongoose';
+import { model, Schema, Types } from 'mongoose';
 import { TOrder } from './order.interface';
 import { OrderStatus } from './order.constant';
 
-const orderSchema = new Schema<TOrder>(
+const orderProductSchema = new Schema(
   {
     product: {
       type: Schema.Types.ObjectId,
       required: [true, 'Product Id is required'],
       ref: 'Product',
     },
+    quantity: { type: Number, required: true },
+    price: { type: Number, required: true },
+    discount: { type: Number, default: 0 },
+  },
+  { _id: false }, // prevent creating extra _id for each product item
+);
+
+const orderSchema = new Schema<TOrder>(
+  {
+    products: {
+      type: [orderProductSchema],
+      required: true,
+    },
+
     vendor: {
       type: Schema.Types.ObjectId,
       required: [true, 'Vendor Id is required'],
       ref: 'Vendor',
     },
+
     buyer: {
       type: Schema.Types.ObjectId,
       required: [true, 'User Id is required'],
@@ -30,8 +45,6 @@ const orderSchema = new Schema<TOrder>(
     customerPhone: { type: String, required: true, trim: true },
 
     totalPrice: { type: Number, required: true },
-    discount: { type: Number, default: 0 },
-    quantity: { type: Number, required: true },
 
     status: {
       type: String,
