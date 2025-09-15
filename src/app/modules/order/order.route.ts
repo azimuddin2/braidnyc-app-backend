@@ -13,7 +13,7 @@ router.post(
   OrderControllers.createOrder,
 );
 
-router.get('/', auth('user'), OrderControllers.getOrdersByEmail);
+router.get('/', OrderControllers.getOrdersByEmail);
 
 router.get('/:id', OrderControllers.getOrderById);
 

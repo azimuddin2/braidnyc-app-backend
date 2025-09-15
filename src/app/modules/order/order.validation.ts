@@ -11,6 +11,8 @@ const billingDetailsSchema = z.object({
 
 // Define product schema
 const orderProductSchema = z.object({
+  name: z.string().min(1, 'Product name is required'),
+  image: z.string().min(1, 'Product Image is required'),
   product: z.string().min(1, 'Product Id is required'),
   quantity: z.number().min(1, 'Quantity must be at least 1'),
   price: z.number().min(0, 'Price must be >= 0'),

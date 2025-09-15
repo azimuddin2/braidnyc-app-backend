@@ -8,6 +8,8 @@ export type TOrderStatus =
   | 'return';
 
 export type TOrderProduct = {
+  name: string;
+  image: string;
   product: Types.ObjectId;
   quantity: number;
   price: number;

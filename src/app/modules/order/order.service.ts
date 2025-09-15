@@ -5,7 +5,7 @@ import { Product } from '../product/product.model';
 import { TOrder } from './order.interface';
 import { Order } from './order.model';
 
-export const createOrderIntoDB = async (payload: TOrder) => {
+const createOrderIntoDB = async (payload: TOrder) => {
   // 1️⃣ Validate ObjectIds
   if (!Types.ObjectId.isValid(payload?.vendor)) {
     throw new AppError(400, 'Invalid Vendor ID');
@@ -58,7 +58,7 @@ const getOrdersByEmailFromDB = async (email: string) => {
 
   // ✅ Fetch bookings directly by email
   const bookings = await Order.find({ customerEmail: email, isDeleted: false })
-    .populate('product')
+    // .populate('products.product')
     .populate('vendor')
     .sort({ createdAt: -1 }) // latest first
     .select('-__v -isDeleted'); // exclude unwanted fields

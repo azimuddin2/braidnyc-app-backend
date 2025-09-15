@@ -4,6 +4,8 @@ import { OrderStatus } from './order.constant';
 
 const orderProductSchema = new Schema(
   {
+    name: { type: String, required: true },
+    image: { type: String, required: true },
     product: {
       type: Schema.Types.ObjectId,
       required: [true, 'Product Id is required'],
