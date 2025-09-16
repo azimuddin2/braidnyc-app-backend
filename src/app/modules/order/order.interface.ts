@@ -1,11 +1,8 @@
 import { Types } from 'mongoose';
 
-export type TOrderStatus =
-  | 'pending'
-  | 'shipped'
-  | 'cancelled'
-  | 'delivered'
-  | 'return';
+export type TOrderStatus = 'pending' | 'shipped' | 'delivered';
+
+export type TOrderRequest = 'cancelled' | 'return';
 
 export type TOrderProduct = {
   name: string;
@@ -28,6 +25,7 @@ export type TOrder = {
   totalPrice: number;
 
   status: TOrderStatus;
+  request: TOrderRequest;
   isPaid: boolean;
   billingDetails: {
     country: string;

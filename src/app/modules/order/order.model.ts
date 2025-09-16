@@ -1,6 +1,6 @@
 import { model, Schema, Types } from 'mongoose';
 import { TOrder } from './order.interface';
-import { OrderStatus } from './order.constant';
+import { OrderRequest, OrderStatus } from './order.constant';
 
 const orderProductSchema = new Schema(
   {
@@ -55,6 +55,15 @@ const orderSchema = new Schema<TOrder>(
         message: '{VALUE} is not valid',
       },
       default: 'pending',
+    },
+
+    request: {
+      type: String,
+      enum: {
+        values: OrderRequest,
+        message: '{VALUE} is not valid',
+      },
+      default: 'cancelled',
     },
 
     isPaid: { type: Boolean, default: false },
