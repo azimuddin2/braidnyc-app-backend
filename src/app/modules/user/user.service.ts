@@ -12,6 +12,7 @@ import { TJwtPayload } from '../auth/auth.interface';
 import { createToken } from '../auth/auth.utils';
 import QueryBuilder from '../../builder/QueryBuilder';
 import { userSearchableFields } from './user.constant';
+import { deleteFromS3, uploadToS3 } from '../../utils/awsS3FileUploader';
 
 const registerUserIntoDB = async (payload: TUser) => {
   // 1. Check if user already exists
@@ -271,19 +272,74 @@ const getAllUsersFromDB = async (query: Record<string, unknown>) => {
   return { meta, result };
 };
 
-const getSingleUserFromDB = async (id: string) => {
-  const user = await User.findById(id);
+const getUserProfileFromDB = async (email: string) => {
+  const result = await User.findOne({ email: email });
 
-  if (!user) {
+  if (!result) {
+    throw new AppError(404, 'This user not found');
+  }
+
+  return result;
+};
+
+const updateUserProfileIntoDB = async (
+  email: string,
+  payload: Partial<TUser>,
+  file?: Express.Multer.File,
+) => {
+  // 🔍 Step 1: Check if user exists & get email
+  const existingUser = await User.findOne({ email }).select('userId image');
+  if (!existingUser) {
     throw new AppError(404, 'User not found');
   }
 
-  return user;
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    // 📸 Step 2: Handle image upload
+    if (file) {
+      const uploadedUrl = await uploadToS3({
+        file,
+        fileName: `images/user/profile/${Date.now()}-${Math.floor(
+          1000 + Math.random() * 9000,
+        )}`,
+      });
+
+      // 🧹 Delete old image if exists
+      if (existingUser.image) {
+        await deleteFromS3(existingUser.image);
+      }
+
+      payload.image = uploadedUrl as string;
+    }
+
+    // 📝 Step 3: Update linked User
+    const updatedUser = await User.findByIdAndUpdate(
+      existingUser._id, // ✅ correct user reference
+      { $set: { ...payload, role: 'user' } },
+      { new: true, runValidators: true, session },
+    );
+    if (!updatedUser) {
+      throw new AppError(400, 'Failed to update user');
+    }
+
+    // ✅ Step 5: Commit transaction
+    await session.commitTransaction();
+    session.endSession();
+
+    return updatedUser;
+  } catch (error: any) {
+    await session.abortTransaction();
+    session.endSession();
+    throw new AppError(500, error.message || 'User profile update failed');
+  }
 };
 
 export const UserServices = {
   registerUserIntoDB,
   vendorRegisterUserIntoDB,
   getAllUsersFromDB,
-  getSingleUserFromDB,
+  getUserProfileFromDB,
+  updateUserProfileIntoDB,
 };

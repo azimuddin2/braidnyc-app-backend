@@ -4,8 +4,11 @@ import { UserValidations } from './user.validation';
 import { UserControllers } from './user.controller';
 import { VendorValidations } from '../vendor/vendor.validation';
 import auth from '../../middlewares/auth';
+import multer, { memoryStorage } from 'multer';
+import parseData from '../../middlewares/parseData';
 
 const router = express.Router();
+const upload = multer({ storage: memoryStorage() });
 
 router.post(
   '/buyer/signup',
@@ -21,6 +24,19 @@ router.post(
 
 router.get('/', auth('admin'), UserControllers.getAllUsers);
 
-router.get('/:id', auth('admin'), UserControllers.getSingleUser);
+router.get(
+  '/profile/:email',
+  auth('user', 'admin'),
+  UserControllers.getUserProfile,
+);
+
+router.patch(
+  '/profile/:email',
+  auth('user'),
+  upload.single('profile'),
+  parseData(),
+  validateRequest(UserValidations.updateUserValidationSchema),
+  UserControllers.updateUserProfile,
+);
 
 export const UserRoutes = router;

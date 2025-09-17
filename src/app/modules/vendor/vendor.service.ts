@@ -36,7 +36,7 @@ const getVendorUserByIdFromDB = async (id: string) => {
   return result;
 };
 
-export const updateVendorProfileIntoDB = async (
+const updateVendorProfileIntoDB = async (
   email: string,
   payload: Partial<TVendor>,
   file?: Express.Multer.File,

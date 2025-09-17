@@ -78,6 +78,61 @@ const registerUserValidationSchema = z.object({
     }),
 });
 
+const updateUserValidationSchema = z.object({
+  body: z.object({
+    firstName: z
+      .string({
+        required_error: 'First name is required',
+        invalid_type_error: 'First name must be a string',
+      })
+      .min(3, 'First name must be at least 3 characters')
+      .max(20, 'First name cannot exceed 20 characters')
+      .optional(),
+
+    lastName: z
+      .string({
+        required_error: 'Last name is required',
+        invalid_type_error: 'Last name must be a string',
+      })
+      .min(3, 'Last name must be at least 3 characters')
+      .max(20, 'Last name cannot exceed 20 characters')
+      .optional(),
+
+    phone: z
+      .string({
+        required_error: 'Phone number is required',
+      })
+      .regex(/^\+?[0-9]{10,15}$/, 'Invalid phone number')
+      .optional(),
+
+    role: z
+      .enum([...UserRole] as [string, ...string[]])
+      .default('user')
+      .optional(),
+
+    image: z.string().optional(),
+    location: z.string().optional(),
+
+    status: z
+      .enum([...UserStatus] as [string, ...string[]])
+      .default('ongoing')
+      .optional(),
+
+    isDeleted: z.boolean().optional().default(false),
+
+    isVerified: z.boolean().default(false),
+
+    verification: z
+      .object({
+        otp: z.string().optional(),
+        expiresAt: z.date().optional(),
+        status: z.boolean().optional(),
+      })
+      .optional(),
+  }),
+});
+
 export const UserValidations = {
   registerUserValidationSchema,
+  updateUserValidationSchema,
 };

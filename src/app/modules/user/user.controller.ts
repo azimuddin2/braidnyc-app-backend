@@ -36,14 +36,30 @@ const getAllUsers = catchAsync(async (req, res) => {
   });
 });
 
-const getSingleUser = catchAsync(async (req, res) => {
-  const { id } = req.params;
-  const result = await UserServices.getSingleUserFromDB(id);
+const getUserProfile = catchAsync(async (req, res) => {
+  const { email } = req.params;
+  const result = await UserServices.getUserProfileFromDB(email);
 
   sendResponse(res, {
     statusCode: 200,
     success: true,
-    message: 'User retrieved successfully',
+    message: 'Profile retrieved successfully',
+    data: result,
+  });
+});
+
+const updateUserProfile = catchAsync(async (req, res) => {
+  const { email } = req.params;
+  const result = await UserServices.updateUserProfileIntoDB(
+    email,
+    req.body,
+    req.file,
+  );
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Profile has been updated successfully.',
     data: result,
   });
 });
@@ -52,5 +68,6 @@ export const UserControllers = {
   registerUser,
   vendorRegisterUser,
   getAllUsers,
-  getSingleUser,
+  getUserProfile,
+  updateUserProfile,
 };

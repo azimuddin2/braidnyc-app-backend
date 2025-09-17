@@ -4,6 +4,7 @@ export type TBookingStatus =
   | 'pending'
   | 'confirmed'
   | 'cancelled'
+  | 'rejected'
   | 'completed';
 export type TPaymentType = 'half' | 'full' | 'later';
 export type TPaymentStatus = 'pending' | 'paid' | 'refunded' | 'failed';
