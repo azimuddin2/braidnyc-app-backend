@@ -1,39 +1,55 @@
 import { Model, Types } from 'mongoose';
-import { TUser } from '../user/user.interface';
-import { TOrder } from '../order/order.interface';
-import { TBooking } from '../booking/booking.interface';
-import { TVendor } from '../vendor/vendor.interface';
+
+export type TStatus = 'pending' | 'paid' | 'refunded';
+export type TDeliveryStatus = 'pending' | 'ongoing' | 'shipped' | 'delivered';
 
 export enum PAYMENT_MODEL_TYPE {
   Order = 'Order',
   Booking = 'Booking',
 }
 
-export type TOrderPayment = {
-  device: 'web' | 'mobile';
+export type TBasePayment = {
+  user: Types.ObjectId;
+  vendor: Types.ObjectId;
 
-  user: Types.ObjectId | TUser;
+  modelType: PAYMENT_MODEL_TYPE; // 👈 important for discriminating
 
-  modelType: PAYMENT_MODEL_TYPE;
+  status: TStatus;
+  trnId: string;
 
-  reference: Types.ObjectId | TOrder | TBooking;
+  adminAmount: number; // platform commission
+  vendorAmount: number; // vendor earnings
+  paymentIntentId?: string; // optional (for Stripe/PayPal etc.)
+  price: number;
 
-  vendor: Types.ObjectId | TVendor;
-
-  amount: Number;
-
-  status: 'paid' | 'pending' | 'cancel' | 'refound';
-
-  isTransfer: boolean;
-
-  tranId: string;
-
-  paymentIntentId: string;
-
-  adminAmount: number;
-
-  transferAt: Date;
   isDeleted: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
 };
 
-// export type TPaymentsModules = Model<TPayment, Record<string, unknown>>;
+/**
+ * 🔹 Order Payment
+ */
+export type TOrderPayment = TBasePayment & {
+  modelType: PAYMENT_MODEL_TYPE.Order;
+  order: Types.ObjectId;
+  deliveryStatus: TDeliveryStatus;
+};
+
+/**
+ * 🔹 Booking Payment
+ */
+export type TBookingPayment = TBasePayment & {
+  modelType: PAYMENT_MODEL_TYPE.Booking;
+  booking: Types.ObjectId;
+};
+
+/**
+ * 🔹 Union of Payments
+ */
+export type TPayment = TOrderPayment | TBookingPayment;
+
+/**
+ * 🔹 Payment Model Type
+ */
+export type TPaymentModules = Model<TPayment, Record<string, unknown>>;
