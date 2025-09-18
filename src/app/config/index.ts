@@ -18,4 +18,5 @@ export default {
   aws_access_key_id: process.env.AWS_ACCESS_KEY_ID,
   aws_secret_access_key: process.env.AWS_SECRET_ACCESS_KEY,
   aws_bucket: process.env.AWS_BUCKET,
+  socket_port: process.env.SOCKET_PORT,
 };

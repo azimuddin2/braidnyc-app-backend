@@ -1,12 +1,13 @@
 import { Router } from 'express';
-import { messagesController } from './messages.controller';
-import validateRequest from '../../middleware/validateRequest';
-import { messagesValidation } from './messages.validation';
-import multer, { memoryStorage } from 'multer';
-import parseData from '../../middleware/parseData';
-import auth from '../../middleware/auth';
-import { USER_ROLE } from '../user/user.constants';
-import fileUpload from '../../middleware/fileUpload';
+
+// import multer, { memoryStorage } from 'multer';
+import auth from '../../middlewares/auth';
+import { USER_ROLE } from '../user/user.constant';
+import parseData from '../../middlewares/parseData';
+import validateRequest from '../../middlewares/validateRequest';
+import fileUpload from '../../middlewares/fileUpload';
+import { MessagesController } from './message.controller';
+import { MessagesValidation } from './message.validation';
 
 const upload = fileUpload('./public/uploads/messages');
 
@@ -16,47 +17,47 @@ const router = Router();
 
 router.post(
   '/send-messages',
-  auth(USER_ROLE.admin, USER_ROLE.user, USER_ROLE.hotel_owner),
+  auth(USER_ROLE.admin, USER_ROLE.user, USER_ROLE.vendor),
   upload.single('image'),
   parseData(),
-  validateRequest(messagesValidation.sendMessageValidation),
-  messagesController.createMessages,
+  validateRequest(MessagesValidation.sendMessageValidation),
+  MessagesController.createMessages,
 );
 
 router.patch(
   '/seen/:chatId',
-  auth(USER_ROLE.admin, USER_ROLE.user, USER_ROLE.hotel_owner),
+  auth(USER_ROLE.admin, USER_ROLE.user, USER_ROLE.vendor),
 
-  messagesController.seenMessage,
+  MessagesController.seenMessage,
 );
 
 router.patch(
   '/update/:id',
-  auth(USER_ROLE.admin, USER_ROLE.user, USER_ROLE.hotel_owner),
+  auth(USER_ROLE.admin, USER_ROLE.user, USER_ROLE.vendor),
   upload.single('image'),
   parseData(),
-  validateRequest(messagesValidation.updateMessageValidation),
-  messagesController.updateMessages,
+  validateRequest(MessagesValidation.updateMessageValidation),
+  MessagesController.updateMessages,
 );
 
-router.get('/my-messages/:chatId', messagesController.getMessagesByChatId);
+router.get('/my-messages/:chatId', MessagesController.getMessagesByChatId);
 
 router.delete(
   '/:id',
-  auth(USER_ROLE.admin, USER_ROLE.user, USER_ROLE.hotel_owner),
-  messagesController.deleteMessages,
+  auth(USER_ROLE.admin, USER_ROLE.user, USER_ROLE.vendor),
+  MessagesController.deleteMessages,
 );
 
 router.get(
   '/:id',
-  auth(USER_ROLE.admin, USER_ROLE.user, USER_ROLE.hotel_owner),
-  messagesController.getMessagesById,
+  auth(USER_ROLE.admin, USER_ROLE.user, USER_ROLE.vendor),
+  MessagesController.getMessagesById,
 );
 
 router.get(
   '/',
-  auth(USER_ROLE.admin, USER_ROLE.user, USER_ROLE.hotel_owner),
-  messagesController.getAllMessages,
+  auth(USER_ROLE.admin, USER_ROLE.user, USER_ROLE.vendor),
+  MessagesController.getAllMessages,
 );
 
 export const messagesRoutes = router;

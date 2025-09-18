@@ -24,7 +24,7 @@ const updateMessageValidation = z.object({
   }),
 });
 
-export const messagesValidation = {
+export const MessagesValidation = {
   sendMessageValidation,
   updateMessageValidation,
 };

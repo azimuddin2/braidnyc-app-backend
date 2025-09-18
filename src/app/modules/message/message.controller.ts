@@ -1,16 +1,15 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { Request, Response } from 'express';
 import catchAsync from '../../utils/catchAsync';
-import { messagesService } from './messages.service';
+import { MessagesService } from './message.service';
 import sendResponse from '../../utils/sendResponse';
-import { uploadToS3 } from '../../utils/s3';
-import Message from './messages.models';
-import AppError from '../../error/AppError';
-import httpStatus from 'http-status';
-import { chatService } from '../chat/chat.service';
-import Chat from '../chat/chat.models';
+import { Message } from './message.model';
+import AppError from '../../errors/AppError';
+import { uploadToS3 } from '../../utils/awsS3FileUploader';
 import { IChat } from '../chat/chat.interface';
+import Chat from '../chat/chat.model';
+import { chatService } from '../chat/chat.service';
 import { io } from '../../../server';
+import httpStatus from 'http-status';
 import { storeFile } from '../../utils/fileHelper';
 
 const createMessages = catchAsync(async (req: Request, res: Response) => {
@@ -22,7 +21,7 @@ const createMessages = catchAsync(async (req: Request, res: Response) => {
 
   req.body.sender = req.user.userId;
 
-  const result = await messagesService.createMessages(req.body);
+  const result = await MessagesService.createMessages(req.body);
 
   sendResponse(res, {
     statusCode: 200,
@@ -34,7 +33,7 @@ const createMessages = catchAsync(async (req: Request, res: Response) => {
 
 // Get all messages
 const getAllMessages = catchAsync(async (req: Request, res: Response) => {
-  const result = await messagesService.getAllMessages(req.query);
+  const result = await MessagesService.getAllMessages(req.query);
   sendResponse(res, {
     statusCode: 200,
     success: true,
@@ -45,7 +44,7 @@ const getAllMessages = catchAsync(async (req: Request, res: Response) => {
 
 // Get messages by chat ID
 const getMessagesByChatId = catchAsync(async (req: Request, res: Response) => {
-  const result = await messagesService.getMessagesByChatId(req.params.chatId);
+  const result = await MessagesService.getMessagesByChatId(req.params.chatId);
   sendResponse(res, {
     statusCode: 200,
     success: true,
@@ -56,7 +55,7 @@ const getMessagesByChatId = catchAsync(async (req: Request, res: Response) => {
 
 // Get message by ID
 const getMessagesById = catchAsync(async (req: Request, res: Response) => {
-  const result = await messagesService.getMessagesById(req.params.id);
+  const result = await MessagesService.getMessagesById(req.params.id);
   sendResponse(res, {
     statusCode: 200,
     success: true,
@@ -80,7 +79,7 @@ const updateMessages = catchAsync(async (req: Request, res: Response) => {
     req.body.imageUrl = imageUrl;
   }
 
-  const result = await messagesService.updateMessages(req.params.id, req.body);
+  const result = await MessagesService.updateMessages(req.params.id, req.body);
   sendResponse(res, {
     statusCode: 200,
     success: true,
@@ -96,7 +95,7 @@ const seenMessage = catchAsync(async (req: Request, res: Response) => {
     throw new AppError(httpStatus.BAD_REQUEST, 'chat id is not valid');
   }
 
-  const result = await messagesService.seenMessage(
+  const result = await MessagesService.seenMessage(
     req.user.userId,
     req.params.chatId,
   );
@@ -124,7 +123,7 @@ const seenMessage = catchAsync(async (req: Request, res: Response) => {
 });
 // Delete message
 const deleteMessages = catchAsync(async (req: Request, res: Response) => {
-  const result = await messagesService.deleteMessages(req.params.id);
+  const result = await MessagesService.deleteMessages(req.params.id);
   sendResponse(res, {
     statusCode: 200,
     success: true,
@@ -133,7 +132,7 @@ const deleteMessages = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-export const messagesController = {
+export const MessagesController = {
   createMessages,
   getAllMessages,
   getMessagesByChatId,

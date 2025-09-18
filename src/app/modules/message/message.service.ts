@@ -1,14 +1,14 @@
 import httpStatus from 'http-status';
-import AppError from '../../error/AppError';
-import Message from './messages.models';
-import QueryBuilder from '../../builder/QueryBuilder';
-import { deleteFromS3 } from '../../utils/s3';
-import { IMessages } from './messages.interface';
-import Chat from '../chat/chat.models';
-import { chatService } from '../chat/chat.service';
+import { TMessage } from './message.interface';
+import Chat from '../chat/chat.model';
+import { Message } from './message.model';
+import AppError from '../../errors/AppError';
 import { io } from '../../../server';
+import { chatService } from '../chat/chat.service';
+import QueryBuilder from '../../builder/QueryBuilder';
+import { deleteFromS3 } from '../../utils/awsS3FileUploader';
 
-const createMessages = async (payload: IMessages) => {
+const createMessages = async (payload: TMessage) => {
   const alreadyExists = await Chat.findOne({
     participants: { $all: [payload.sender, payload.receiver] },
   }).populate(['participants']);
@@ -81,7 +81,7 @@ const getAllMessages = async (query: Record<string, any>) => {
 };
 
 // Update messages
-const updateMessages = async (id: string, payload: Partial<IMessages>) => {
+const updateMessages = async (id: string, payload: Partial<TMessage>) => {
   const result = await Message.findByIdAndUpdate(id, payload, { new: true });
   if (!result) {
     throw new AppError(httpStatus.BAD_REQUEST, 'Message update failed');
@@ -153,7 +153,7 @@ const seenMessage = async (userId: string, chatId: string) => {
   return updateMessages;
 };
 
-export const messagesService = {
+export const MessagesService = {
   createMessages,
   getMessagesByChatId,
   getMessagesById,

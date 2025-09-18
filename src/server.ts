@@ -1,9 +1,11 @@
 import mongoose from 'mongoose';
 import app from './app';
-import { Server } from 'http';
+import { createServer, Server } from 'http';
 import config from './app/config';
+import initializeSocketIO from './socket';
 
 let server: Server;
+export const io = initializeSocketIO(createServer(app));
 
 async function main() {
   try {
@@ -13,6 +15,15 @@ async function main() {
     server = app.listen(config.port, () => {
       console.log(`Example app listening on port ${config.port}`);
     });
+
+    io.listen(Number(config.socket_port));
+    console.log(
+      //@ts-ignore
+      `Socket is listening on port ${config.ip}:${config.socket_port}`.yellow
+        .bold,
+    );
+
+    (global as any).socketio = io;
   } catch (error) {
     console.log(error);
   }
