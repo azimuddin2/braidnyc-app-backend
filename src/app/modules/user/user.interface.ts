@@ -27,6 +27,8 @@ export type TUser = {
     expiresAt: Date;
     status: boolean;
   };
+  // 🔹 Stripe customer ID for payments
+  stripeCustomerId?: string;
 };
 
 export interface UserModel extends Model<TUser> {
