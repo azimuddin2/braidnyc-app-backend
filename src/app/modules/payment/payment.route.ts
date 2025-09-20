@@ -7,4 +7,6 @@ const router = Router();
 
 router.post('/checkout', auth(USER_ROLE.user), PaymentController.createPayment);
 
+router.get('/confirm-payment', PaymentController.confirmPayment);
+
 export const PaymentRoutes = router;

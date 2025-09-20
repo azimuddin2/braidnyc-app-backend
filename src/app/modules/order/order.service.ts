@@ -2,8 +2,13 @@ import { Types } from 'mongoose';
 import AppError from '../../errors/AppError';
 import { TProduct } from '../product/product.interface';
 import { Product } from '../product/product.model';
-import { TOrder } from './order.interface';
+import { TOrder, TOrderRequest } from './order.interface';
 import { Order } from './order.model';
+import { UploadedFiles } from '../../interface/common.interface';
+import {
+  deleteManyFromS3,
+  uploadManyToS3,
+} from '../../utils/awsS3FileUploader';
 
 const createOrderIntoDB = async (payload: TOrder) => {
   // 1️⃣ Validate ObjectIds
@@ -82,8 +87,86 @@ const getOrderByIdFromDB = async (id: string) => {
   return result;
 };
 
+const requestOrderIntoDB = async (
+  orderId: string,
+  payload: Partial<TOrderRequest>,
+  files?: any,
+) => {
+  const order = await Order.findById(orderId);
+  if (!order) {
+    throw new AppError(404, 'Order not found');
+  }
+
+  const { deleteKey, ...requestData } = payload;
+
+  // 🔼 Handle image upload
+  if (files?.images?.length) {
+    const imgsArray = files.images.map((image: any) => ({
+      file: image,
+      path: `images/orders/${orderId}`,
+    }));
+
+    try {
+      const uploadedImages = await uploadManyToS3(imgsArray);
+
+      // merge uploaded images into requestData
+      requestData.images = uploadedImages;
+    } catch (error) {
+      throw new AppError(500, 'Image upload failed');
+    }
+  }
+
+  // 🔼 Handle image deletion
+  if (deleteKey?.length) {
+    const fullKeys = deleteKey.map((key) => `images/orders/${orderId}/${key}`);
+
+    try {
+      // delete from S3
+      await deleteManyFromS3(fullKeys);
+
+      // delete from DB
+      await Order.findByIdAndUpdate(orderId, {
+        $pull: { 'request.images': { key: { $in: deleteKey } } },
+      });
+    } catch (error) {
+      throw new AppError(500, 'Image deletion failed');
+    }
+  }
+
+  // 🔼 Prepare update object
+  const update: any = {
+    $set: {
+      'request.type': requestData.type ?? order.request?.type ?? 'none',
+      'request.reason': requestData.reason ?? order.request?.reason,
+      'request.vendorApproved':
+        requestData.vendorApproved ?? order.request?.vendorApproved,
+      'request.updatedAt': new Date(),
+    },
+  };
+
+  if (requestData.images?.length) {
+    update.$push = { 'request.images': { $each: requestData.images } };
+  }
+
+  // 🔼 Update DB
+  try {
+    const updatedOrder = await Order.findByIdAndUpdate(orderId, update, {
+      new: true,
+    });
+
+    if (!updatedOrder) {
+      throw new AppError(400, 'Order request update failed');
+    }
+
+    return updatedOrder;
+  } catch (error) {
+    throw new AppError(500, 'Order request update failed');
+  }
+};
+
 export const OrderServices = {
   createOrderIntoDB,
   getOrdersByEmailFromDB,
   getOrderByIdFromDB,
+  requestOrderIntoDB,
 };

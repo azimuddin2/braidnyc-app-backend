@@ -24,9 +24,11 @@ const createPayment = async (payload: TPayment) => {
 
   try {
     let referenceDoc: any;
+    console.log(referenceDoc);
 
     // 🚀 STEP 1: Fetch Order or Booking (use lean to avoid cyclic object)
     if (payload.modelType === PAYMENT_MODEL_TYPE.Order) {
+      console.log();
       referenceDoc = await Order.findById(payload.reference).lean().exec();
       if (!referenceDoc)
         throw new AppError(httpStatus.NOT_FOUND, 'Order not found');
@@ -96,8 +98,9 @@ const createPayment = async (payload: TPayment) => {
         user.fullName!,
       );
       customerId = customer.id;
-      user.stripeCustomerId = customerId;
-      await user.save({ session });
+      await User.findByIdAndUpdate(user._id, {
+        stripeCustomerId: customerId,
+      }).session(session);
     }
 
     // 🚀 STEP 4: Prepare Stripe line items
@@ -106,7 +109,7 @@ const createPayment = async (payload: TPayment) => {
       referenceDoc.products.forEach((p: any) => {
         lineItems.push({
           price_data: {
-            currency: config.stripe.currency,
+            currency: config.currency,
             product_data: { name: String(p.name) || 'Product' },
             unit_amount: Math.round(Number(p.price) * 100),
           },
@@ -116,7 +119,7 @@ const createPayment = async (payload: TPayment) => {
     } else {
       lineItems.push({
         price_data: {
-          currency: config.stripe.currency,
+          currency: config.currency,
           product_data: { name: referenceDoc.serviceName || 'Service Booking' },
           unit_amount: Math.round(payload.price * 100),
         },
@@ -133,7 +136,7 @@ const createPayment = async (payload: TPayment) => {
       lineItems,
       successUrl,
       cancelUrl,
-      config.stripe.currency,
+      config.currency,
       customerId,
     );
 

@@ -21,6 +21,31 @@ const orderProductSchema = z.object({
   // vendor: z.string().min(1, "Vendor Id is required"),
 });
 
+// Image schema for order request
+const orderRequestImageSchema = z.object({
+  url: z.string().min(1, 'Image URL is required'),
+  key: z.string().min(1, 'Image key is required'),
+});
+
+// Request schema
+const orderRequestSchema = z.object({
+  type: z.enum(['none', 'cancelled', 'return']).optional().default('none'),
+  images: z.array(orderRequestImageSchema).optional(),
+  reason: z.string().optional(),
+  vendorApproved: z.boolean().optional().default(false),
+  updatedAt: z.date().optional(),
+});
+
+const updateOrderRequestSchema = z.object({
+  body: z.object({
+    type: z.enum(['none', 'cancelled', 'return']).optional(),
+    images: z.array(orderRequestImageSchema).optional(),
+    reason: z.string(),
+    vendorApproved: z.boolean().optional(),
+    updatedAt: z.date().optional(),
+  }),
+});
+
 // Main order schema
 const createOrderValidationSchema = z.object({
   body: z.object({
@@ -37,6 +62,8 @@ const createOrderValidationSchema = z.object({
 
     totalPrice: z.number().min(0, 'Total price must be >= 0'),
 
+    request: orderRequestSchema.optional().default({}),
+
     isPaid: z.boolean().optional().default(false),
 
     billingDetails: billingDetailsSchema,
@@ -47,4 +74,5 @@ const createOrderValidationSchema = z.object({
 
 export const OrderValidation = {
   createOrderValidationSchema,
+  updateOrderRequestSchema,
 };

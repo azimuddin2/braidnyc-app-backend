@@ -1,8 +1,22 @@
 import { Types } from 'mongoose';
 
+export type TImage = {
+  url: string;
+  key: string;
+};
+
 export type TOrderStatus = 'pending' | 'shipped' | 'delivered';
 
-export type TOrderRequest = 'cancelled' | 'return';
+export type TOrderRequestType = 'none' | 'cancelled' | 'return';
+
+export type TOrderRequest = {
+  type?: TOrderRequestType;
+  images?: TImage[];
+  deleteKey: string[];
+  reason?: string;
+  vendorApproved?: boolean;
+  updatedAt?: Date;
+};
 
 export type TOrderProduct = {
   name: string;

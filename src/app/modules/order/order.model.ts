@@ -1,4 +1,4 @@
-import { model, Schema, Types } from 'mongoose';
+import { model, Schema } from 'mongoose';
 import { TOrder } from './order.interface';
 import { OrderRequest, OrderStatus } from './order.constant';
 
@@ -18,6 +18,30 @@ const orderProductSchema = new Schema(
   { _id: false }, // prevent creating extra _id for each product item
 );
 
+const ImageSchema = new Schema(
+  {
+    url: { type: String, required: true },
+    key: { type: String, required: true },
+  },
+  { _id: false },
+);
+
+const OrderRequestSchema = new Schema(
+  {
+    type: {
+      type: String,
+      enum: ['none', 'cancelled', 'return'],
+      default: 'none',
+    },
+    images: { type: [ImageSchema], default: [] },
+    reason: { type: String },
+    vendorApproved: { type: Boolean, default: false },
+    updatedAt: { type: Date },
+  },
+  { _id: false },
+);
+
+// Main Schema
 const orderSchema = new Schema<TOrder>(
   {
     products: {
@@ -57,14 +81,7 @@ const orderSchema = new Schema<TOrder>(
       default: 'pending',
     },
 
-    request: {
-      type: String,
-      enum: {
-        values: OrderRequest,
-        message: '{VALUE} is not valid',
-      },
-      default: 'cancelled',
-    },
+    request: { type: OrderRequestSchema, default: () => ({}) },
 
     isPaid: { type: Boolean, default: false },
 

@@ -10,8 +10,8 @@ interface IProduct {
 
 class StripeService {
   private stripe() {
-    return new StripeType(config.stripe?.stripe_api_secret as string, {
-      apiVersion: '2024-06-20',
+    return new StripeType(config.stripe_api_secret as string, {
+      apiVersion: '2025-08-27.basil',
       typescript: true,
     });
   }

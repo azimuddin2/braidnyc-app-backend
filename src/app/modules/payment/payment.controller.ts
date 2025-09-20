@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
 import { PaymentService } from './payment.service';
+import config from '../../config';
 
 const createPayment = catchAsync(async (req: Request, res: Response) => {
   const url = await PaymentService.createPayment(req.body);
@@ -13,6 +14,13 @@ const createPayment = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const confirmPayment = catchAsync(async (req: Request, res: Response) => {
+  await PaymentService.confirmPayment(req.query);
+
+  res.redirect(config.client_Url + '/payment/success');
+});
+
 export const PaymentController = {
   createPayment,
+  confirmPayment,
 };
