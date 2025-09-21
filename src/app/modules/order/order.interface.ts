@@ -12,7 +12,7 @@ export type TOrderRequestType = 'none' | 'cancelled' | 'return';
 export type TOrderRequest = {
   type?: TOrderRequestType;
   images?: TImage[];
-  deleteKey: string[];
+  deleteKey?: string[];
   reason?: string;
   vendorApproved?: boolean;
   updatedAt?: Date;

@@ -23,7 +23,7 @@ router.get('/:id', auth('user'), OrderControllers.getOrderById);
 router.patch(
   '/:id',
   auth('user'),
-  upload.fields([{ name: 'images', maxCount: 2 }]),
+  upload.fields([{ name: 'images', maxCount: 10 }]),
   parseData(),
   validateRequest(OrderValidation.updateOrderRequestSchema),
   OrderControllers.requestOrder,

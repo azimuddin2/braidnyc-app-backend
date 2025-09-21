@@ -100,36 +100,39 @@ const requestOrderIntoDB = async (
   const { deleteKey, ...requestData } = payload;
 
   // 🔼 Handle image upload
-  if (files?.images?.length) {
-    const imgsArray = files.images.map((image: any) => ({
-      file: image,
-      path: `images/orders/${orderId}`,
-    }));
+  if (files) {
+    const { images } = files as UploadedFiles;
 
-    try {
-      const uploadedImages = await uploadManyToS3(imgsArray);
+    if (images?.length) {
+      const imgsArray = images.map((image) => ({
+        file: image,
+        path: `images/order`,
+      }));
 
-      // merge uploaded images into requestData
-      requestData.images = uploadedImages;
-    } catch (error) {
-      throw new AppError(500, 'Image upload failed');
+      console.log(imgsArray);
+
+      try {
+        payload.images = await uploadManyToS3(imgsArray); // Await all uploads before proceeding
+      } catch (error) {
+        throw new AppError(500, 'Image upload failed');
+      }
     }
   }
 
   // 🔼 Handle image deletion
-  if (deleteKey?.length) {
-    const fullKeys = deleteKey.map((key) => `images/orders/${orderId}/${key}`);
+  if (deleteKey && deleteKey.length > 0) {
+    const newKey = deleteKey?.map((key: any) => `images/order/${key}`);
 
-    try {
-      // delete from S3
-      await deleteManyFromS3(fullKeys);
-
-      // delete from DB
-      await Order.findByIdAndUpdate(orderId, {
-        $pull: { 'request.images': { key: { $in: deleteKey } } },
-      });
-    } catch (error) {
-      throw new AppError(500, 'Image deletion failed');
+    if (newKey.length > 0) {
+      await deleteManyFromS3(newKey); // Delete images from S3
+      // Remove deleted images from the product
+      await Product.findByIdAndUpdate(
+        orderId,
+        {
+          $pull: { images: { key: { $in: deleteKey } } },
+        },
+        { new: true },
+      );
     }
   }
 
