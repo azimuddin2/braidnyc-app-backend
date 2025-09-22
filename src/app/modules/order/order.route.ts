@@ -38,4 +38,10 @@ router.put(
   OrderControllers.updateOrderStatus,
 );
 
+router.put(
+  '/update-request/:id',
+  auth('vendor'),
+  OrderControllers.updateOrderRequest,
+);
+
 export const OrderRoutes = router;

@@ -77,6 +77,23 @@ const updateOrderStatus = catchAsync(async (req, res) => {
   });
 });
 
+const updateOrderRequest = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const vendorApproved = Boolean(req.body.vendorApproved);
+
+  const updatedOrder = await OrderServices.updateOrderRequestIntoDB(
+    id,
+    vendorApproved,
+  );
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: `Request ${vendorApproved ? 'approved' : 'rejected'} successfully.`,
+    data: updatedOrder,
+  });
+});
+
 export const OrderControllers = {
   createOrder,
   getAllOrderByUser,
@@ -84,4 +101,5 @@ export const OrderControllers = {
   getOrderById,
   requestOrder,
   updateOrderStatus,
+  updateOrderRequest,
 };

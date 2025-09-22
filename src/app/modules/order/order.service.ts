@@ -208,6 +208,31 @@ const updateOrderStatusIntoDB = async (
   return result;
 };
 
+const updateOrderRequestIntoDB = async (
+  orderId: string,
+  vendorApproved: boolean,
+) => {
+  // 1️⃣ Find the order
+  const order = await Order.findById(orderId);
+  if (!order) {
+    throw new AppError(404, 'Order not found');
+  }
+
+  // 2️⃣ Check if request exists
+  if (!order.request || order.request.type === 'none') {
+    throw new AppError(400, 'No request submitted for this order');
+  }
+
+  // 3️⃣ Update vendorApproved and updatedAt
+  order.request.vendorApproved = Boolean(vendorApproved);
+  order.request.updatedAt = new Date();
+
+  // 4️⃣ Save the updated order
+  const updatedOrder = await order.save();
+
+  return updatedOrder;
+};
+
 export const OrderServices = {
   createOrderIntoDB,
   getAllOrderByUserFromDB,
@@ -215,4 +240,5 @@ export const OrderServices = {
   getOrderByIdFromDB,
   requestOrderIntoDB,
   updateOrderStatusIntoDB,
+  updateOrderRequestIntoDB,
 };
