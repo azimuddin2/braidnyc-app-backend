@@ -13,6 +13,18 @@ const createOrder = catchAsync(async (req, res) => {
   });
 });
 
+const getAllOrderByUser = catchAsync(async (req, res) => {
+  const result = await OrderServices.getAllOrderByUserFromDB(req.query);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Order retrieved successfully',
+    meta: result.meta,
+    data: result.result,
+  });
+});
+
 const getOrdersByEmail = catchAsync(async (req, res) => {
   const { email } = req.query;
   const result = await OrderServices.getOrdersByEmailFromDB(email as string);
@@ -53,9 +65,23 @@ const requestOrder = catchAsync(async (req, res) => {
   });
 });
 
+const updateOrderStatus = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const result = await OrderServices.updateOrderStatusIntoDB(id, req.body);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Status updated successfully.',
+    data: result,
+  });
+});
+
 export const OrderControllers = {
   createOrder,
+  getAllOrderByUser,
   getOrdersByEmail,
   getOrderById,
   requestOrder,
+  updateOrderStatus,
 };

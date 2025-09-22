@@ -1,6 +1,6 @@
 import { model, Schema } from 'mongoose';
 import { TOrder } from './order.interface';
-import { OrderRequest, OrderStatus } from './order.constant';
+import { OrderStatus } from './order.constant';
 
 const orderProductSchema = new Schema(
   {

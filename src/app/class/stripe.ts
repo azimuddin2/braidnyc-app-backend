@@ -50,17 +50,8 @@ class StripeService {
   ) {
     try {
       const items = Array.isArray(products) ? products : [products];
-      const line_items = items.map((p) => ({
-        price_data: {
-          currency,
-          product_data: { name: String(p.name || 'Product') },
-          unit_amount: Math.round(Number(p.amount || 0) * 100),
-        },
-        quantity: Math.max(1, Number(p.quantity) || 1),
-      }));
-
       return await this.stripe().checkout.sessions.create({
-        line_items,
+        line_items: items,
         mode: 'payment',
         success_url,
         cancel_url,

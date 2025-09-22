@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { OrderStatus } from './order.constant';
 
 // Define billing details schema
 const billingDetailsSchema = z.object({
@@ -72,7 +73,14 @@ const createOrderValidationSchema = z.object({
   }),
 });
 
+const updateOrderStatusValidationSchema = z.object({
+  body: z.object({
+    status: z.enum([...OrderStatus] as [string, ...string[]]),
+  }),
+});
+
 export const OrderValidation = {
   createOrderValidationSchema,
   updateOrderRequestSchema,
+  updateOrderStatusValidationSchema,
 };

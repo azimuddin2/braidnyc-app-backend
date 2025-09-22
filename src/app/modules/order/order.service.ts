@@ -1,4 +1,4 @@
-import { Types } from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import AppError from '../../errors/AppError';
 import { TProduct } from '../product/product.interface';
 import { Product } from '../product/product.model';
@@ -9,6 +9,8 @@ import {
   deleteManyFromS3,
   uploadManyToS3,
 } from '../../utils/awsS3FileUploader';
+import QueryBuilder from '../../builder/QueryBuilder';
+import { orderSearchableFields } from './order.constant';
 
 const createOrderIntoDB = async (payload: TOrder) => {
   // 1️⃣ Validate ObjectIds
@@ -53,6 +55,31 @@ const createOrderIntoDB = async (payload: TOrder) => {
   }
 
   return order;
+};
+
+const getAllOrderByUserFromDB = async (query: Record<string, unknown>) => {
+  const { vendor, ...filters } = query;
+
+  if (!vendor || !mongoose.Types.ObjectId.isValid(vendor as string)) {
+    throw new AppError(400, 'Invalid Vendor ID');
+  }
+
+  // Base query -> always exclude deleted products
+  let orderQuery = Order.find({ vendor, isDeleted: false })
+    .populate('vendor')
+    .populate('buyer');
+
+  const queryBuilder = new QueryBuilder(orderQuery, filters)
+    .search(orderSearchableFields)
+    .filter()
+    .sort()
+    .paginate()
+    .fields();
+
+  const meta = await queryBuilder.countTotal();
+  const result = await queryBuilder.modelQuery;
+
+  return { meta, result };
 };
 
 const getOrdersByEmailFromDB = async (email: string) => {
@@ -167,9 +194,25 @@ const requestOrderIntoDB = async (
   }
 };
 
+const updateOrderStatusIntoDB = async (
+  id: string,
+  payload: { status: string },
+) => {
+  const isOrderExists = await Order.findById(id);
+
+  if (!isOrderExists) {
+    throw new AppError(404, 'This order is not found');
+  }
+
+  const result = await Order.findByIdAndUpdate(id, payload, { new: true });
+  return result;
+};
+
 export const OrderServices = {
   createOrderIntoDB,
+  getAllOrderByUserFromDB,
   getOrdersByEmailFromDB,
   getOrderByIdFromDB,
   requestOrderIntoDB,
+  updateOrderStatusIntoDB,
 };
