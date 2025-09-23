@@ -4,10 +4,24 @@ export type TBookingStatus =
   | 'pending'
   | 'confirmed'
   | 'cancelled'
+  | 'ongoing'
   | 'rejected'
-  | 'completed';
+  | 'completed'
+  | 'scheduled'
+  | 'rescheduled';
 export type TPaymentType = 'half' | 'full' | 'later';
 export type TPaymentStatus = 'pending' | 'paid' | 'refunded' | 'failed';
+
+export type TBookingRequestType = 'none' | 'cancel' | 'reschedule';
+
+export interface IBookingRequest {
+  type?: TBookingRequestType;
+  reason?: string;
+  newDate?: string;
+  newTime?: string;
+  vendorApproved?: boolean;
+  updatedAt?: Date;
+}
 
 export type TBooking = {
   vendor: Types.ObjectId;
@@ -26,4 +40,7 @@ export type TBooking = {
   paymentType: TPaymentType;
   paymentStatus: TPaymentStatus;
   isDeleted: boolean;
+
+  // Request field for cancel/reschedule
+  request?: IBookingRequest;
 };

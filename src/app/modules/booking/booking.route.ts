@@ -17,4 +17,11 @@ router.get('/', auth('user'), BookingControllers.getBookingsByEmail);
 
 router.get('/:id', BookingControllers.getBookingById);
 
+router.patch(
+  '/:id',
+  auth('user'),
+  validateRequest(BookingValidation.updateBookingValidationSchema),
+  BookingControllers.updateBookingRequest,
+);
+
 export const BookingRoutes = router;

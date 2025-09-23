@@ -6,9 +6,12 @@ import {
 
 export const BookingStatus: TBookingStatus[] = [
   'pending',
+  'ongoing',
   'confirmed',
   'cancelled',
   'rejected',
+  'scheduled',
+  'rescheduled',
   'completed',
 ];
 

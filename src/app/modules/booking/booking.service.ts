@@ -2,7 +2,7 @@ import { Types } from 'mongoose';
 import AppError from '../../errors/AppError';
 import { Booking } from './booking.model';
 import { Packages } from '../packages/packages.model';
-import { TBooking } from './booking.interface';
+import { IBookingRequest, TBooking } from './booking.interface';
 import { TWeekDay } from '../packages/packages.interface';
 
 const createBookingIntoDB = async (payload: TBooking) => {
@@ -95,8 +95,52 @@ const getBookingByIdFromDB = async (id: string) => {
   return result;
 };
 
+export const updateBookingRequestIntoDB = async (
+  bookingId: string,
+  payload: TBooking,
+) => {
+  // 1️⃣ Validate booking ID
+  if (!Types.ObjectId.isValid(bookingId)) {
+    throw new AppError(400, 'Invalid booking ID');
+  }
+
+  // 2️⃣ Fetch existing booking
+  const booking = await Booking.findById(bookingId);
+  if (!booking) {
+    throw new AppError(404, 'Booking not found');
+  }
+
+  // 3️⃣ Update all provided fields
+  for (const key in payload) {
+    if (key === 'request') continue; // handle request separately
+    if (Object.prototype.hasOwnProperty.call(payload, key)) {
+      (booking as any)[key] = (payload as any)[key];
+    }
+  }
+
+  // 4️⃣ Handle request if provided
+  if (payload.request) {
+    booking.request = {
+      ...payload.request,
+      vendorApproved: false, // always start as not approved
+      updatedAt: new Date(),
+    };
+
+    // Optional: auto-update status if cancel request is pre-approved
+    if (payload.request.type === 'cancel' && payload.request.vendorApproved) {
+      booking.status = 'cancelled';
+    }
+  }
+
+  // 5️⃣ Save updated booking
+  await booking.save();
+
+  return booking;
+};
+
 export const BookingServices = {
   createBookingIntoDB,
   getBookingsByEmailFromDB,
   getBookingByIdFromDB,
+  updateBookingRequestIntoDB,
 };

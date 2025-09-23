@@ -58,7 +58,7 @@ const createOrderIntoDB = async (payload: TOrder) => {
 };
 
 const getAllOrderByUserFromDB = async (query: Record<string, unknown>) => {
-  const { vendor, ...filters } = query;
+  const { vendor, requestType, ...filters } = query;
 
   if (!vendor || !mongoose.Types.ObjectId.isValid(vendor as string)) {
     throw new AppError(400, 'Invalid Vendor ID');
@@ -68,6 +68,11 @@ const getAllOrderByUserFromDB = async (query: Record<string, unknown>) => {
   let orderQuery = Order.find({ vendor, isDeleted: false })
     .populate('vendor')
     .populate('buyer');
+
+  // ✅ Custom filter for order request type (cancelled | return)
+  if (requestType && ['cancelled', 'return'].includes(requestType as string)) {
+    orderQuery = orderQuery.find({ 'request.type': requestType });
+  }
 
   const queryBuilder = new QueryBuilder(orderQuery, filters)
     .search(orderSearchableFields)
@@ -225,7 +230,6 @@ const updateOrderRequestIntoDB = async (
 
   // 3️⃣ Update vendorApproved and updatedAt
   order.request.vendorApproved = Boolean(vendorApproved);
-  order.request.updatedAt = new Date();
 
   // 4️⃣ Save the updated order
   const updatedOrder = await order.save();

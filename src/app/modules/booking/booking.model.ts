@@ -1,6 +1,19 @@
 import { model, Schema } from 'mongoose';
-import { TBooking } from './booking.interface';
+import { IBookingRequest, TBooking } from './booking.interface';
 import { BookingStatus, PaymentStatus, PaymentType } from './booking.constant';
+
+const BookingRequestSchema = new Schema<IBookingRequest>({
+  type: {
+    type: String,
+    enum: ['none', 'cancel', 'reschedule'],
+    default: 'none',
+  },
+  reason: { type: String },
+  newDate: { type: String },
+  newTime: { type: String },
+  vendorApproved: { type: Boolean, default: false },
+  updatedAt: { type: Date, default: Date.now },
+});
 
 const bookingSchema = new Schema<TBooking>(
   {
@@ -86,6 +99,7 @@ const bookingSchema = new Schema<TBooking>(
       type: Boolean,
       default: false,
     },
+    request: { type: BookingRequestSchema, default: {} },
   },
   { timestamps: true },
 );
