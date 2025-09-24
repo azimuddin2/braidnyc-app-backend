@@ -23,3 +23,11 @@ export const PaymentStatus: TPaymentStatus[] = [
   'refunded',
   'failed',
 ];
+
+export const bookingSearchableFields = [
+  'name',
+  'email',
+  'phone',
+  'status',
+  'serviceName',
+];

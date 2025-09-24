@@ -13,7 +13,9 @@ router.post(
   BookingControllers.createBooking,
 );
 
-router.get('/', auth('user'), BookingControllers.getBookingsByEmail);
+router.get('/', auth('vendor'), BookingControllers.getAllBookingByUser);
+
+router.get('/user', auth('user'), BookingControllers.getBookingsByEmail);
 
 router.get('/:id', BookingControllers.getBookingById);
 

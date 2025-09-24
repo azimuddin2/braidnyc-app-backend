@@ -1,9 +1,11 @@
-import { Types } from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import AppError from '../../errors/AppError';
 import { Booking } from './booking.model';
 import { Packages } from '../packages/packages.model';
-import { IBookingRequest, TBooking } from './booking.interface';
+import { TBooking } from './booking.interface';
 import { TWeekDay } from '../packages/packages.interface';
+import QueryBuilder from '../../builder/QueryBuilder';
+import { bookingSearchableFields } from './booking.constant';
 
 const createBookingIntoDB = async (payload: TBooking) => {
   const { service, serviceItemId, date, time } = payload;
@@ -65,6 +67,36 @@ const createBookingIntoDB = async (payload: TBooking) => {
   return booking;
 };
 
+const getAllBookingByUserFromDB = async (query: Record<string, unknown>) => {
+  const { vendor, requestType, ...filters } = query;
+
+  if (!vendor || !mongoose.Types.ObjectId.isValid(vendor as string)) {
+    throw new AppError(400, 'Invalid Vendor ID');
+  }
+
+  // Base query -> always exclude deleted service
+  let bookingQuery = Booking.find({ vendor, isDeleted: false }).populate(
+    'vendor',
+  );
+
+  // ✅ Custom filter for order request type (cancel | reschedule)
+  if (requestType && ['cancel', 'reschedule'].includes(requestType as string)) {
+    bookingQuery = bookingQuery.find({ 'request.type': requestType });
+  }
+
+  const queryBuilder = new QueryBuilder(bookingQuery, filters)
+    .search(bookingSearchableFields)
+    .filter()
+    .sort()
+    .paginate()
+    .fields();
+
+  const meta = await queryBuilder.countTotal();
+  const result = await queryBuilder.modelQuery;
+
+  return { meta, result };
+};
+
 const getBookingsByEmailFromDB = async (email: string) => {
   // ✅ Validate email
   if (!email) {
@@ -95,7 +127,7 @@ const getBookingByIdFromDB = async (id: string) => {
   return result;
 };
 
-export const updateBookingRequestIntoDB = async (
+const updateBookingRequestIntoDB = async (
   bookingId: string,
   payload: TBooking,
 ) => {
@@ -143,4 +175,5 @@ export const BookingServices = {
   getBookingsByEmailFromDB,
   getBookingByIdFromDB,
   updateBookingRequestIntoDB,
+  getAllBookingByUserFromDB,
 };

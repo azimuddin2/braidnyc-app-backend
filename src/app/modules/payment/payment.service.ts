@@ -11,6 +11,7 @@ import config from '../../config';
 import StripePaymentService from '../../class/stripe';
 import { Product } from '../product/product.model';
 import { PAYMENT_STATUS } from './payment.constant';
+import QueryBuilder from '../../builder/QueryBuilder';
 
 // 🔹 Helper → calculate commission split (10% admin, 90% vendor)
 const calculateAmounts = (price: number) => ({
@@ -225,4 +226,25 @@ export const confirmPayment = async (query: Record<string, any>) => {
   }
 };
 
-export const PaymentService = { createPayment, confirmPayment };
+const getAllPaymentFromDB = async (query: Record<string, unknown>) => {
+  const paymentQuery = new QueryBuilder(
+    Payment.find({ isDeleted: false }),
+    query,
+  )
+    // .search('')
+    .filter()
+    .sort()
+    .paginate()
+    .fields();
+
+  const meta = await paymentQuery.countTotal();
+  const result = await paymentQuery.modelQuery;
+
+  return { meta, result };
+};
+
+export const PaymentService = {
+  createPayment,
+  confirmPayment,
+  getAllPaymentFromDB,
+};
