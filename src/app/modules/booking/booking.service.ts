@@ -75,11 +75,11 @@ const getAllBookingByUserFromDB = async (query: Record<string, unknown>) => {
   }
 
   // Base query -> always exclude deleted service
-  let bookingQuery = Booking.find({ vendor, isDeleted: false }).populate(
-    'vendor',
-  );
+  let bookingQuery = Booking.find({ vendor, isDeleted: false })
+    .populate('vendor')
+    .populate('service');
 
-  // ✅ Custom filter for order request type (cancel | reschedule)
+  // ✅ Custom filter for booking request type (cancel | reschedule)
   if (requestType && ['cancel', 'reschedule'].includes(requestType as string)) {
     bookingQuery = bookingQuery.find({ 'request.type': requestType });
   }
@@ -95,6 +95,32 @@ const getAllBookingByUserFromDB = async (query: Record<string, unknown>) => {
   const result = await queryBuilder.modelQuery;
 
   return { meta, result };
+};
+
+const getBookingAppointmentsFromDB = async (query: Record<string, unknown>) => {
+  const { vendor, date, ...filters } = query;
+
+  if (!vendor || !mongoose.Types.ObjectId.isValid(vendor as string)) {
+    throw new AppError(400, 'Invalid Vendor ID');
+  }
+
+  // Base query
+  const bookingQuery: any = { vendor, isDeleted: false };
+
+  // Filter by date if provided
+  if (date) {
+    bookingQuery.date = date;
+  }
+
+  // Apply other dynamic filters
+  Object.assign(bookingQuery, filters);
+
+  // Fetch bookings
+  const bookings = await Booking.find(bookingQuery)
+    .populate('vendor')
+    .populate('service');
+
+  return bookings;
 };
 
 const getBookingsByEmailFromDB = async (email: string) => {
@@ -170,10 +196,36 @@ const updateBookingRequestIntoDB = async (
   return booking;
 };
 
+const bookingApprovedRequestIntoDB = async (
+  bookingId: string,
+  vendorApproved: boolean,
+) => {
+  // 1️⃣ Find the booking
+  const booking = await Booking.findById(bookingId);
+  if (!booking) {
+    throw new AppError(404, 'booking not found');
+  }
+
+  // 2️⃣ Check if request exists
+  if (!booking.request || booking.request.type === 'none') {
+    throw new AppError(400, 'No request submitted for this booking');
+  }
+
+  // 3️⃣ Update vendorApproved and updatedAt
+  booking.request.vendorApproved = Boolean(vendorApproved);
+
+  // 4️⃣ Save the updated booking
+  const updatedBooking = await booking.save();
+
+  return updatedBooking;
+};
+
 export const BookingServices = {
   createBookingIntoDB,
   getBookingsByEmailFromDB,
   getBookingByIdFromDB,
   updateBookingRequestIntoDB,
   getAllBookingByUserFromDB,
+  getBookingAppointmentsFromDB,
+  bookingApprovedRequestIntoDB,
 };

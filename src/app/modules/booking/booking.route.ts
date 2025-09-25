@@ -13,6 +13,12 @@ router.post(
   BookingControllers.createBooking,
 );
 
+router.get(
+  '/appointments',
+  auth('vendor'),
+  BookingControllers.getBookingAppointments,
+);
+
 router.get('/', auth('vendor'), BookingControllers.getAllBookingByUser);
 
 router.get('/user', auth('user'), BookingControllers.getBookingsByEmail);
@@ -24,6 +30,12 @@ router.patch(
   auth('user'),
   validateRequest(BookingValidation.updateBookingValidationSchema),
   BookingControllers.updateBookingRequest,
+);
+
+router.put(
+  '/update-request/:id',
+  auth('vendor'),
+  BookingControllers.bookingApprovedRequest,
 );
 
 export const BookingRoutes = router;

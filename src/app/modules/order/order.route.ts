@@ -41,7 +41,7 @@ router.put(
 router.put(
   '/update-request/:id',
   auth('vendor'),
-  OrderControllers.updateOrderRequest,
+  OrderControllers.orderApprovedRequest,
 );
 
 export const OrderRoutes = router;

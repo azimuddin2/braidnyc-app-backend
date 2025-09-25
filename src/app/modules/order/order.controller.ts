@@ -77,11 +77,11 @@ const updateOrderStatus = catchAsync(async (req, res) => {
   });
 });
 
-const updateOrderRequest = catchAsync(async (req, res) => {
+const orderApprovedRequest = catchAsync(async (req, res) => {
   const { id } = req.params;
   const vendorApproved = Boolean(req.body.vendorApproved);
 
-  const updatedOrder = await OrderServices.updateOrderRequestIntoDB(
+  const updatedOrder = await OrderServices.orderApprovedRequestIntoDB(
     id,
     vendorApproved,
   );
@@ -101,5 +101,5 @@ export const OrderControllers = {
   getOrderById,
   requestOrder,
   updateOrderStatus,
-  updateOrderRequest,
+  orderApprovedRequest,
 };

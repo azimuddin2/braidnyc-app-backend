@@ -213,7 +213,7 @@ const updateOrderStatusIntoDB = async (
   return result;
 };
 
-const updateOrderRequestIntoDB = async (
+const orderApprovedRequestIntoDB = async (
   orderId: string,
   vendorApproved: boolean,
 ) => {
@@ -244,5 +244,5 @@ export const OrderServices = {
   getOrderByIdFromDB,
   requestOrderIntoDB,
   updateOrderStatusIntoDB,
-  updateOrderRequestIntoDB,
+  orderApprovedRequestIntoDB,
 };

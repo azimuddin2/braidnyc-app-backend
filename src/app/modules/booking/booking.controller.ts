@@ -25,6 +25,17 @@ const getAllBookingByUser = catchAsync(async (req, res) => {
   });
 });
 
+const getBookingAppointments = catchAsync(async (req, res) => {
+  const result = await BookingServices.getBookingAppointmentsFromDB(req.query);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Bookings retrieved successfully',
+    data: result,
+  });
+});
+
 const getBookingsByEmail = catchAsync(async (req, res) => {
   const { email } = req.query;
   const result = await BookingServices.getBookingsByEmailFromDB(
@@ -63,10 +74,29 @@ const updateBookingRequest = catchAsync(async (req, res) => {
   });
 });
 
+const bookingApprovedRequest = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const vendorApproved = Boolean(req.body.vendorApproved);
+
+  const updatedBooking = await BookingServices.bookingApprovedRequestIntoDB(
+    id,
+    vendorApproved,
+  );
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: `Request ${vendorApproved ? 'approved' : 'rejected'} successfully.`,
+    data: updatedBooking,
+  });
+});
+
 export const BookingControllers = {
   createBooking,
   getAllBookingByUser,
+  getBookingAppointments,
   getBookingsByEmail,
   getBookingById,
   updateBookingRequest,
+  bookingApprovedRequest,
 };
