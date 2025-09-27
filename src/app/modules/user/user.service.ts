@@ -275,9 +275,9 @@ const getAllUsersFromDB = async (query: Record<string, unknown>) => {
 const getUserProfileFromDB = async (email: string) => {
   const result = await User.findOne({ email: email });
 
-  if (!result) {
-    throw new AppError(404, 'This user not found');
-  }
+  // if (!result) {
+  //   throw new AppError(404, 'This user not found');
+  // }
 
   return result;
 };
@@ -336,10 +336,21 @@ const updateUserProfileIntoDB = async (
   }
 };
 
+const changeStatusIntoDB = async (id: string, payload: { status: string }) => {
+  const result = await User.findByIdAndUpdate(id, payload, { new: true });
+
+  if (!result) {
+    throw new AppError(404, 'User not found');
+  }
+
+  return result;
+};
+
 export const UserServices = {
   registerUserIntoDB,
   vendorRegisterUserIntoDB,
   getAllUsersFromDB,
   getUserProfileFromDB,
   updateUserProfileIntoDB,
+  changeStatusIntoDB,
 };

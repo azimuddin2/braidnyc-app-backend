@@ -64,10 +64,24 @@ const updateUserProfile = catchAsync(async (req, res) => {
   });
 });
 
+const changeStatus = catchAsync(async (req, res) => {
+  const { id } = req.params;
+
+  const result = await UserServices.changeStatusIntoDB(id, req.body);
+
+  sendResponse(res, {
+    statusCode: 201,
+    success: true,
+    message: `User is ${result.status} successfully!`,
+    data: result,
+  });
+});
+
 export const UserControllers = {
   registerUser,
   vendorRegisterUser,
   getAllUsers,
   getUserProfile,
   updateUserProfile,
+  changeStatus,
 };
