@@ -317,7 +317,7 @@ const updateUserProfileIntoDB = async (
     // 📝 Step 3: Update linked User
     const updatedUser = await User.findByIdAndUpdate(
       existingUser._id, // ✅ correct user reference
-      { $set: { ...payload, role: 'user' } },
+      { $set: { ...payload } },
       { new: true, runValidators: true, session },
     );
     if (!updatedUser) {

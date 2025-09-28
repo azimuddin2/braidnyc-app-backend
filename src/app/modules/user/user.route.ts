@@ -32,7 +32,7 @@ router.get(
 
 router.patch(
   '/profile/:email',
-  auth('user'),
+  auth('user', 'admin'),
   upload.single('profile'),
   parseData(),
   validateRequest(UserValidations.updateUserValidationSchema),
