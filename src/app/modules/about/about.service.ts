@@ -2,73 +2,51 @@ import AppError from '../../errors/AppError';
 import { TAbout } from './about.interface';
 import { About } from './about.model';
 
-const createAboutIntoDB = async (payload: TAbout) => {
-  const result = await About.create(payload);
+// Get About info (singleton)
+const getAboutFromDB = async () => {
+  const result = await About.findOne({ isDeleted: false });
   if (!result) {
-    throw new AppError(400, 'Failed to create about');
+    throw new AppError(404, 'No about information is currently available.');
   }
   return result;
 };
 
-const getAboutByIdFromDB = async (id: string) => {
-  const result = await About.findById(id);
+// Create or update About (upsert)
+const upsertAboutIntoDB = async (payload: TAbout) => {
+  const result = await About.findOneAndUpdate(
+    {}, // empty filter → only one doc
+    { ...payload, isDeleted: false },
+    { new: true, upsert: true, runValidators: true },
+  );
 
   if (!result) {
-    throw new AppError(404, 'This about not found');
+    throw new AppError(400, 'Failed to save about information');
   }
-
-  if (result.isDeleted === true) {
-    throw new AppError(400, 'This about has been deleted');
-  }
-
   return result;
 };
 
-const updateAboutIntoDB = async (id: string, payload: Partial<TAbout>) => {
-  const isAboutExists = await About.findById(id);
-
+// Soft delete About (mark as deleted)
+const deleteAboutFromDB = async () => {
+  const isAboutExists = await About.findOne();
   if (!isAboutExists) {
-    throw new AppError(404, 'This about not exists');
+    throw new AppError(404, 'About information not found');
   }
 
-  if (isAboutExists.isDeleted === true) {
-    throw new AppError(400, 'This about has been deleted');
-  }
-
-  const updatedAbout = await About.findByIdAndUpdate(id, payload, {
-    new: true,
-    runValidators: true,
-  });
-
-  if (!updatedAbout) {
-    throw new AppError(400, 'About update failed');
-  }
-
-  return updatedAbout;
-};
-
-const deleteAboutFromDB = async (id: string) => {
-  const isAboutExists = await About.findById(id);
-
-  if (!isAboutExists) {
-    throw new AppError(404, 'About not found');
-  }
-
-  const result = await About.findByIdAndUpdate(
-    id,
+  const result = await About.findOneAndUpdate(
+    {},
     { isDeleted: true },
     { new: true },
   );
+
   if (!result) {
-    throw new AppError(400, 'Failed to delete about');
+    throw new AppError(400, 'Failed to delete about information');
   }
 
   return result;
 };
 
 export const AboutService = {
-  createAboutIntoDB,
-  getAboutByIdFromDB,
-  updateAboutIntoDB,
+  getAboutFromDB,
+  upsertAboutIntoDB,
   deleteAboutFromDB,
 };

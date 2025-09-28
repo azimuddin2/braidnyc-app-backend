@@ -1,4 +1,4 @@
 export type TAbout = {
-  description: string;
+  content: string;
   isDeleted: boolean;
 };

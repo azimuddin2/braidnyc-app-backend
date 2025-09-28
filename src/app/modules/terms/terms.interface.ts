@@ -1,4 +1,4 @@
 export type TTerms = {
-  description: string;
+  content: string;
   isDeleted: boolean;
 };

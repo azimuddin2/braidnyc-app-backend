@@ -2,21 +2,8 @@ import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
 import { PolicyService } from './policy.service';
 
-const createPolicy = catchAsync(async (req, res) => {
-  const result = await PolicyService.createPolicyIntoDB(req.body);
-
-  sendResponse(res, {
-    statusCode: 201,
-    success: true,
-    message: 'Policy added successfully',
-    data: result,
-  });
-});
-
-const getPolicyById = catchAsync(async (req, res) => {
-  const { id } = req.params;
-  const result = await PolicyService.getPolicyByIdFromDB(id);
-
+const getPolicy = catchAsync(async (req, res) => {
+  const result = await PolicyService.getPolicyFromDB();
   sendResponse(res, {
     statusCode: 200,
     success: true,
@@ -25,22 +12,18 @@ const getPolicyById = catchAsync(async (req, res) => {
   });
 });
 
-const updatePolicy = catchAsync(async (req, res) => {
-  const { id } = req.params;
-  const result = await PolicyService.updatePolicyIntoDB(id, req.body);
-
+const upsertPolicy = catchAsync(async (req, res) => {
+  const result = await PolicyService.upsertPolicyIntoDB(req.body);
   sendResponse(res, {
     statusCode: 200,
     success: true,
-    message: 'Policy has been updated successfully.',
+    message: 'Policy saved successfully',
     data: result,
   });
 });
 
 const deletePolicy = catchAsync(async (req, res) => {
-  const { id } = req.params;
-  const result = await PolicyService.deletePolicyFromDB(id);
-
+  const result = await PolicyService.deletePolicyFromDB();
   sendResponse(res, {
     statusCode: 200,
     success: true,
@@ -50,8 +33,7 @@ const deletePolicy = catchAsync(async (req, res) => {
 });
 
 export const PolicyController = {
-  createPolicy,
-  getPolicyById,
-  updatePolicy,
+  getPolicy,
+  upsertPolicy,
   deletePolicy,
 };

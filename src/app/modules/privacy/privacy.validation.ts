@@ -2,17 +2,17 @@ import { z } from 'zod';
 
 const createPrivacyValidationSchema = z.object({
   body: z.object({
-    description: z.string({
-      required_error: 'Privacy Description is required',
+    content: z.string({
+      required_error: 'Privacy content is required',
     }),
   }),
 });
 
 const updatePrivacyValidationSchema = z.object({
   body: z.object({
-    description: z
+    content: z
       .string({
-        required_error: 'Privacy Description is required',
+        required_error: 'Privacy content is required',
       })
       .optional(),
   }),

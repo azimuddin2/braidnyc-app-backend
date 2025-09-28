@@ -2,21 +2,8 @@ import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
 import { AboutService } from './about.service';
 
-const createAbout = catchAsync(async (req, res) => {
-  const result = await AboutService.createAboutIntoDB(req.body);
-
-  sendResponse(res, {
-    statusCode: 201,
-    success: true,
-    message: 'About info added successfully',
-    data: result,
-  });
-});
-
-const getAboutById = catchAsync(async (req, res) => {
-  const { id } = req.params;
-  const result = await AboutService.getAboutByIdFromDB(id);
-
+const getAbout = catchAsync(async (req, res) => {
+  const result = await AboutService.getAboutFromDB();
   sendResponse(res, {
     statusCode: 200,
     success: true,
@@ -25,22 +12,18 @@ const getAboutById = catchAsync(async (req, res) => {
   });
 });
 
-const updateAbout = catchAsync(async (req, res) => {
-  const { id } = req.params;
-  const result = await AboutService.updateAboutIntoDB(id, req.body);
-
+const upsertAbout = catchAsync(async (req, res) => {
+  const result = await AboutService.upsertAboutIntoDB(req.body);
   sendResponse(res, {
     statusCode: 200,
     success: true,
-    message: 'About info has been updated successfully.',
+    message: 'About info saved successfully',
     data: result,
   });
 });
 
 const deleteAbout = catchAsync(async (req, res) => {
-  const { id } = req.params;
-  const result = await AboutService.deleteAboutFromDB(id);
-
+  const result = await AboutService.deleteAboutFromDB();
   sendResponse(res, {
     statusCode: 200,
     success: true,
@@ -50,8 +33,7 @@ const deleteAbout = catchAsync(async (req, res) => {
 });
 
 export const AboutController = {
-  createAbout,
-  getAboutById,
-  updateAbout,
+  getAbout,
+  upsertAbout,
   deleteAbout,
 };

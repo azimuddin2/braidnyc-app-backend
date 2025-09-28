@@ -3,9 +3,9 @@ import { TTerms } from './terms.interface';
 
 const termsSchema = new Schema<TTerms>(
   {
-    description: {
+    content: {
       type: String,
-      required: [true, 'Description is required'],
+      required: [true, 'Terms content is required'],
     },
     isDeleted: {
       type: Boolean,

@@ -6,26 +6,15 @@ import { TermsController } from './terms.controller';
 
 const router = express.Router();
 
+router.get('/', auth('user', 'vendor', 'admin'), TermsController.getTerms);
+
 router.post(
   '/',
   auth('admin'),
   validateRequest(TermsValidation.createTermsValidationSchema),
-  TermsController.createTerms,
+  TermsController.upsertTerms,
 );
 
-router.get(
-  '/:id',
-  auth('user', 'vendor', 'admin'),
-  TermsController.getTermsById,
-);
-
-router.patch(
-  '/:id',
-  auth('admin'),
-  validateRequest(TermsValidation.updateTermsValidationSchema),
-  TermsController.updateTerms,
-);
-
-router.delete('/:id', auth('admin'), TermsController.deleteTerms);
+router.delete('/', auth('admin'), TermsController.deleteTerms);
 
 export const TermsRoutes = router;

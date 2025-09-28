@@ -6,26 +6,15 @@ import { AboutController } from './about.controller';
 
 const router = express.Router();
 
+router.get('/', auth('user', 'vendor', 'admin'), AboutController.getAbout);
+
 router.post(
   '/',
   auth('admin'),
   validateRequest(AboutValidation.createAboutValidationSchema),
-  AboutController.createAbout,
+  AboutController.upsertAbout,
 );
 
-router.get(
-  '/:id',
-  auth('user', 'vendor', 'admin'),
-  AboutController.getAboutById,
-);
-
-router.patch(
-  '/:id',
-  auth('admin'),
-  validateRequest(AboutValidation.updateAboutValidationSchema),
-  AboutController.updateAbout,
-);
-
-router.delete('/:id', auth('admin'), AboutController.deleteAbout);
+router.delete('/', auth('admin'), AboutController.deleteAbout);
 
 export const AboutRoutes = router;

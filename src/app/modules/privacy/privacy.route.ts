@@ -1,31 +1,20 @@
 import express from 'express';
-import validateRequest from '../../middlewares/validateRequest';
 import auth from '../../middlewares/auth';
+import validateRequest from '../../middlewares/validateRequest';
 import { PrivacyValidation } from './privacy.validation';
 import { PrivacyController } from './privacy.controller';
 
 const router = express.Router();
 
+router.get('/', auth('user', 'vendor', 'admin'), PrivacyController.getPrivacy);
+
 router.post(
   '/',
   auth('admin'),
   validateRequest(PrivacyValidation.createPrivacyValidationSchema),
-  PrivacyController.createPrivacy,
+  PrivacyController.upsertPrivacy,
 );
 
-router.get(
-  '/:id',
-  auth('user', 'vendor', 'admin'),
-  PrivacyController.getPrivacyById,
-);
-
-router.patch(
-  '/:id',
-  auth('admin'),
-  validateRequest(PrivacyValidation.updatePrivacyValidationSchema),
-  PrivacyController.updatePrivacy,
-);
-
-router.delete('/:id', auth('admin'), PrivacyController.deletePrivacy);
+router.delete('/', auth('admin'), PrivacyController.deletePrivacy);
 
 export const PrivacyRoutes = router;

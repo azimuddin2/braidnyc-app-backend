@@ -3,9 +3,9 @@ import { TPrivacy } from './privacy.interface';
 
 const privacySchema = new Schema<TPrivacy>(
   {
-    description: {
+    content: {
       type: String,
-      required: [true, 'Privacy Description is required'],
+      required: [true, 'Privacy content is required'],
     },
     isDeleted: {
       type: Boolean,

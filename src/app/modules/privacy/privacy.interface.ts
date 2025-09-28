@@ -1,4 +1,4 @@
 export type TPrivacy = {
-  description: string;
+  content: string;
   isDeleted: boolean;
 };

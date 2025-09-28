@@ -2,21 +2,8 @@ import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
 import { TermsService } from './terms.service';
 
-const createTerms = catchAsync(async (req, res) => {
-  const result = await TermsService.createTermsIntoDB(req.body);
-
-  sendResponse(res, {
-    statusCode: 201,
-    success: true,
-    message: 'Terms added successfully',
-    data: result,
-  });
-});
-
-const getTermsById = catchAsync(async (req, res) => {
-  const { id } = req.params;
-  const result = await TermsService.getTermsByIdFromDB(id);
-
+const getTerms = catchAsync(async (req, res) => {
+  const result = await TermsService.getTermsFromDB();
   sendResponse(res, {
     statusCode: 200,
     success: true,
@@ -25,22 +12,18 @@ const getTermsById = catchAsync(async (req, res) => {
   });
 });
 
-const updateTerms = catchAsync(async (req, res) => {
-  const { id } = req.params;
-  const result = await TermsService.updateTermsIntoDB(id, req.body);
-
+const upsertTerms = catchAsync(async (req, res) => {
+  const result = await TermsService.upsertTermsIntoDB(req.body);
   sendResponse(res, {
     statusCode: 200,
     success: true,
-    message: 'Terms has been updated successfully.',
+    message: 'Terms saved successfully',
     data: result,
   });
 });
 
 const deleteTerms = catchAsync(async (req, res) => {
-  const { id } = req.params;
-  const result = await TermsService.deleteTermsFromDB(id);
-
+  const result = await TermsService.deleteTermsFromDB();
   sendResponse(res, {
     statusCode: 200,
     success: true,
@@ -50,8 +33,7 @@ const deleteTerms = catchAsync(async (req, res) => {
 });
 
 export const TermsController = {
-  createTerms,
-  getTermsById,
-  updateTerms,
+  getTerms,
+  upsertTerms,
   deleteTerms,
 };

@@ -3,9 +3,9 @@ import { TPolicy } from './policy.interface';
 
 const policySchema = new Schema<TPolicy>(
   {
-    description: {
+    content: {
       type: String,
-      required: [true, 'Policy Description is required'],
+      required: [true, 'Policy content is required'],
     },
     isDeleted: {
       type: Boolean,

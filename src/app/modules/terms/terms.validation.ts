@@ -2,17 +2,17 @@ import { z } from 'zod';
 
 const createTermsValidationSchema = z.object({
   body: z.object({
-    description: z.string({
-      required_error: 'Terms Description is required',
+    content: z.string({
+      required_error: 'Terms content is required',
     }),
   }),
 });
 
 const updateTermsValidationSchema = z.object({
   body: z.object({
-    description: z
+    content: z
       .string({
-        required_error: 'Terms Description is required',
+        required_error: 'Terms content is required',
       })
       .optional(),
   }),

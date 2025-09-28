@@ -3,7 +3,7 @@ import { TAbout } from './about.interface';
 
 const aboutSchema = new Schema<TAbout>(
   {
-    description: {
+    content: {
       type: String,
       required: [true, 'About Description is required'],
     },

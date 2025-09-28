@@ -1,4 +1,4 @@
 export type TPolicy = {
-  description: string;
+  content: string;
   isDeleted: boolean;
 };

@@ -2,63 +2,42 @@ import AppError from '../../errors/AppError';
 import { TPrivacy } from './privacy.interface';
 import { Privacy } from './privacy.model';
 
-const createPrivacyIntoDB = async (payload: TPrivacy) => {
-  const result = await Privacy.create(payload);
+// Get privacy (always single doc)
+const getPrivacyFromDB = async () => {
+  const result = await Privacy.findOne({ isDeleted: false });
   if (!result) {
-    throw new AppError(400, 'Failed to create privacy');
+    throw new AppError(404, 'No active privacy policy is currently available.');
   }
   return result;
 };
 
-const getPrivacyByIdFromDB = async (id: string) => {
-  const result = await Privacy.findById(id);
+// Create/Update privacy (upsert)
+const upsertPrivacyIntoDB = async (payload: TPrivacy) => {
+  const result = await Privacy.findOneAndUpdate(
+    {}, // empty filter → only one doc
+    { ...payload, isDeleted: false },
+    { new: true, upsert: true, runValidators: true },
+  );
 
   if (!result) {
-    throw new AppError(404, 'This Privacy not found');
+    throw new AppError(400, 'Failed to save privacy');
   }
-
-  if (result.isDeleted === true) {
-    throw new AppError(400, 'This privacy has been deleted');
-  }
-
   return result;
 };
 
-const updatePrivacyIntoDB = async (id: string, payload: Partial<TPrivacy>) => {
-  const isPrivacyExists = await Privacy.findById(id);
-
-  if (!isPrivacyExists) {
-    throw new AppError(404, 'This privacy not exists');
-  }
-
-  if (isPrivacyExists.isDeleted === true) {
-    throw new AppError(400, 'This privacy has been deleted');
-  }
-
-  const updatedPrivacy = await Privacy.findByIdAndUpdate(id, payload, {
-    new: true,
-    runValidators: true,
-  });
-
-  if (!updatedPrivacy) {
-    throw new AppError(400, 'Privacy update failed');
-  }
-
-  return updatedPrivacy;
-};
-
-const deletePrivacyFromDB = async (id: string) => {
-  const isPrivacyExists = await Privacy.findById(id);
-
+// Soft delete (mark as deleted)
+const deletePrivacyFromDB = async () => {
+  const isPrivacyExists = await Privacy.findOne();
   if (!isPrivacyExists) {
     throw new AppError(404, 'Privacy not found');
   }
 
-  const result = await Privacy.findByIdAndUpdate(
-    id,
+  const result = await Privacy.findOneAndUpdate(
+    {},
     { isDeleted: true },
     { new: true },
   );
+
   if (!result) {
     throw new AppError(400, 'Failed to delete privacy');
   }
@@ -67,8 +46,7 @@ const deletePrivacyFromDB = async (id: string) => {
 };
 
 export const PrivacyService = {
-  createPrivacyIntoDB,
-  getPrivacyByIdFromDB,
-  updatePrivacyIntoDB,
+  getPrivacyFromDB,
+  upsertPrivacyIntoDB,
   deletePrivacyFromDB,
 };
