@@ -1,0 +1,1 @@
+export const productTypeSearchableFields = ['name'];

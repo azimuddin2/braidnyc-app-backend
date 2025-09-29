@@ -15,6 +15,8 @@ import { TermsRoutes } from '../modules/terms/terms.route';
 import { PrivacyRoutes } from '../modules/privacy/privacy.route';
 import { AboutRoutes } from '../modules/about/about.route';
 import { PolicyRoutes } from '../modules/policy/policy.route';
+import { ServiceTypeRoutes } from '../modules/serviceType/serviceType.route';
+import { ProductTypeRoutes } from '../modules/productType/productType.route';
 
 const router = Router();
 
@@ -36,8 +38,16 @@ const moduleRoutes = [
     route: OtpRoutes,
   },
   {
+    path: '/product-type',
+    route: ProductTypeRoutes,
+  },
+  {
     path: '/products',
     route: ProductRoutes,
+  },
+  {
+    path: '/service-type',
+    route: ServiceTypeRoutes,
   },
   {
     path: '/services',
