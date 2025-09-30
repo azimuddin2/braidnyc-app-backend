@@ -5,6 +5,14 @@ import { ServiceType } from './serviceType.model';
 import { serviceTypeSearchableFields } from './serviceType.constant';
 
 const createServiceTypeIntoDB = async (payload: TServiceType) => {
+  const filter = { name: payload.name };
+
+  const isServiceTypeExists = await ServiceType.findOne(filter);
+
+  if (isServiceTypeExists) {
+    throw new AppError(404, 'This service type already exists');
+  }
+
   const result = await ServiceType.create(payload);
   if (!result) {
     throw new AppError(400, 'Failed to create service type');

@@ -5,6 +5,14 @@ import { TProductType } from './productType.interface';
 import { ProductType } from './productType.model';
 
 const createProductTypeIntoDB = async (payload: TProductType) => {
+  const filter = { name: payload.name };
+
+  const isProductTypeExists = await ProductType.findOne(filter);
+
+  if (isProductTypeExists) {
+    throw new AppError(404, 'This product type already exists');
+  }
+
   const result = await ProductType.create(payload);
   if (!result) {
     throw new AppError(400, 'Failed to create product type');

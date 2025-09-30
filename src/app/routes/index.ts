@@ -17,6 +17,7 @@ import { AboutRoutes } from '../modules/about/about.route';
 import { PolicyRoutes } from '../modules/policy/policy.route';
 import { ServiceTypeRoutes } from '../modules/serviceType/serviceType.route';
 import { ProductTypeRoutes } from '../modules/productType/productType.route';
+import { PlanRoutes } from '../modules/plan/plan.route';
 
 const router = Router();
 
@@ -92,6 +93,10 @@ const moduleRoutes = [
   {
     path: '/policy',
     route: PolicyRoutes,
+  },
+  {
+    path: '/plans',
+    route: PlanRoutes,
   },
 ];
 

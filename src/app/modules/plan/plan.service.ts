@@ -1,0 +1,87 @@
+import AppError from '../../errors/AppError';
+import { TPlan } from './plan.interface';
+import { User } from '../user/user.model';
+import { Plan } from './plan.model';
+
+const createPlanIntoDB = async (payload: TPlan) => {
+  // Find the admin to notify.
+  const isAdmin = await User.findOne({ role: 'admin' });
+  if (!isAdmin || !isAdmin.email) {
+    throw new AppError(404, 'Admin email not found');
+  }
+
+  const result = await Plan.create(payload);
+  if (!result) {
+    throw new AppError(400, 'Failed to create subscription plan');
+  }
+  return result;
+};
+
+const getAllPlansFromDB = async () => {
+  const result = await Plan.findOne({ isDeleted: false });
+  return result;
+};
+
+const getPlanByIdFromDB = async (id: string) => {
+  const result = await Plan.findById(id).populate('user');
+
+  if (!result) {
+    throw new AppError(404, 'This plan not found');
+  }
+
+  if (result.isDeleted === true) {
+    throw new AppError(400, 'This plan has been deleted');
+  }
+
+  return result;
+};
+
+const updatePlanIntoDB = async (id: string, payload: Partial<TPlan>) => {
+  const isPlanExists = await Plan.findById(id);
+
+  if (!isPlanExists) {
+    throw new AppError(404, 'This plan not exists');
+  }
+
+  if (isPlanExists.isDeleted === true) {
+    throw new AppError(400, 'This plan has been deleted');
+  }
+
+  const updatedPlan = await Plan.findByIdAndUpdate(id, payload, {
+    new: true,
+    runValidators: true,
+  });
+
+  if (!updatedPlan) {
+    throw new AppError(400, 'Plan update failed');
+  }
+
+  return updatedPlan;
+};
+
+const deletePlanFromDB = async (id: string) => {
+  const isPlanExists = await Plan.findById(id);
+
+  if (!isPlanExists) {
+    throw new AppError(404, 'Plan not found');
+  }
+
+  const result = await Plan.findByIdAndUpdate(
+    id,
+    { isDeleted: true },
+    { new: true },
+  );
+  if (!result) {
+    throw new AppError(400, 'Failed to delete plan');
+  }
+
+  return result;
+};
+
+export const PlanServices = {
+  createPlanIntoDB,
+  getAllPlansFromDB,
+  getPlanByIdFromDB,
+  updatePlanIntoDB,
+  deletePlanFromDB,
+};
