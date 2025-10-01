@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { ValidityType } from './plan.constant';
 
 const createPlanValidationSchema = z.object({
   body: z.object({
@@ -27,7 +28,9 @@ const createPlanValidationSchema = z.object({
     }),
 
     validity: z.object({
-      type: z.enum(['unlimited', 'fixed']),
+      type: z.enum([...ValidityType] as [string, ...string[]], {
+        required_error: 'Validity type is required',
+      }),
       durationInMonths: z.string().nullable().optional(),
     }),
 
@@ -65,7 +68,11 @@ const updatePlanValidationSchema = z.object({
     }),
 
     validity: z.object({
-      type: z.enum(['unlimited', 'fixed']).optional(),
+      type: z
+        .enum([...ValidityType] as [string, ...string[]], {
+          required_error: 'Validity type is required',
+        })
+        .optional(),
       durationInMonths: z.string().nullable().optional().optional(),
     }),
 

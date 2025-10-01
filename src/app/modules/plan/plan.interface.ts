@@ -1,5 +1,12 @@
 import { Types } from 'mongoose';
 
+export type TValidityType =
+  | 'unlimited'
+  | '1month'
+  | '3month'
+  | '6month'
+  | 'custom';
+
 export type TPlan = {
   user: Types.ObjectId;
   name: string;
@@ -21,7 +28,7 @@ export type TPlan = {
   };
 
   validity: {
-    type: 'unlimited' | 'fixed';
+    type: TValidityType;
     durationInMonths?: string;
   };
 

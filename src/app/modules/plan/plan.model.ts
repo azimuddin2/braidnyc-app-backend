@@ -1,5 +1,6 @@
 import { Schema, model } from 'mongoose';
 import { TPlan } from './plan.interface';
+import { ValidityType } from './plan.constant';
 
 const planSchema = new Schema<TPlan>(
   {
@@ -29,8 +30,11 @@ const planSchema = new Schema<TPlan>(
     validity: {
       type: {
         type: String,
-        enum: ['unlimited', 'fixed'],
-        required: true,
+        enum: {
+          values: ValidityType,
+          message: '{VALUE} is not valid',
+        },
+        default: '1month',
       },
       durationInMonths: { type: String, default: null },
     },

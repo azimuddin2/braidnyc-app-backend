@@ -14,13 +14,14 @@ const createPlan = catchAsync(async (req, res) => {
 });
 
 const getAllPlans = catchAsync(async (req, res) => {
-  const result = await PlanServices.getAllPlansFromDB();
+  const result = await PlanServices.getAllPlansFromDB(req.query);
 
   sendResponse(res, {
     statusCode: 200,
     success: true,
     message: 'Subscription plan retrieved successfully',
-    data: result,
+    meta: result.meta,
+    data: result.result,
   });
 });
 

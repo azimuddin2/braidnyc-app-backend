@@ -2,6 +2,7 @@ import AppError from '../../errors/AppError';
 import { TPlan } from './plan.interface';
 import { User } from '../user/user.model';
 import { Plan } from './plan.model';
+import QueryBuilder from '../../builder/QueryBuilder';
 
 const createPlanIntoDB = async (payload: TPlan) => {
   // Find the admin to notify.
@@ -17,9 +18,21 @@ const createPlanIntoDB = async (payload: TPlan) => {
   return result;
 };
 
-const getAllPlansFromDB = async () => {
-  const result = await Plan.findOne({ isDeleted: false });
-  return result;
+const getAllPlansFromDB = async (query: Record<string, unknown>) => {
+  const plansQuery = new QueryBuilder(
+    Plan.find({ isDeleted: false }).populate('user'),
+    query,
+  )
+    .search([])
+    .filter()
+    .sort()
+    .paginate()
+    .fields();
+
+  const meta = await plansQuery.countTotal();
+  const result = await plansQuery.modelQuery;
+
+  return { meta, result };
 };
 
 const getPlanByIdFromDB = async (id: string) => {
