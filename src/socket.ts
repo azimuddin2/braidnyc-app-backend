@@ -107,19 +107,19 @@ const initializeSocketIO = (server: HttpServer) => {
           io.to(userSocket).emit('message', getPreMessage || []);
 
           // Notification
-          // const allUnReaddMessage = await Message.countDocuments({
-          //   receiver: user?._id,
-          //   seen: false,
-          // });
-          // const variable = 'new-notifications::' + user?._id;
-          // io.emit(variable, allUnReaddMessage);
+          const allUnReaddMessage = await Message.countDocuments({
+            receiver: user?._id,
+            seen: false,
+          });
+          const variable = 'new-notifications::' + user?._id;
+          io.emit(variable, allUnReaddMessage);
 
-          // const allUnReaddMessage2 = await Message.countDocuments({
-          //   receiver: userId,
-          //   seen: false,
-          // });
-          // const variable2 = 'new-notifications::' + userId;
-          // io.emit(variable2, allUnReaddMessage2);
+          const allUnReaddMessage2 = await Message.countDocuments({
+            receiver: userId,
+            seen: false,
+          });
+          const variable2 = 'new-notifications::' + userId;
+          io.emit(variable2, allUnReaddMessage2);
 
           //end Notification//
         } catch (error: any) {
@@ -211,28 +211,28 @@ const initializeSocketIO = (server: HttpServer) => {
           io.to(user1SocketId).emit('chat-list', ChatListUser1);
           io.to(user2SocketId).emit('chat-list', ChatListUser2);
 
-          // const allUnReaddMessage = await Message.countDocuments({
-          //   receiver: user1,
-          //   seen: false,
-          // });
-          // const variable = 'new-notifications::' + user1;
-          // io.emit(variable, allUnReaddMessage);
+          const allUnReaddMessage = await Message.countDocuments({
+            receiver: user1,
+            seen: false,
+          });
+          const variable = 'new-notifications::' + user1;
+          io.emit(variable, allUnReaddMessage);
 
-          // const allUnReaddMessage2 = await Message.countDocuments({
-          //   receiver: user2,
-          //   seen: false,
-          // });
-          // const variable2 = 'new-notifications::' + user2;
-          // io.emit(variable2, allUnReaddMessage2);
+          const allUnReaddMessage2 = await Message.countDocuments({
+            receiver: user2,
+            seen: false,
+          });
+          const variable2 = 'new-notifications::' + user2;
+          io.emit(variable2, allUnReaddMessage2);
 
-          // const getPreMessage = await Message.find({
-          //   $or: [
-          //     { sender: user1, receiver: user2 },
-          //     { sender: user2, receiver: user1 },
-          //   ],
-          // }).sort({ updatedAt: 1 });
+          const getPreMessage = await Message.find({
+            $or: [
+              { sender: user1, receiver: user2 },
+              { sender: user2, receiver: user1 },
+            ],
+          }).sort({ updatedAt: 1 });
 
-          // socket.emit('message', getPreMessage || []);
+          socket.emit('message', getPreMessage || []);
         } catch (error: any) {
           callbackFn(callback, {
             success: false,
@@ -291,18 +291,18 @@ const initializeSocketIO = (server: HttpServer) => {
           io.to(userSocket).emit('chat-list', ChatListSender);
 
           // Notification
-          // const allUnReaddMessage = await Message.countDocuments({
-          //   receiver: result.sender,
-          //   seen: false,
-          // });
-          // const variable = 'new-notifications::' + result.sender;
-          // io.emit(variable, allUnReaddMessage);
-          // const allUnReaddMessage2 = await Message.countDocuments({
-          //   receiver: result.receiver,
-          //   seen: false,
-          // });
-          // const variable2 = 'new-notifications::' + result.receiver;
-          // io.emit(variable2, allUnReaddMessage2);
+          const allUnReaddMessage = await Message.countDocuments({
+            receiver: result.sender,
+            seen: false,
+          });
+          const variable = 'new-notifications::' + result.sender;
+          io.emit(variable, allUnReaddMessage);
+          const allUnReaddMessage2 = await Message.countDocuments({
+            receiver: result.receiver,
+            seen: false,
+          });
+          const variable2 = 'new-notifications::' + result.receiver;
+          io.emit(variable2, allUnReaddMessage2);
 
           //end Notification//
           callbackFn(callback, {
@@ -335,23 +335,23 @@ const initializeSocketIO = (server: HttpServer) => {
       // });
 
       //-----------------------Seen All------------------------//
-      // socket.on('message-notification', async ({}, callback) => {
-      //   try {
-      //     const allUnReaddMessage = await Message.countDocuments({
-      //       receiver: user?._id,
-      //       seen: false,
-      //     });
-      //     const variable = 'new-notifications::' + user?._id;
-      //     io.emit(variable, allUnReaddMessage);
-      //     callbackFn(callback, { success: true, message: allUnReaddMessage });
-      //   } catch (error) {
-      //     callbackFn(callback, {
-      //       statusCode: httpStatus.INTERNAL_SERVER_ERROR,
-      //       success: false,
-      //       message: 'Failed to retrieve notifications',
-      //     });
-      //   }
-      // });
+      socket.on('message-notification', async ({}, callback) => {
+        try {
+          const allUnReaddMessage = await Message.countDocuments({
+            receiver: user?._id,
+            seen: false,
+          });
+          const variable = 'new-notifications::' + user?._id;
+          io.emit(variable, allUnReaddMessage);
+          callbackFn(callback, { success: true, message: allUnReaddMessage });
+        } catch (error) {
+          callbackFn(callback, {
+            statusCode: httpStatus.INTERNAL_SERVER_ERROR,
+            success: false,
+            message: 'Failed to retrieve notifications',
+          });
+        }
+      });
 
       //-----------------------Disconnect------------------------//
       socket.on('disconnect', () => {

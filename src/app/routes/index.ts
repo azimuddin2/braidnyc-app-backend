@@ -20,6 +20,7 @@ import { ProductTypeRoutes } from '../modules/productType/productType.route';
 import { PlanRoutes } from '../modules/plan/plan.route';
 import { DashboardRoutes } from '../modules/dashboard/dashboard.route';
 import { SupportRoutes } from '../modules/support/support.route';
+import { NotificationRoutes } from '../modules/notification/notification.route';
 
 const router = Router();
 
@@ -107,6 +108,10 @@ const moduleRoutes = [
   {
     path: '/supports',
     route: SupportRoutes,
+  },
+  {
+    path: '/notifications',
+    route: NotificationRoutes,
   },
 ];
 
