@@ -18,6 +18,8 @@ import { PolicyRoutes } from '../modules/policy/policy.route';
 import { ServiceTypeRoutes } from '../modules/serviceType/serviceType.route';
 import { ProductTypeRoutes } from '../modules/productType/productType.route';
 import { PlanRoutes } from '../modules/plan/plan.route';
+import { DashboardRoutes } from '../modules/dashboard/dashboard.route';
+import { SupportRoutes } from '../modules/support/support.route';
 
 const router = Router();
 
@@ -97,6 +99,14 @@ const moduleRoutes = [
   {
     path: '/plans',
     route: PlanRoutes,
+  },
+  {
+    path: '/dashboard',
+    route: DashboardRoutes,
+  },
+  {
+    path: '/supports',
+    route: SupportRoutes,
   },
 ];
 
