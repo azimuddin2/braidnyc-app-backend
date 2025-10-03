@@ -22,6 +22,11 @@ const bookingSchema = new Schema<TBooking>(
       required: [true, 'Vendor Id is required'],
       ref: 'Vendor',
     },
+    user: {
+      type: Schema.Types.ObjectId,
+      required: [true, 'User Id is required'],
+      ref: 'User',
+    },
     serviceId: {
       type: String,
       required: true,

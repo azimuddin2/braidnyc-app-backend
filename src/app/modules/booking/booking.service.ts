@@ -6,6 +6,8 @@ import { TBooking } from './booking.interface';
 import { TWeekDay } from '../packages/packages.interface';
 import QueryBuilder from '../../builder/QueryBuilder';
 import { bookingSearchableFields } from './booking.constant';
+import { NotificationServices } from '../notification/notification.service';
+import { ModeType } from '../notification/notification.interface';
 
 const createBookingIntoDB = async (payload: TBooking) => {
   const { service, serviceItemId, date, time } = payload;
@@ -192,6 +194,22 @@ const updateBookingRequestIntoDB = async (
 
   // 5️⃣ Save updated booking
   await booking.save();
+
+  await NotificationServices.insertNotificationIntoDB({
+    receiver: booking?.user,
+    message: 'Booking Cancellation Confirmation',
+    description: `Your booking with Name: ${booking.serviceName} has been successfully cancelled. If you have any questions or require further assistance, please contact our support team.`,
+    refference: booking?._id,
+    model_type: ModeType.Booking,
+  });
+
+  await NotificationServices.insertNotificationIntoDB({
+    receiver: booking?.vendor,
+    message: 'Booking Cancellation Alert',
+    description: `A booking has been cancelled. Booking Name: ${booking.serviceName}. Please update your availability accordingly. If you need further details, please access your management dashboard or contact our support team.`,
+    refference: booking?._id,
+    model_type: ModeType.Booking,
+  });
 
   return booking;
 };
