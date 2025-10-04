@@ -38,4 +38,11 @@ router.put(
   BookingControllers.bookingApprovedRequest,
 );
 
+router.patch(
+  '/assign/:id',
+  auth('vendor'),
+  validateRequest(BookingValidation.assignedMemberValidationSchema),
+  BookingControllers.bookingAssignedToMember,
+);
+
 export const BookingRoutes = router;

@@ -22,7 +22,7 @@ router.post(
   UserControllers.vendorRegisterUser,
 );
 
-router.get('/', auth('admin'), UserControllers.getAllUsers);
+router.get('/', auth('admin', 'user', 'vendor'), UserControllers.getAllUsers);
 
 router.get(
   '/profile/:email',

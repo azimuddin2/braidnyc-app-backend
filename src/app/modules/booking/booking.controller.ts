@@ -91,6 +91,21 @@ const bookingApprovedRequest = catchAsync(async (req, res) => {
   });
 });
 
+const bookingAssignedToMember = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const result = await BookingServices.bookingAssignedToMemberIntoDB(
+    id,
+    req.body,
+  );
+
+  sendResponse(res, {
+    statusCode: 201,
+    success: true,
+    message: 'Member assigned successfully',
+    data: result,
+  });
+});
+
 export const BookingControllers = {
   createBooking,
   getAllBookingByUser,
@@ -99,4 +114,5 @@ export const BookingControllers = {
   getBookingById,
   updateBookingRequest,
   bookingApprovedRequest,
+  bookingAssignedToMember,
 };

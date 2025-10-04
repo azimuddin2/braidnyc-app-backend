@@ -103,7 +103,16 @@ const updateBookingValidationSchema = z.object({
   }),
 });
 
+const assignedMemberValidationSchema = z.object({
+  body: z.object({
+    assignedTo: z
+      .string({ required_error: 'Please select a member to assign' })
+      .min(1, 'Assigned member cannot be empty'), // ensures non-empty string
+  }),
+});
+
 export const BookingValidation = {
   createBookingValidationSchema,
   updateBookingValidationSchema,
+  assignedMemberValidationSchema,
 };
