@@ -64,6 +64,8 @@ const initializeSocketIO = (server: HttpServer) => {
       io.emit('onlineUser', Array.from(onlineUser));
 
       socket.on('message-page', async (userId, callback) => {
+        console.log({ userId });
+
         if (!userId) {
           callbackFn(callback, {
             success: false,
@@ -74,7 +76,7 @@ const initializeSocketIO = (server: HttpServer) => {
         try {
           const receiverDetails: TUser | null = await User.findById(
             userId,
-          ).select('_id email role profile name');
+          ).select('_id email role image fullName');
 
           if (!receiverDetails) {
             callbackFn(callback, {
@@ -104,6 +106,8 @@ const initializeSocketIO = (server: HttpServer) => {
               { sender: userId, receiver: user?._id },
             ],
           }).sort({ updatedAt: 1 });
+
+          console.log(getPreMessage);
           io.to(userSocket).emit('message', getPreMessage || []);
 
           // Notification

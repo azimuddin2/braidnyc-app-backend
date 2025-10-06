@@ -19,8 +19,7 @@ async function main() {
     io.listen(Number(config.socket_port));
     console.log(
       //@ts-ignore
-      `Socket is listening on port ${config.ip}:${config.socket_port}`.yellow
-        .bold,
+      `Socket is listening on port ${config.ip}:${config.socket_port}`,
     );
 
     (global as any).socketio = io;
