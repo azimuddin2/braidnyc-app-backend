@@ -13,6 +13,7 @@ import { createToken } from '../auth/auth.utils';
 import QueryBuilder from '../../builder/QueryBuilder';
 import { userSearchableFields } from './user.constant';
 import { deleteFromS3, uploadToS3 } from '../../utils/awsS3FileUploader';
+import { Subscription } from '../subscription/subscription.model';
 
 const registerUserIntoDB = async (payload: TUser) => {
   // 1. Check if user already exists
@@ -116,6 +117,9 @@ const registerUserIntoDB = async (payload: TUser) => {
   </html>
   `,
   );
+
+  const res = await Subscription.create();
+  console.log('create subscription initialy', res);
 
   return { accessToken };
 };

@@ -16,7 +16,7 @@ const createSupportValidationSchema = z.object({
       .string({ required_error: 'Message is required' })
       .min(1, 'Message cannot be empty'),
     messageReply: z.string().optional().default(''),
-    follow: z.string().optional(),
+    follow: z.boolean().default(true),
     isDeleted: z.boolean().optional().default(false),
   }),
 });

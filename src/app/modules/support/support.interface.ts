@@ -4,6 +4,6 @@ export type TSupport = {
   email: string;
   message: string;
   messageReply?: string;
-  follow: 'yes' | 'no';
+  follow: boolean;
   isDeleted: boolean;
 };

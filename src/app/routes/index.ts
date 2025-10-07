@@ -21,6 +21,7 @@ import { PlanRoutes } from '../modules/plan/plan.route';
 import { DashboardRoutes } from '../modules/dashboard/dashboard.route';
 import { SupportRoutes } from '../modules/support/support.route';
 import { NotificationRoutes } from '../modules/notification/notification.route';
+import { subPaymentsRoutes } from '../modules/subPayment/sub-payment.route';
 
 const router = Router();
 
@@ -80,6 +81,10 @@ const moduleRoutes = [
   {
     path: '/payments',
     route: PaymentRoutes,
+  },
+  {
+    path: '/sub-payments',
+    route: subPaymentsRoutes,
   },
   {
     path: '/terms',

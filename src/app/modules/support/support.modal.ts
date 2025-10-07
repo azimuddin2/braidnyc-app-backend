@@ -9,12 +9,8 @@ const supportSchema = new Schema<TSupport>(
     message: { type: String, required: true },
     messageReply: { type: String, default: '' },
     follow: {
-      type: String,
-      enum: {
-        values: ['yes', 'no'],
-        message: '{VALUE} is not valid',
-      },
-      default: 'yes',
+      type: Boolean,
+      default: true,
     },
     isDeleted: { type: Boolean, default: false },
   },
