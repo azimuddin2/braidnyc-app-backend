@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { BookingStatus } from './booking.constant';
 
 const BookingRequestSchemaZod = z.object({
   type: z.enum(['none', 'cancel', 'reschedule']).optional().default('none'),
@@ -111,8 +112,15 @@ const assignedMemberValidationSchema = z.object({
   }),
 });
 
+const updateBookingStatusValidationSchema = z.object({
+  body: z.object({
+    status: z.enum([...BookingStatus] as [string, ...string[]]),
+  }),
+});
+
 export const BookingValidation = {
   createBookingValidationSchema,
   updateBookingValidationSchema,
   assignedMemberValidationSchema,
+  updateBookingStatusValidationSchema,
 };

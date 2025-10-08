@@ -1,5 +1,7 @@
 import { Types } from 'mongoose';
 
+export type TSubscribed = 'advance' | 'basic';
+
 export type TVendor = {
   userId: Types.ObjectId;
   businessName: string;
@@ -18,4 +20,6 @@ export type TVendor = {
   description?: string;
   password: string;
   confirmPassword: string;
+
+  isSubscribed?: TSubscribed;
 };

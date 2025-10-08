@@ -253,6 +253,20 @@ const bookingAssignedToMemberIntoDB = async (
   return result;
 };
 
+const updateBookingStatusIntoDB = async (
+  id: string,
+  payload: { status: string },
+) => {
+  const isBookingExists = await Booking.findById(id);
+
+  if (!isBookingExists) {
+    throw new AppError(404, 'This booking is not found');
+  }
+
+  const result = await Booking.findByIdAndUpdate(id, payload, { new: true });
+  return result;
+};
+
 export const BookingServices = {
   createBookingIntoDB,
   getBookingsByEmailFromDB,
@@ -262,4 +276,5 @@ export const BookingServices = {
   getBookingAppointmentsFromDB,
   bookingApprovedRequestIntoDB,
   bookingAssignedToMemberIntoDB,
+  updateBookingStatusIntoDB,
 };

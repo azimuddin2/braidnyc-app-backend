@@ -1,3 +1,5 @@
+import { TSubscribed } from "./vendor.interface";
+
 export const vendorSearchableFields = [
   'businessName',
   'email',
@@ -5,3 +7,5 @@ export const vendorSearchableFields = [
   'firstName',
   'country',
 ];
+
+export const Subscribed: TSubscribed[] = ['advance', 'basic'];

@@ -45,4 +45,11 @@ router.patch(
   BookingControllers.bookingAssignedToMember,
 );
 
+router.put(
+  '/update-status/:id',
+  auth('vendor'),
+  validateRequest(BookingValidation.updateBookingStatusValidationSchema),
+  BookingControllers.updateBookingStatus,
+);
+
 export const BookingRoutes = router;

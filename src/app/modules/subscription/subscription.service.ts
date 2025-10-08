@@ -83,8 +83,6 @@ export const createSubscriptionIntoDB = async (payload: TSubscription) => {
     amount: plan.cost, // use plan cost as final price
     startedAt: now,
     expiredAt,
-    status: 'active', // default status
-    isPaid: true,
     isExpired: false,
     isDeleted: false,
   };

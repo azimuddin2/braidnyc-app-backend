@@ -22,6 +22,7 @@ import { DashboardRoutes } from '../modules/dashboard/dashboard.route';
 import { SupportRoutes } from '../modules/support/support.route';
 import { NotificationRoutes } from '../modules/notification/notification.route';
 import { subPaymentsRoutes } from '../modules/subPayment/sub-payment.route';
+import { subscriptionRoutes } from '../modules/subscription/subscription.route';
 
 const router = Router();
 
@@ -117,6 +118,10 @@ const moduleRoutes = [
   {
     path: '/notifications',
     route: NotificationRoutes,
+  },
+  {
+    path: '/subscriptions',
+    route: subscriptionRoutes,
   },
 ];
 

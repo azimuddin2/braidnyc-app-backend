@@ -18,10 +18,6 @@ const createSubscriptionValidationSchema = z.object({
 
     isPaid: z.boolean().default(false).optional(),
 
-    trnId: z
-      .string({ required_error: 'Transaction ID is required' })
-      .min(3, 'Transaction ID must be at least 3 characters long'),
-
     amount: z
       .number({ required_error: 'Amount is required' })
       .positive('Amount must be greater than 0'),

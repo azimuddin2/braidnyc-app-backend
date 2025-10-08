@@ -2,6 +2,7 @@ import { model, Schema } from 'mongoose';
 import { TVendor } from './vendor.interface';
 import config from '../../config';
 import bcrypt from 'bcrypt';
+import { Subscribed } from './vendor.constant';
 
 const vendorSchema = new Schema<TVendor>(
   {
@@ -77,6 +78,13 @@ const vendorSchema = new Schema<TVendor>(
       trim: true,
       minlength: [8, 'Password can be minimum 8 characters'],
       maxlength: [20, 'Password can not be more than 20 characters'],
+    },
+    isSubscribed: {
+      type: String,
+      enum: {
+        values: Subscribed,
+        message: '{VALUE} is not valid',
+      },
     },
   },
   { timestamps: true },

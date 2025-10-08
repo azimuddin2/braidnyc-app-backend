@@ -10,7 +10,7 @@ export type TSubscription = {
   plan: Types.ObjectId | TPlan;
   durationType: 'monthly' | 'yearly';
   isPaid: boolean;
-  trnId: string;
+  trnId?: string;
   amount: number;
   code?: string;
   status: TSubscriptionStatus;

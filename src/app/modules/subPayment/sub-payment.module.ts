@@ -1,6 +1,5 @@
 import { model, Schema } from 'mongoose';
 import { TSubPayment } from './sub-payment.interface';
-import { TSubscription } from '../subscription/subscription.interface';
 
 // Define the Mongoose schema
 const SubPaymentSchema = new Schema<TSubPayment>(
@@ -9,6 +8,10 @@ const SubPaymentSchema = new Schema<TSubPayment>(
       type: Schema.Types.ObjectId,
       ref: 'User',
       // required: true,
+    },
+    plan: {
+      type: Schema.Types.ObjectId,
+      ref: 'Plan',
     },
     subscription: {
       type: Schema.Types.ObjectId,
@@ -67,8 +70,8 @@ SubPaymentSchema.pre('aggregate', function (next) {
   next();
 });
 // Create and export the model
-const SubPayment = model<TSubPayment, TSubscription>(
-  'Payment',
+const SubPayment = model<TSubPayment>(
+  'SubPayment',
   SubPaymentSchema,
 );
 

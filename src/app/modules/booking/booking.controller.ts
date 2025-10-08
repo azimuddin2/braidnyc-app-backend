@@ -106,6 +106,18 @@ const bookingAssignedToMember = catchAsync(async (req, res) => {
   });
 });
 
+const updateBookingStatus = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const result = await BookingServices.updateBookingStatusIntoDB(id, req.body);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Status updated successfully.',
+    data: result,
+  });
+});
+
 export const BookingControllers = {
   createBooking,
   getAllBookingByUser,
@@ -115,4 +127,5 @@ export const BookingControllers = {
   updateBookingRequest,
   bookingApprovedRequest,
   bookingAssignedToMember,
+  updateBookingStatus,
 };

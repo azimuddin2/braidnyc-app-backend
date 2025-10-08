@@ -5,21 +5,27 @@ import { SubscriptionService } from './subscription.service';
 import { SubPaymentsService } from '../subPayment/sub-payment.services';
 
 const createSubscription = catchAsync(async (req: Request, res: Response) => {
+  // console.log('user', req.user);
+
   req.body.user = req?.user?.userId;
   const result = await SubscriptionService.createSubscriptionIntoDB(req.body);
-  console.log('createSubscription result', result);
+  // console.log('createSubscription result', result);
 
-  // const createPayment = await SubPaymentsService.subPayCheckout({
-  //   subscription: result._id,
-  //   user: req?.user?.userId,
-  //   durationType: result?.durationType,
-  // });
+  const createPayment = await SubPaymentsService.subPayCheckout({
+    // @ts-ignore
+    plan: result?.plan,
+    // @ts-ignore
+    subscription: result._id,
+    user: req?.user?.userId,
+    durationType: result?.durationType,
+  });
+  // console.log('createPayment', createPayment);
 
   sendResponse(res, {
     statusCode: 200,
     success: true,
     message: 'Subscription created successfully',
-    data: 'createPayment',
+    data: createPayment,
   });
 });
 
@@ -75,17 +81,17 @@ const updateSubscription = catchAsync(async (req: Request, res: Response) => {
     req.body,
   );
 
-  const updatePayment = await paymentsService.checkout({
-    // @ts-ignore
-    subscription: result._id,
-    user: req?.user?.userId,
-    durationType: result?.durationType,
-  });
+  // const updatePayment = await paymentsService.checkout({
+  //   // @ts-ignore
+  //   subscription: result._id,
+  //   user: req?.user?.userId,
+  //   durationType: result?.durationType,
+  // });
   sendResponse(res, {
     statusCode: 200,
     success: true,
     message: 'Subscription updated successfully',
-    data: updatePayment,
+    data: "updatePayment",
   });
 });
 

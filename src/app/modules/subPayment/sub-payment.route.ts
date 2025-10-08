@@ -9,8 +9,9 @@ router.post(
   auth('vendor'),
   SubPaymentsController.subPayCheckout,
 );
+router.get('/confirm-sub-payment', SubPaymentsController.confirmPayment);
 
-// router.get('/confirm-payment', SubPaymentsController.confirmPayment);
+
 // router.get(
 //   '/dashboard-data',
 //   // auth(USER_ROLE.admin),

@@ -5,6 +5,7 @@ import { TSubscription } from '../subscription/subscription.interface';
 export interface TSubPayment {
   _id: ObjectId;
   user: ObjectId | TUser;
+  plan: ObjectId;
   subscription?: ObjectId | TSubscription;
   durationType: 'monthly' | 'yearly';
   amount: number;

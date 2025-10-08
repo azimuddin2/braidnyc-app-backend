@@ -3,6 +3,8 @@ import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
 import httpStatus from 'http-status';
 import { SubPaymentsService } from './sub-payment.services';
+import AppError from '../../errors/AppError';
+import config from '../../config';
 
 const subPayCheckout = catchAsync(async (req: Request, res: Response) => {
   req.body.user = req.user?.userId;
@@ -16,29 +18,29 @@ const subPayCheckout = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-// const confirmPayment = catchAsync(async (req: Request, res: Response) => {
-//   const result = await SubPaymentsService.confirmPayment(req?.query);
-//   if (!result?.subscription && !result?.sponsorId) {
-//     throw new AppError(
-//       httpStatus.BAD_REQUEST,
-//       'No valid subscription or sponsor found for payment confirmation',
-//     );
-//   }
+const confirmPayment = catchAsync(async (req: Request, res: Response) => {
+  const result = await SubPaymentsService.confirmPayment(req?.query);
+  console.log('confirmPayment result', result);
 
-//   let subscriptionredirectUrl = `${config}?paymentId=${result?._id}`;
-//   let sponsorredirectUrl = `${config.success_sponsor_url}?paymentId=${result?._id}`;
+  // if (!result?.subscription) {
+  //   throw new AppError(
+  //     httpStatus.BAD_REQUEST,
+  //     'No valid subscription found for payment confirmation'
+  //   );
+  // }
 
-//   if (result?.subscription) {
-//     subscriptionredirectUrl += `&subscriptionId=${result.subscription}`;
-//     res.redirect(subscriptionredirectUrl);
-//   }
+  // // Build redirect URL for successful subscription payment
+  // const queryParams = new URLSearchParams({
+  //   paymentId: String(result._id),
+  //   subscriptionId: String(result.subscription),
+  // });
 
-//   if (result?.sponsorId) {
-//     sponsorredirectUrl += `&sponsorId=${result.sponsorId}`;
-//     res.redirect(sponsorredirectUrl);
-//   }
-// });
+  // const redirectUrl = `${config.client_Url}/payment/success?${queryParams.toString()}`;
+
+  // res.redirect(redirectUrl);
+});
 
 export const SubPaymentsController = {
   subPayCheckout,
+  confirmPayment
 };
