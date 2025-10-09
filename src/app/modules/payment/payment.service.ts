@@ -1,5 +1,5 @@
 // payment.service.ts
-import { startSession } from 'mongoose';
+import mongoose, { startSession } from 'mongoose';
 import { PAYMENT_MODEL_TYPE, TPayment } from './payment.interface';
 import { Order } from '../order/order.model';
 import { Booking } from '../booking/booking.model';
@@ -151,7 +151,7 @@ const createPayment = async (payload: TPayment) => {
   }
 };
 
-export const confirmPayment = async (query: Record<string, any>) => {
+const confirmPayment = async (query: Record<string, any>) => {
   const { sessionId, paymentId } = query;
   const session = await startSession();
 
@@ -227,18 +227,26 @@ export const confirmPayment = async (query: Record<string, any>) => {
 };
 
 const getAllPaymentFromDB = async (query: Record<string, unknown>) => {
-  const paymentQuery = new QueryBuilder(
-    Payment.find({ isDeleted: false }),
-    query,
-  )
-    // .search('')
+  const { vendor, ...filters } = query;
+
+  if (!vendor || !mongoose.Types.ObjectId.isValid(vendor as string)) {
+    throw new AppError(400, 'Invalid Vendor ID');
+  }
+
+  // Base query -> always exclude deleted payments
+  let paymentQuery = Payment.find({ vendor, isDeleted: false })
+    .populate('vendor')
+    .populate('user');
+
+  const queryBuilder = new QueryBuilder(paymentQuery, filters)
+    .search([''])
     .filter()
     .sort()
     .paginate()
     .fields();
 
-  const meta = await paymentQuery.countTotal();
-  const result = await paymentQuery.modelQuery;
+  const meta = await queryBuilder.countTotal();
+  const result = await queryBuilder.modelQuery;
 
   return { meta, result };
 };

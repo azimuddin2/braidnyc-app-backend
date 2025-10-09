@@ -21,8 +21,8 @@ import { PlanRoutes } from '../modules/plan/plan.route';
 import { DashboardRoutes } from '../modules/dashboard/dashboard.route';
 import { SupportRoutes } from '../modules/support/support.route';
 import { NotificationRoutes } from '../modules/notification/notification.route';
-import { subPaymentsRoutes } from '../modules/subPayment/sub-payment.route';
-import { subscriptionRoutes } from '../modules/subscription/subscription.route';
+import { SubPaymentsRoutes } from '../modules/subPayment/sub-payment.route';
+import { SubscriptionRoutes } from '../modules/subscription/subscription.route';
 
 const router = Router();
 
@@ -85,7 +85,7 @@ const moduleRoutes = [
   },
   {
     path: '/sub-payments',
-    route: subPaymentsRoutes,
+    route: SubPaymentsRoutes,
   },
   {
     path: '/terms',
@@ -121,7 +121,7 @@ const moduleRoutes = [
   },
   {
     path: '/subscriptions',
-    route: subscriptionRoutes,
+    route: SubscriptionRoutes,
   },
 ];
 

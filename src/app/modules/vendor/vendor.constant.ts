@@ -1,4 +1,4 @@
-import { TSubscribed } from "./vendor.interface";
+import { TSubscribed } from './vendor.interface';
 
 export const vendorSearchableFields = [
   'businessName',

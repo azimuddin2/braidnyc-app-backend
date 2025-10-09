@@ -2,11 +2,9 @@ import Stripe from 'stripe';
 import config from '../../config';
 import httpStatus from 'http-status';
 import { startSession } from 'mongoose';
-import moment from 'moment';
 import { TSubPayment } from './sub-payment.interface';
 import generateRandomString from '../../utils/generateRandomString';
 import { User } from '../user/user.model';
-import { Subscription } from '../subscription/subscription.model';
 import AppError from '../../errors/AppError';
 import SubPayment from './sub-payment.module';
 import { Plan } from '../plan/plan.model';
@@ -17,74 +15,94 @@ export const stripe = new Stripe(config.stripe_api_secret as string, {
   typescript: true,
 });
 
+
 const subPayCheckout = async (payload: TSubPayment) => {
-  // console.log('subPayCheckout paylaod', payload);
+  const tranId = `TXN-${generateRandomString(10)}`;
 
-  const tranId = generateRandomString(10);
-  let paymentData: TSubPayment;
-
+  // 1️⃣ Validate User
   const user = await User.findById(payload.user);
   if (!user) {
-    throw new AppError(httpStatus.NOT_FOUND, "User not found!")
+    throw new AppError(httpStatus.NOT_FOUND, 'User not found!');
   }
 
-  const isPlan = await Plan.findById(payload?.plan)
-  if (!isPlan) {
-    throw new AppError(httpStatus.NOT_FOUND, "Plan not found!")
+  // 2️⃣ Validate Plan
+  const plan = await Plan.findById(payload.plan);
+  if (!plan) {
+    throw new AppError(httpStatus.NOT_FOUND, 'Plan not found!');
   }
 
-  payload.amount = isPlan.cost || 0
-  const createdPayment = await SubPayment.create(payload);
-  console.log("createdPayment", createdPayment);
+  // 3️⃣ Create Payment Entry
+  const modifyPayload: Partial<TSubPayment> = {
+    ...payload,
+    tranId,
+    amount: plan.cost || 0,
+  };
+
+  const createdPayment = await SubPayment.create(modifyPayload);
   if (!createdPayment) {
     throw new AppError(httpStatus.BAD_REQUEST, 'Failed to create payment');
   }
 
-  paymentData = createdPayment
-  if (!paymentData) {
-    throw new AppError(httpStatus.BAD_REQUEST, 'Failed to create payment');
-  }
-  // console.log('paymentData___________', paymentData);
-
+  // 4️⃣ Create Checkout Session
   const checkoutSession = await createCheckoutSession({
     product: {
-      amount: paymentData?.amount,
-      name: isPlan?.name,
+      amount: createdPayment.amount,
+      name: plan.name,
       quantity: 1,
     },
     //@ts-ignore
-    paymentId: paymentData?._id,
+    paymentId: createdPayment._id,
   });
-  // console.log("checkoutSession", checkoutSession);
-  return checkoutSession?.url;
 
-  // END
+  if (!checkoutSession?.url) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'Failed to create checkout session');
+  }
+
+  // 5️⃣ Return Payment URL
+  return checkoutSession.url;
 };
+
 
 const confirmPayment = async (query: Record<string, any>) => {
   console.log('query________', query);
 
   const { sessionId, paymentId } = query;
   const session = await startSession();
-  const PaymentSession = await stripe.checkout.sessions.retrieve(sessionId);
-  // console.log('PaymentSession', PaymentSession);
 
-  const paymentIntentId = PaymentSession.payment_intent as string;
+  // ✅ Stripe payment process
+  const paymentSession = await stripe.checkout.sessions.retrieve(sessionId);
+  const paymentIntentId = paymentSession.payment_intent as string;
 
-  if (PaymentSession.status !== 'complete') {
-    throw new AppError(
-      httpStatus.BAD_REQUEST,
-      'Payment session is not completed',
-    );
+  // ✅ Stripe now uses `payment_status` instead of `status`
+  if (paymentSession.payment_status !== 'paid') {
+    throw new AppError(httpStatus.BAD_REQUEST, 'Payment not completed yet');
   }
 
   try {
     session.startTransaction();
 
+    // ✅ Verify payment record exists
+    const payment = await SubPayment.findById(paymentId).session(session);
+    if (!payment) {
+      throw new AppError(httpStatus.NOT_FOUND, 'Payment record not found!');
+    }
 
+    // ✅ Update payment inside the same transaction
+    const updatedPayment = await SubPayment.findByIdAndUpdate(
+      paymentId,
+      {
+        $set: {
+          isPaid: true,
+          paidAt: new Date(),
+        },
+      },
+      { new: true, session } // <-- 🔥 include session here
+    );
 
     await session.commitTransaction();
-    return "payment";
+
+    console.log('✅ Payment updated successfully:', updatedPayment);
+    return updatedPayment;
   } catch (error: any) {
     await session.abortTransaction();
 
@@ -104,5 +122,5 @@ const confirmPayment = async (query: Record<string, any>) => {
 
 export const SubPaymentsService = {
   subPayCheckout,
-  confirmPayment
+  confirmPayment,
 };

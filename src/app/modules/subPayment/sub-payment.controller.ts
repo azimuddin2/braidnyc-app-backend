@@ -3,7 +3,6 @@ import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
 import httpStatus from 'http-status';
 import { SubPaymentsService } from './sub-payment.services';
-import AppError from '../../errors/AppError';
 import config from '../../config';
 
 const subPayCheckout = catchAsync(async (req: Request, res: Response) => {
@@ -19,28 +18,11 @@ const subPayCheckout = catchAsync(async (req: Request, res: Response) => {
 });
 
 const confirmPayment = catchAsync(async (req: Request, res: Response) => {
-  const result = await SubPaymentsService.confirmPayment(req?.query);
-  console.log('confirmPayment result', result);
-
-  // if (!result?.subscription) {
-  //   throw new AppError(
-  //     httpStatus.BAD_REQUEST,
-  //     'No valid subscription found for payment confirmation'
-  //   );
-  // }
-
-  // // Build redirect URL for successful subscription payment
-  // const queryParams = new URLSearchParams({
-  //   paymentId: String(result._id),
-  //   subscriptionId: String(result.subscription),
-  // });
-
-  // const redirectUrl = `${config.client_Url}/payment/success?${queryParams.toString()}`;
-
-  // res.redirect(redirectUrl);
+  await SubPaymentsService.confirmPayment(req?.query);
+  res.redirect(config.client_Url + '/payment/success');
 });
 
 export const SubPaymentsController = {
   subPayCheckout,
-  confirmPayment
+  confirmPayment,
 };

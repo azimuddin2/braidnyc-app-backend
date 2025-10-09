@@ -11,9 +11,8 @@ export interface TSubPayment {
   amount: number;
   tranId: string;
   isPaid: boolean;
+  paidAt: Date;
   isDeleted: boolean;
-  sponsorId?: ObjectId;
-  code?: string;
 }
 
 export type ISubscriptionsModel = Model<TSubPayment, Record<string, unknown>>;

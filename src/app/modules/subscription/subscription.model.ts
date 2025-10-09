@@ -25,7 +25,7 @@ const subscriptionSchema = new Schema<TSubscription, TSubscriptionModel>(
     },
     trnId: {
       type: String,
-      default: null
+      default: null,
     },
     amount: {
       type: Number,

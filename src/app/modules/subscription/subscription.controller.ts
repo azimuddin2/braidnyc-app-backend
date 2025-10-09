@@ -91,7 +91,7 @@ const updateSubscription = catchAsync(async (req: Request, res: Response) => {
     statusCode: 200,
     success: true,
     message: 'Subscription updated successfully',
-    data: "updatePayment",
+    data: 'updatePayment',
   });
 });
 
@@ -135,7 +135,7 @@ const updateSubscription = catchAsync(async (req: Request, res: Response) => {
 //   });
 // });
 
-export const subscriptionController = {
+export const SubscriptionController = {
   createSubscription,
   getAllSubscription,
   updateSubscription,

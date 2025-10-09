@@ -37,16 +37,10 @@ const SubPaymentSchema = new Schema<TSubPayment>(
     },
     tranId: {
       type: String,
-      // required: true,
     },
-    sponsorId: {
-      type: Schema.Types.ObjectId,
-      ref: 'Sponsor',
-      // Optional field to link the payment to a sponsor
-    },
-    code: {
-      type: String,
-    },
+    paidAt: {
+      type: Date,
+    }
   },
   {
     timestamps: true,
@@ -70,9 +64,6 @@ SubPaymentSchema.pre('aggregate', function (next) {
   next();
 });
 // Create and export the model
-const SubPayment = model<TSubPayment>(
-  'SubPayment',
-  SubPaymentSchema,
-);
+const SubPayment = model<TSubPayment>('SubPayment', SubPaymentSchema);
 
 export default SubPayment;

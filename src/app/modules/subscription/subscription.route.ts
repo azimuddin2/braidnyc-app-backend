@@ -1,12 +1,12 @@
 import { Router } from 'express';
-import { subscriptionController } from './subscription.controller';
 import auth from '../../middlewares/auth';
+import { SubscriptionController } from './subscription.controller';
 const router = Router();
 
 router.post(
   '/create-subscription',
   auth('vendor'),
-  subscriptionController.createSubscription,
+  SubscriptionController.createSubscription,
 );
 // router.get(
 //   '/my-ongoing-subscription',
@@ -25,4 +25,4 @@ router.post(
 //   subscriptionController.cancelPayment,
 // );
 
-export const subscriptionRoutes = router;
+export const SubscriptionRoutes = router;

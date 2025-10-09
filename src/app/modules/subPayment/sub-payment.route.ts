@@ -9,18 +9,21 @@ router.post(
   auth('vendor'),
   SubPaymentsController.subPayCheckout,
 );
-router.get('/confirm-sub-payment', SubPaymentsController.confirmPayment);
 
+router.get('/confirm-sub-payment', SubPaymentsController.confirmPayment);
 
 // router.get(
 //   '/dashboard-data',
 //   // auth(USER_ROLE.admin),
 //   SubPaymentsController.dashboardData,
 // );
+
 // router.get(
 //   '/earnings',
 //   // auth(USER_ROLE.admin),
 //   SubPaymentsController.getEarnings,
 // );
+
 // router.get('/dashboard-data', SubPaymentsController.);
-export const subPaymentsRoutes = router;
+
+export const SubPaymentsRoutes = router;
