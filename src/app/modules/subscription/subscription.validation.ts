@@ -47,7 +47,6 @@ const updateSubscriptionValidationSchema = z.object({
   body: z.object({
     durationType: z.enum([...DurationType] as [string, ...string[]]).optional(),
     isPaid: z.boolean().optional(),
-    trnId: z.string().optional(),
     amount: z.number().positive().optional(),
     code: z.string().optional(),
     status: z.enum([...SubscriptionStatus] as [string, ...string[]]).optional(),

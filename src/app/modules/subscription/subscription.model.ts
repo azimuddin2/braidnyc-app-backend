@@ -23,10 +23,6 @@ const subscriptionSchema = new Schema<TSubscription, TSubscriptionModel>(
       type: Boolean,
       default: false,
     },
-    trnId: {
-      type: String,
-      default: null,
-    },
     amount: {
       type: Number,
       required: true,
