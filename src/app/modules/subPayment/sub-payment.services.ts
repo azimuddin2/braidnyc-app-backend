@@ -15,7 +15,6 @@ export const stripe = new Stripe(config.stripe_api_secret as string, {
   typescript: true,
 });
 
-
 const subPayCheckout = async (payload: TSubPayment) => {
   const tranId = `TXN-${generateRandomString(10)}`;
 
@@ -55,13 +54,15 @@ const subPayCheckout = async (payload: TSubPayment) => {
   });
 
   if (!checkoutSession?.url) {
-    throw new AppError(httpStatus.BAD_REQUEST, 'Failed to create checkout session');
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      'Failed to create checkout session',
+    );
   }
 
   // 5️⃣ Return Payment URL
   return checkoutSession.url;
 };
-
 
 const confirmPayment = async (query: Record<string, any>) => {
   console.log('query________', query);
@@ -96,7 +97,7 @@ const confirmPayment = async (query: Record<string, any>) => {
           paidAt: new Date(),
         },
       },
-      { new: true, session } // <-- 🔥 include session here
+      { new: true, session }, // <-- 🔥 include session here
     );
 
     await session.commitTransaction();

@@ -40,7 +40,7 @@ const SubPaymentSchema = new Schema<TSubPayment>(
     },
     paidAt: {
       type: Date,
-    }
+    },
   },
   {
     timestamps: true,

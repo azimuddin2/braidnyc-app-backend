@@ -8,7 +8,7 @@ import { TSubscription } from './subscription.interface';
 import { Subscription } from './subscription.model';
 import httpStatus from 'http-status';
 
-export const createSubscriptionIntoDB = async (payload: TSubscription) => {
+const createSubscriptionIntoDB = async (payload: TSubscription) => {
   // 1️⃣ Check if the user already has an unpaid subscription for the same plan
   const existing = await Subscription.findOne({
     user: payload.user,

@@ -40,13 +40,6 @@ class QueryBuilder<T> {
       delete queryObj.maxPrice;
     }
 
-    // Category (case-insensitive)
-    if (queryObj.category) {
-      queryObj.category = {
-        $regex: new RegExp(queryObj.category, 'i'),
-      };
-    }
-
     // CreatedAt date filtering — filter by entire day
     if (queryObj.createdAt && typeof queryObj.createdAt === 'string') {
       const parsedDate = new Date(queryObj.createdAt);

@@ -226,7 +226,7 @@ const updatePackagesHighlightStatusIntoDB = async (
   return result;
 };
 
-export const getAvailabilityFromDB = async (
+const getAvailabilityFromDB = async (
   query: Record<string, unknown>,
 ): Promise<TServiceSlots[]> => {
   // 1️⃣ Extract serviceId and date from query

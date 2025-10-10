@@ -45,9 +45,27 @@ const createProductIntoDB = async (payload: TProduct, files: any) => {
 };
 
 const getAllProductFromDB = async (query: Record<string, unknown>) => {
+  // Extract productType before passing to QueryBuilder
+  const { productType, ...restQuery } = query;
+
+  // Base query
+  let mongoFilter: Record<string, unknown> = { isDeleted: false };
+
+  // ✅ Handle productType filter
+  if (productType) {
+    const types = String(productType)
+      .split(',')
+      .map((type) => type.trim())
+      .filter(Boolean)
+      .map((type) => new RegExp(type, 'i'));
+
+    mongoFilter.productType = { $in: types };
+  }
+
+  // 🔧 Pass the rest of the query (pagination, sorting, etc.)
   const productQuery = new QueryBuilder(
-    Product.find({ isDeleted: false }).populate('vendor'),
-    query,
+    Product.find(mongoFilter).populate('vendor'),
+    restQuery,
   )
     .search(productSearchableFields)
     .filter()
