@@ -1,21 +1,21 @@
 import { TRole, TStatus } from './user.interface';
 
 export const USER_ROLE = {
-  vendor: 'vendor',
-  user: 'user',
+  customer: 'customer',
+  owner: 'owner',
+  freelance: 'freelance',
   admin: 'admin',
 } as const;
 
-export const UserRole: TRole[] = ['vendor', 'user', 'admin'];
+export const UserRole: TRole[] = ['customer', 'owner', 'freelance', 'admin'];
 
 export const UserStatus: TStatus[] = ['ongoing', 'confirmed', 'blocked'];
 
 export const userSearchableFields = [
-  'firstName',
-  'lastName',
   'fullName',
   'email',
   'phone',
-  'country',
-  'status',
+  'streetAddress',
+  'city',
+  'state',
 ];

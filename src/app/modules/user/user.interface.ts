@@ -1,25 +1,29 @@
 import { Model, ObjectId } from 'mongoose';
 import { USER_ROLE } from './user.constant';
 
-export type TRole = 'user' | 'vendor' | 'admin';
+export type TRole = 'customer' | 'owner' | 'freelance' | 'admin';
 
 export type TStatus = 'ongoing' | 'confirmed' | 'blocked';
 
+export type TGender = 'male' | 'female' | 'other';
+
 export type TUser = {
   _id: ObjectId;
-  firstName: string;
-  lastName: string;
-  fullName?: string;
-  email: string;
+  fullName: string;
   phone: string;
+  email: string;
+  streetAddress: string;
+  zipCode: string;
+  city: string;
+  state: string;
   password: string;
-  confirmPassword: string;
   needsPasswordChange: boolean;
   passwordChangeAt?: Date;
+  referralCode?: string;
+  gender?: TGender;
   role: TRole;
-  image?: string;
-  country?: string;
   status: TStatus;
+  image?: string;
   isDeleted: boolean;
   isVerified: boolean;
   verification: {
