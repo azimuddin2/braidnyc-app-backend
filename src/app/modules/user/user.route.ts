@@ -11,39 +11,45 @@ const router = express.Router();
 const upload = multer({ storage: memoryStorage() });
 
 router.post(
-  '/buyer/signup',
-  validateRequest(UserValidations.registerUserValidationSchema),
-  UserControllers.registerUser,
+  '/customer/signup',
+  validateRequest(UserValidations.createUserValidationSchema),
+  UserControllers.signupCustomer,
 );
 
 router.post(
-  '/vendor/signup',
-  validateRequest(VendorValidations.vendorRegisterUserValidationSchema),
-  UserControllers.vendorRegisterUser,
+  '/owner/signup',
+  validateRequest(UserValidations.createUserValidationSchema),
+  UserControllers.signupOwner,
 );
 
-router.get('/', auth('admin', 'user', 'vendor'), UserControllers.getAllUsers);
-
-router.get(
-  '/profile/:email',
-  auth('user', 'admin'),
-  UserControllers.getUserProfile,
+router.post(
+  '/freelance/signup',
+  validateRequest(UserValidations.createUserValidationSchema),
+  UserControllers.signupFreelance,
 );
 
-router.patch(
-  '/profile/:email',
-  auth('user', 'admin'),
-  upload.single('profile'),
-  parseData(),
-  validateRequest(UserValidations.updateUserValidationSchema),
-  UserControllers.updateUserProfile,
-);
+// router.get('/', auth('admin', 'user', 'vendor'), UserControllers.getAllUsers);
 
-router.put(
-  '/change-status/:id',
-  auth('admin'),
-  validateRequest(UserValidations.changeStatusValidationSchema),
-  UserControllers.changeStatus,
-);
+// router.get(
+//   '/profile/:email',
+//   auth('user', 'admin'),
+//   UserControllers.getUserProfile,
+// );
+
+// router.patch(
+//   '/profile/:email',
+//   auth('user', 'admin'),
+//   upload.single('profile'),
+//   parseData(),
+//   validateRequest(UserValidations.updateUserValidationSchema),
+//   UserControllers.updateUserProfile,
+// );
+
+// router.put(
+//   '/change-status/:id',
+//   auth('admin'),
+//   validateRequest(UserValidations.changeStatusValidationSchema),
+//   UserControllers.changeStatus,
+// );
 
 export const UserRoutes = router;

@@ -2,8 +2,8 @@ import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
 import { UserServices } from './user.service';
 
-const registerUser = catchAsync(async (req, res) => {
-  const result = await UserServices.registerUserIntoDB(req.body);
+const signupCustomer = catchAsync(async (req, res) => {
+  const result = await UserServices.signupCustomerIntoDB(req.body);
 
   sendResponse(res, {
     statusCode: 201,
@@ -13,13 +13,24 @@ const registerUser = catchAsync(async (req, res) => {
   });
 });
 
-const vendorRegisterUser = catchAsync(async (req, res) => {
-  const result = await UserServices.vendorRegisterUserIntoDB(req.body);
+const signupOwner = catchAsync(async (req, res) => {
+  const result = await UserServices.signupOwnerIntoDB(req.body);
 
   sendResponse(res, {
     statusCode: 201,
     success: true,
-    message: 'Vendor User registered successfully',
+    message: 'Salon owner registered successfully',
+    data: result,
+  });
+});
+
+const signupFreelance = catchAsync(async (req, res) => {
+  const result = await UserServices.signupFreelanceIntoDB(req.body);
+
+  sendResponse(res, {
+    statusCode: 201,
+    success: true,
+    message: 'Freelance account registered successfully',
     data: result,
   });
 });
@@ -78,8 +89,9 @@ const changeStatus = catchAsync(async (req, res) => {
 });
 
 export const UserControllers = {
-  registerUser,
-  vendorRegisterUser,
+  signupCustomer,
+  signupOwner,
+  signupFreelance,
   getAllUsers,
   getUserProfile,
   updateUserProfile,

@@ -81,6 +81,9 @@ const userSchema = new Schema<TUser, UserModel>(
       trim: true,
       required: false,
     },
+    selectSalon: {
+      type: String,
+    },
     role: {
       type: String,
       enum: {

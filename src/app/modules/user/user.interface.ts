@@ -21,6 +21,7 @@ export type TUser = {
   passwordChangeAt?: Date;
   referralCode?: string;
   gender?: TGender;
+  selectSalon?: string;
   role: TRole;
   status: TStatus;
   image?: string;
