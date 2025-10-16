@@ -63,7 +63,6 @@ const userSchema = new Schema<TUser, UserModel>(
       required: [true, 'Password is required'],
       minlength: [8, 'Password must be at least 8 characters'],
       maxlength: [20, 'Password must not exceed 20 characters'],
-      select: 0, // exclude password from query results
     },
     needsPasswordChange: {
       type: Boolean,
