@@ -23,9 +23,9 @@ router.post(
 );
 
 router.post(
-  '/freelance/signup',
+  '/freelancer/signup',
   validateRequest(UserValidations.createUserValidationSchema),
-  UserControllers.signupFreelance,
+  UserControllers.signupFreelancer,
 );
 
 // router.get('/', auth('admin', 'user', 'vendor'), UserControllers.getAllUsers);

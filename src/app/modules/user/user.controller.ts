@@ -24,13 +24,13 @@ const signupOwner = catchAsync(async (req, res) => {
   });
 });
 
-const signupFreelance = catchAsync(async (req, res) => {
-  const result = await UserServices.signupFreelanceIntoDB(req.body);
+const signupFreelancer = catchAsync(async (req, res) => {
+  const result = await UserServices.signupFreelancerIntoDB(req.body);
 
   sendResponse(res, {
     statusCode: 201,
     success: true,
-    message: 'Freelance account registered successfully',
+    message: 'freelancer account registered successfully',
     data: result,
   });
 });
@@ -91,7 +91,7 @@ const changeStatus = catchAsync(async (req, res) => {
 export const UserControllers = {
   signupCustomer,
   signupOwner,
-  signupFreelance,
+  signupFreelancer,
   getAllUsers,
   getUserProfile,
   updateUserProfile,

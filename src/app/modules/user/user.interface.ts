@@ -1,7 +1,7 @@
 import { Model, ObjectId } from 'mongoose';
 import { USER_ROLE } from './user.constant';
 
-export type TRole = 'customer' | 'owner' | 'freelance' | 'admin';
+export type TRole = 'customer' | 'owner' | 'freelancer' | 'admin';
 
 export type TStatus = 'ongoing' | 'confirmed' | 'blocked';
 

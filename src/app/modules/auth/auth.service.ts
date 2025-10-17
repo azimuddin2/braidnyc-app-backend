@@ -243,9 +243,11 @@ const resetPassword = async (token: string, payload: TResetPassword) => {
 
   const { userId, email } = decoded;
 
-  const user = await User.findOne({ email: email }).select(
+  const user = await User.findById({ _id: userId }).select(
     'verification isVerified',
   );
+
+  console.log(userId);
 
   if (!user) {
     throw new AppError(404, 'This user is not found!');

@@ -216,7 +216,7 @@ const signupOwnerIntoDB = async (payload: TUser) => {
   return { accessToken };
 };
 
-const signupFreelanceIntoDB = async (payload: TUser) => {
+const signupFreelancerIntoDB = async (payload: TUser) => {
   // 1. Check if user already exists
   const existingUser = await User.findOne({ email: payload.email });
   if (existingUser) {
@@ -230,7 +230,7 @@ const signupFreelanceIntoDB = async (payload: TUser) => {
   // 3. Prepare data with verification details
   const userData: Partial<TUser> = {
     ...payload,
-    role: 'freelance',
+    role: 'freelancer',
     isVerified: false,
     verification: {
       otp,
@@ -415,7 +415,7 @@ const changeStatusIntoDB = async (id: string, payload: { status: string }) => {
 export const UserServices = {
   signupCustomerIntoDB,
   signupOwnerIntoDB,
-  signupFreelanceIntoDB,
+  signupFreelancerIntoDB,
   getAllUsersFromDB,
   getUserProfileFromDB,
   updateUserProfileIntoDB,
