@@ -48,7 +48,8 @@ const getAllUsers = catchAsync(async (req, res) => {
 });
 
 const getUserProfile = catchAsync(async (req, res) => {
-  const { email } = req.params;
+  const { email } = req.user;
+
   const result = await UserServices.getUserProfileFromDB(email);
 
   sendResponse(res, {
@@ -60,17 +61,30 @@ const getUserProfile = catchAsync(async (req, res) => {
 });
 
 const updateUserProfile = catchAsync(async (req, res) => {
-  const { email } = req.params;
-  const result = await UserServices.updateUserProfileIntoDB(
-    email,
-    req.body,
-    req.file,
-  );
+  const { email } = req.user;
+  const result = await UserServices.updateUserProfileIntoDB(email, req.body);
 
   sendResponse(res, {
     statusCode: 200,
     success: true,
     message: 'Profile has been updated successfully.',
+    data: result,
+  });
+});
+
+const updateUserPicture = catchAsync(async (req, res) => {
+  const { email } = req.user;
+
+  console.log(email);
+  const result = await UserServices.updateUserPictureIntoDB(
+    email,
+    req.file as any,
+  );
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Profile picture updated successfully.',
     data: result,
   });
 });
@@ -95,5 +109,6 @@ export const UserControllers = {
   getAllUsers,
   getUserProfile,
   updateUserProfile,
+  updateUserPicture,
   changeStatus,
 };

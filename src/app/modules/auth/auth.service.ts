@@ -282,7 +282,7 @@ const resetPassword = async (token: string, payload: TResetPassword) => {
       otp: 0,
       status: false,
     },
-  });
+  }).select('-password');
 
   return result;
 };

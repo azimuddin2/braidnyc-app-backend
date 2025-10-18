@@ -11,6 +11,7 @@ import { createToken } from '../auth/auth.utils';
 import QueryBuilder from '../../builder/QueryBuilder';
 import { userSearchableFields } from './user.constant';
 import { deleteFromS3, uploadToS3 } from '../../utils/awsS3FileUploader';
+import { verifyToken } from '../../utils/verifyToken';
 
 const signupCustomerIntoDB = async (payload: TUser) => {
   // 1. Check if user already exists
@@ -339,30 +340,76 @@ const getAllUsersFromDB = async (query: Record<string, unknown>) => {
 };
 
 const getUserProfileFromDB = async (email: string) => {
-  const result = await User.findOne({ email: email });
+  const result = await User.findOne({ email: email }).select('-password');
 
-  // if (!result) {
-  //   throw new AppError(404, 'This user not found');
-  // }
+  if (!result) {
+    throw new AppError(404, 'This user not found');
+  }
+
+  if (result?.isDeleted === true) {
+    throw new AppError(403, 'This user is deleted!');
+  }
+
+  if (result?.status === 'blocked') {
+    throw new AppError(403, 'This user is blocked!');
+  }
 
   return result;
 };
 
-const updateUserProfileIntoDB = async (
-  email: string,
-  payload: Partial<TUser>,
-  file?: Express.Multer.File,
-) => {
+const updateUserProfileIntoDB = async (email: string, payload: TUser) => {
   // 🔍 Step 1: Check if user exists & get email
-  const existingUser = await User.findOne({ email }).select('userId image');
+  const existingUser = await User.findOne({ email }).select('');
   if (!existingUser) {
     throw new AppError(404, 'User not found');
+  }
+
+  if (existingUser?.isDeleted === true) {
+    throw new AppError(403, 'This user is deleted!');
+  }
+
+  if (existingUser?.status === 'blocked') {
+    throw new AppError(403, 'This user is blocked!');
+  }
+
+  const updatedUser = await User.findOneAndUpdate({ email: email }, payload, {
+    new: true,
+    runValidators: true,
+  });
+
+  if (!updatedUser) {
+    throw new AppError(400, 'profile update failed');
+  }
+
+  return updatedUser;
+};
+
+const updateUserPictureIntoDB = async (
+  email: string,
+  file: Express.Multer.File,
+) => {
+  // 🔍 Step 1: Check if user exists
+  const existingUser = await User.findOne({ email }).select(
+    'image status isDeleted',
+  );
+  if (!existingUser) {
+    throw new AppError(404, 'User not found');
+  }
+
+  if (existingUser.isDeleted) {
+    throw new AppError(403, 'This user is deleted!');
+  }
+
+  if (existingUser.status === 'blocked') {
+    throw new AppError(403, 'This user is blocked!');
   }
 
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
+    const payload: Record<string, any> = {}; // ✅ initialize payload
+
     // 📸 Step 2: Handle image upload
     if (file) {
       const uploadedUrl = await uploadToS3({
@@ -377,20 +424,21 @@ const updateUserProfileIntoDB = async (
         await deleteFromS3(existingUser.image);
       }
 
-      payload.image = uploadedUrl as string;
+      payload.image = uploadedUrl; // ✅ set image in payload
     }
 
-    // 📝 Step 3: Update linked User
+    // 📝 Step 3: Update user
     const updatedUser = await User.findByIdAndUpdate(
-      existingUser._id, // ✅ correct user reference
-      { $set: { ...payload } },
+      existingUser._id,
+      { $set: payload },
       { new: true, runValidators: true, session },
-    );
+    ).select('_id fullName email image');
+
     if (!updatedUser) {
       throw new AppError(400, 'Failed to update user');
     }
 
-    // ✅ Step 5: Commit transaction
+    // ✅ Step 4: Commit transaction
     await session.commitTransaction();
     session.endSession();
 
@@ -419,5 +467,6 @@ export const UserServices = {
   getAllUsersFromDB,
   getUserProfileFromDB,
   updateUserProfileIntoDB,
+  updateUserPictureIntoDB,
   changeStatusIntoDB,
 };

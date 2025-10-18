@@ -2,10 +2,8 @@ import express from 'express';
 import validateRequest from '../../middlewares/validateRequest';
 import { UserValidations } from './user.validation';
 import { UserControllers } from './user.controller';
-import { VendorValidations } from '../vendor/vendor.validation';
 import auth from '../../middlewares/auth';
 import multer, { memoryStorage } from 'multer';
-import parseData from '../../middlewares/parseData';
 
 const router = express.Router();
 const upload = multer({ storage: memoryStorage() });
@@ -28,28 +26,33 @@ router.post(
   UserControllers.signupFreelancer,
 );
 
-// router.get('/', auth('admin', 'user', 'vendor'), UserControllers.getAllUsers);
+router.get('/', auth('admin'), UserControllers.getAllUsers);
 
-// router.get(
-//   '/profile/:email',
-//   auth('user', 'admin'),
-//   UserControllers.getUserProfile,
-// );
+router.get(
+  '/profile',
+  auth('admin', 'customer', 'freelancer', 'owner'),
+  UserControllers.getUserProfile,
+);
 
-// router.patch(
-//   '/profile/:email',
-//   auth('user', 'admin'),
-//   upload.single('profile'),
-//   parseData(),
-//   validateRequest(UserValidations.updateUserValidationSchema),
-//   UserControllers.updateUserProfile,
-// );
+router.patch(
+  '/profile',
+  auth('admin', 'customer', 'owner', 'freelancer'),
+  validateRequest(UserValidations.updateUserValidationSchema),
+  UserControllers.updateUserProfile,
+);
 
-// router.put(
-//   '/change-status/:id',
-//   auth('admin'),
-//   validateRequest(UserValidations.changeStatusValidationSchema),
-//   UserControllers.changeStatus,
-// );
+router.patch(
+  '/profile/picture',
+  auth('admin', 'customer', 'freelancer', 'owner'),
+  upload.single('profile'),
+  UserControllers.updateUserPicture,
+);
+
+router.put(
+  '/change-status/:id',
+  auth('admin'),
+  validateRequest(UserValidations.changeStatusValidationSchema),
+  UserControllers.changeStatus,
+);
 
 export const UserRoutes = router;
