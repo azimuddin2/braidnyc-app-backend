@@ -2,6 +2,9 @@ import { Router } from 'express';
 import { UserRoutes } from '../modules/user/user.route';
 import { AuthRoutes } from '../modules/auth/auth.route';
 import { OtpRoutes } from '../modules/otp/otp.route';
+import { TermsRoutes } from '../modules/terms/terms.route';
+import { PrivacyRoutes } from '../modules/privacy/privacy.route';
+import { AboutRoutes } from '../modules/about/about.route';
 // import { ProductRoutes } from '../modules/product/product.route';
 // import { PackagesRoutes } from '../modules/packages/packages.route';
 // import { TeamRoutes } from '../modules/team/team.route';
@@ -11,9 +14,6 @@ import { OtpRoutes } from '../modules/otp/otp.route';
 // import { BookingRoutes } from '../modules/booking/booking.route';
 // import { OrderRoutes } from '../modules/order/order.route';
 // import { PaymentRoutes } from '../modules/payment/payment.route';
-// import { TermsRoutes } from '../modules/terms/terms.route';
-// import { PrivacyRoutes } from '../modules/privacy/privacy.route';
-// import { AboutRoutes } from '../modules/about/about.route';
 // import { PolicyRoutes } from '../modules/policy/policy.route';
 // import { ServiceTypeRoutes } from '../modules/serviceType/serviceType.route';
 // import { ProductTypeRoutes } from '../modules/productType/productType.route';
@@ -38,6 +38,18 @@ const moduleRoutes = [
   {
     path: '/otp',
     route: OtpRoutes,
+  },
+  {
+    path: '/terms',
+    route: TermsRoutes,
+  },
+  {
+    path: '/privacy',
+    route: PrivacyRoutes,
+  },
+  {
+    path: '/about',
+    route: AboutRoutes,
   },
 
   // TODO: ROUTE UPDATE
@@ -84,22 +96,6 @@ const moduleRoutes = [
   // {
   //   path: '/sub-payments',
   //   route: SubPaymentsRoutes,
-  // },
-  // {
-  //   path: '/terms',
-  //   route: TermsRoutes,
-  // },
-  // {
-  //   path: '/privacy',
-  //   route: PrivacyRoutes,
-  // },
-  // {
-  //   path: '/about',
-  //   route: AboutRoutes,
-  // },
-  // {
-  //   path: '/policy',
-  //   route: PolicyRoutes,
   // },
   // {
   //   path: '/plans',

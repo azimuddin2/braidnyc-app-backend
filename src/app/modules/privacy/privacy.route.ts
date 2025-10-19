@@ -6,11 +6,11 @@ import { PrivacyController } from './privacy.controller';
 
 const router = express.Router();
 
-router.get('/', auth('user', 'vendor', 'admin'), PrivacyController.getPrivacy);
+router.get('/', PrivacyController.getPrivacy);
 
 router.post(
   '/',
-  auth('admin'),
+  // auth('admin'),
   validateRequest(PrivacyValidation.createPrivacyValidationSchema),
   PrivacyController.upsertPrivacy,
 );

@@ -6,11 +6,11 @@ import { TermsController } from './terms.controller';
 
 const router = express.Router();
 
-router.get('/', auth('user', 'vendor', 'admin'), TermsController.getTerms);
+router.get('/', TermsController.getTerms);
 
 router.post(
   '/',
-  auth('admin'),
+  // auth('admin'),
   validateRequest(TermsValidation.createTermsValidationSchema),
   TermsController.upsertTerms,
 );

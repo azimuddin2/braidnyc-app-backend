@@ -6,11 +6,11 @@ import { AboutController } from './about.controller';
 
 const router = express.Router();
 
-router.get('/', auth('user', 'vendor', 'admin'), AboutController.getAbout);
+router.get('/', AboutController.getAbout);
 
 router.post(
   '/',
-  auth('admin'),
+  // auth('admin'),
   validateRequest(AboutValidation.createAboutValidationSchema),
   AboutController.upsertAbout,
 );

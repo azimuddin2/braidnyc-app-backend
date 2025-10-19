@@ -11,7 +11,6 @@ import { createToken } from '../auth/auth.utils';
 import QueryBuilder from '../../builder/QueryBuilder';
 import { userSearchableFields } from './user.constant';
 import { deleteFromS3, uploadToS3 } from '../../utils/awsS3FileUploader';
-import { verifyToken } from '../../utils/verifyToken';
 
 const signupCustomerIntoDB = async (payload: TUser) => {
   // 1. Check if user already exists
