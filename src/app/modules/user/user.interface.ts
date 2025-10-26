@@ -34,6 +34,7 @@ export type TUser = {
   };
   // 🔹 Stripe customer ID for payments
   stripeCustomerId?: string;
+  isRegistration: boolean;
 };
 
 export interface UserModel extends Model<TUser> {

@@ -4,9 +4,8 @@ import AppError from '../../errors/AppError';
 import { verifyToken } from '../../utils/verifyToken';
 import { User } from '../user/user.model';
 import { TJwtPayload } from '../auth/auth.interface';
-import { Secret } from 'jsonwebtoken';
-import jwt from 'jsonwebtoken';
 import { TVerifyOtp } from './otp.interface';
+import { createToken } from '../auth/auth.utils';
 
 const verifyOtp = async (token: string, otp: TVerifyOtp) => {
   if (!token) {
@@ -18,7 +17,7 @@ const verifyOtp = async (token: string, otp: TVerifyOtp) => {
   const { email } = decoded;
 
   const user = await User.findOne({ email: email }).select(
-    'verification isVerified',
+    'verification isVerified role email',
   );
 
   if (!user) {
@@ -43,7 +42,7 @@ const verifyOtp = async (token: string, otp: TVerifyOtp) => {
     throw new AppError(400, 'Otp did not match');
   }
 
-  const updateUser = await User.findByIdAndUpdate(
+  await User.findByIdAndUpdate(
     user?._id,
     {
       $set: {
@@ -65,11 +64,13 @@ const verifyOtp = async (token: string, otp: TVerifyOtp) => {
     role: user?.role,
   };
 
-  const jwtToken = jwt.sign(jwtPayload, config.jwt_access_secret as Secret, {
-    expiresIn: '3m',
-  });
+  const accessToken = createToken(
+    jwtPayload,
+    config.jwt_access_secret as string,
+    config.jwt_access_expires_in as string,
+  );
 
-  return { user: updateUser, token: jwtToken };
+  return { token: accessToken };
 };
 
 export const OtpServices = {

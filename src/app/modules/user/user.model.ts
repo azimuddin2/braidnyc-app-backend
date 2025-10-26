@@ -130,6 +130,10 @@ const userSchema = new Schema<TUser, UserModel>(
       type: String,
       trim: true,
     },
+    isRegistration: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

@@ -5,6 +5,7 @@ import { OtpRoutes } from '../modules/otp/otp.route';
 import { TermsRoutes } from '../modules/terms/terms.route';
 import { PrivacyRoutes } from '../modules/privacy/privacy.route';
 import { AboutRoutes } from '../modules/about/about.route';
+import { OwnerRegistrationRoutes } from '../modules/ownerRegistration/ownerRegistration.route';
 // import { ProductRoutes } from '../modules/product/product.route';
 // import { PackagesRoutes } from '../modules/packages/packages.route';
 // import { TeamRoutes } from '../modules/team/team.route';
@@ -38,6 +39,10 @@ const moduleRoutes = [
   {
     path: '/otp',
     route: OtpRoutes,
+  },
+  {
+    path: '/owner-registration',
+    route: OwnerRegistrationRoutes,
   },
   {
     path: '/terms',
