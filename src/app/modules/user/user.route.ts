@@ -55,4 +55,10 @@ router.put(
   UserControllers.changeStatus,
 );
 
+router.delete(
+  '/',
+  auth('customer', 'freelancer', 'owner'),
+  UserControllers.deleteUserAccount,
+);
+
 export const UserRoutes = router;

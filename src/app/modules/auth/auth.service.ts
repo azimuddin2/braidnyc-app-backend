@@ -23,7 +23,7 @@ const loginUser = async (payload: TLoginUser) => {
   }
 
   if (user?.isDeleted === true) {
-    throw new AppError(403, 'This user is deleted!');
+    throw new AppError(403, 'This user account is deleted!');
   }
 
   if (user?.status === 'blocked') {
@@ -82,7 +82,7 @@ const refreshToken = async (token: string) => {
   }
 
   if (user?.isDeleted === true) {
-    throw new AppError(403, 'This user is deleted!');
+    throw new AppError(403, 'This user account is deleted!');
   }
 
   if (user?.status === 'blocked') {
@@ -120,7 +120,7 @@ const changePassword = async (
   }
 
   if (user?.isDeleted === true) {
-    throw new AppError(403, 'This user is deleted!');
+    throw new AppError(403, 'This user account is deleted!');
   }
 
   if (user?.status === 'blocked') {
@@ -165,7 +165,7 @@ const forgotPassword = async (email: string) => {
   }
 
   if (user?.isDeleted === true) {
-    throw new AppError(403, 'This user is deleted!');
+    throw new AppError(403, 'This user account is deleted!');
   }
 
   if (user?.status === 'blocked') {
@@ -254,7 +254,7 @@ const resetPassword = async (token: string, payload: TResetPassword) => {
   }
 
   if (user?.isDeleted === true) {
-    throw new AppError(403, 'This user is deleted!');
+    throw new AppError(403, 'This user account is deleted!');
   }
 
   if (user?.status === 'blocked') {

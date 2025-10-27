@@ -25,7 +25,7 @@ const verifyOtp = async (token: string, otp: TVerifyOtp) => {
   }
 
   if (user?.isDeleted === true) {
-    throw new AppError(403, 'This user is deleted!');
+    throw new AppError(403, 'This user account is deleted!');
   }
 
   if (user?.status === 'blocked') {

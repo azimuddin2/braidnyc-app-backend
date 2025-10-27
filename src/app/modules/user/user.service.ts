@@ -364,7 +364,7 @@ const updateUserProfileIntoDB = async (email: string, payload: TUser) => {
   }
 
   if (existingUser?.isDeleted === true) {
-    throw new AppError(403, 'This user is deleted!');
+    throw new AppError(403, 'This user account is deleted!');
   }
 
   if (existingUser?.status === 'blocked') {
@@ -459,6 +459,25 @@ const changeStatusIntoDB = async (id: string, payload: { status: string }) => {
   return result;
 };
 
+const deleteUserAccountFromDB = async (userId: string) => {
+  const isUserExists = await User.findById(userId);
+
+  if (!isUserExists) {
+    throw new AppError(404, 'User not found');
+  }
+
+  const result = await User.findByIdAndUpdate(
+    userId,
+    { isDeleted: true },
+    { new: true },
+  );
+  if (!result) {
+    throw new AppError(400, 'Failed to delete user account');
+  }
+
+  return result;
+};
+
 export const UserServices = {
   signupCustomerIntoDB,
   signupOwnerIntoDB,
@@ -468,4 +487,5 @@ export const UserServices = {
   updateUserProfileIntoDB,
   updateUserPictureIntoDB,
   changeStatusIntoDB,
+  deleteUserAccountFromDB,
 };

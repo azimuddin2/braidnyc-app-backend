@@ -10,7 +10,7 @@ const router = express.Router();
 const upload = multer({ storage: memoryStorage() });
 
 router.post(
-  '/create',
+  '/',
   auth('owner'),
   upload.fields([
     { name: 'idDocument', maxCount: 1 },
