@@ -3,7 +3,7 @@ import AppError from '../../errors/AppError';
 import { User } from '../user/user.model';
 import { TOwnerRegistration } from './ownerRegistration.interface';
 import { uploadToS3 } from '../../utils/awsS3FileUploader';
-import { OwnerRegistrationModel } from './ownerRegistration.model';
+import { OwnerRegistration } from './ownerRegistration.model';
 
 const createOwnerRegistrationIntoDB = async (
   userId: string,
@@ -32,7 +32,7 @@ const createOwnerRegistrationIntoDB = async (
   }
 
   // ✅ Optional: double-check if an owner registration record already exists
-  const existingRegistration = await OwnerRegistrationModel.findOne({
+  const existingRegistration = await OwnerRegistration.findOne({
     user: user._id,
   });
   if (existingRegistration) {
@@ -87,7 +87,7 @@ const createOwnerRegistrationIntoDB = async (
       );
     }
 
-    const created = await OwnerRegistrationModel.create([payload], { session });
+    const created = await OwnerRegistration.create([payload], { session });
     if (!created || created.length === 0) {
       throw new AppError(400, 'Failed to create owner registration');
     }

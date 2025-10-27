@@ -1,6 +1,9 @@
 import { model, Schema } from 'mongoose';
-import { TOwnerRegistration } from './ownerRegistration.interface';
-import { ApprovalStatus } from './ownerRegistration.constant';
+import { TFreelancerRegistration } from './freelancerRegistration.interface';
+import {
+  ApprovalStatus,
+  Availability,
+} from './freelancerRegistration.constant';
 
 const OpeningHourSchema = new Schema(
   {
@@ -11,15 +14,19 @@ const OpeningHourSchema = new Schema(
   { _id: false },
 );
 
-const OwnerRegistrationSchema = new Schema<TOwnerRegistration>(
+const FreelancerRegistrationSchema = new Schema<TFreelancerRegistration>(
   {
     user: {
       type: Schema.Types.ObjectId,
       required: [true, 'User Id is required'],
       ref: 'User',
     },
-    salonName: {
+    profile: {
       type: String,
+      required: [true, 'Profile Picture is required'],
+    },
+    experienceYear: {
+      type: Number,
       required: true,
     },
     about: {
@@ -32,15 +39,6 @@ const OwnerRegistrationSchema = new Schema<TOwnerRegistration>(
     },
     businessRegistration: {
       type: String,
-      required: [true, 'Business Registration is required'],
-    },
-    salonFrontPhoto: {
-      type: String,
-      required: [true, 'Salon front photo is required'],
-    },
-    salonInsidePhoto: {
-      type: String,
-      required: [true, 'Salon inside photo is required'],
     },
     openingHours: {
       type: [OpeningHourSchema],
@@ -54,19 +52,11 @@ const OwnerRegistrationSchema = new Schema<TOwnerRegistration>(
       },
       default: 'pending',
     },
-    salonPhoto: {
+    availability: {
       type: String,
-    },
-    businessRegistrationNumber: {
-      type: Number,
-    },
-
-    // ✅ unified location field (object-based)
-    location: {
-      streetAddress: { type: String },
-      coordinates: {
-        lat: { type: Number },
-        lng: { type: Number },
+      enum: {
+        values: Availability,
+        message: '{VALUE} is not valid',
       },
     },
   },
@@ -75,7 +65,7 @@ const OwnerRegistrationSchema = new Schema<TOwnerRegistration>(
   },
 );
 
-export const OwnerRegistration = model<TOwnerRegistration>(
-  'OwnerRegistration',
-  OwnerRegistrationSchema,
+export const FreelancerRegistration = model<TFreelancerRegistration>(
+  'FreelancerRegistration',
+  FreelancerRegistrationSchema,
 );

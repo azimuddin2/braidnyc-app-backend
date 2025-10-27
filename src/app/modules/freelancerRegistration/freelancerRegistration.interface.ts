@@ -3,14 +3,17 @@ import { TUser } from '../user/user.interface';
 
 export type TApprovalStatus = 'pending' | 'approved' | 'rejected';
 
-export type TOwnerRegistration = {
+export type TAvailability = 'salon' | 'mobile' | 'home';
+
+export type TFreelancerRegistration = {
   user: ObjectId | TUser;
-  salonName: string;
+  profile: string;
+  experienceYear: number;
   about: string;
+
   idDocument: string;
-  businessRegistration: string;
-  salonFrontPhoto: string;
-  salonInsidePhoto: string;
+  businessRegistration?: string;
+
   openingHours: {
     day: string;
     openTime: string; // e.g. "09:00"
@@ -19,14 +22,5 @@ export type TOwnerRegistration = {
 
   approvalStatus: TApprovalStatus;
 
-  salonPhoto?: string;
-  businessRegistrationNumber?: number;
-
-  location?: {
-    streetAddress?: string;
-    coordinates?: {
-      lat: number;
-      lng: number;
-    };
-  };
+  availability: TAvailability;
 };
