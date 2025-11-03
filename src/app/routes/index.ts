@@ -8,6 +8,7 @@ import { AboutRoutes } from '../modules/about/about.route';
 import { OwnerRegistrationRoutes } from '../modules/ownerRegistration/ownerRegistration.route';
 import { FreelancerRegistrationRoutes } from '../modules/freelancerRegistration/freelancerRegistration.route';
 import { OwnerServiceRoutes } from '../modules/ownerService/ownerService.route';
+import { SpecialistRoutes } from '../modules/Specialist/Specialist.route';
 
 const router = Router();
 
@@ -47,6 +48,10 @@ const moduleRoutes = [
   {
     path: '/owner-services',
     route: OwnerServiceRoutes,
+  },
+  {
+    path: '/specialists',
+    route: SpecialistRoutes,
   },
 
   // TODO: ROUTE UPDATE

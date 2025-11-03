@@ -63,26 +63,6 @@ const createServiceIntoDB = async (
 };
 
 const getAllServiceFromDB = async (query: Record<string, unknown>) => {
-  const serviceQuery = new QueryBuilder(
-    OwnerService.find({ isDeleted: false }).populate({
-      path: 'user',
-      select: '-password -needsPasswordChange',
-    }),
-    query,
-  )
-    .search(serviceSearchableFields)
-    .filter()
-    .sort()
-    .paginate()
-    .fields();
-
-  const meta = await serviceQuery.countTotal();
-  const result = await serviceQuery.modelQuery;
-
-  return { meta, result };
-};
-
-const getAllServiceByUserFromDB = async (query: Record<string, unknown>) => {
   const { user, ...filters } = query;
 
   if (!user || !mongoose.Types.ObjectId.isValid(user as string)) {
@@ -306,7 +286,6 @@ const deleteServiceFromDB = async (id: string) => {
 export const OwnerServiceServices = {
   createServiceIntoDB,
   getAllServiceFromDB,
-  getAllServiceByUserFromDB,
   getServiceByIdFromDB,
   updateServiceIntoDB,
   deleteServiceFromDB,

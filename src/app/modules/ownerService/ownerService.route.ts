@@ -20,12 +20,10 @@ router.post(
 
 // router.get('/availability', PackagesControllers.getAvailability);
 
-router.get('/all', OwnerServiceControllers.getAllService);
-
 router.get(
   '/',
   auth('owner', 'customer', 'freelancer', 'admin'),
-  OwnerServiceControllers.getAllServiceByUser,
+  OwnerServiceControllers.getAllService,
 );
 
 router.get('/:id', OwnerServiceControllers.getServiceById);

@@ -5,3 +5,5 @@ export const ApprovalStatus: TApprovalStatus[] = [
   'approved',
   'rejected',
 ];
+
+export const OwnerSearchableFields = ['salonName', 'about'];

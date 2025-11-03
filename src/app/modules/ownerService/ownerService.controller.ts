@@ -31,20 +31,6 @@ const getAllService = catchAsync(async (req, res) => {
   });
 });
 
-const getAllServiceByUser = catchAsync(async (req, res) => {
-  const result = await OwnerServiceServices.getAllServiceByUserFromDB(
-    req.query,
-  );
-
-  sendResponse(res, {
-    statusCode: 200,
-    success: true,
-    message: 'Services retrieved successfully',
-    meta: result.meta,
-    data: result.result,
-  });
-});
-
 const getServiceById = catchAsync(async (req, res) => {
   const { id } = req.params;
   const result = await OwnerServiceServices.getServiceByIdFromDB(id);
@@ -102,7 +88,6 @@ const deleteService = catchAsync(async (req, res) => {
 export const OwnerServiceControllers = {
   createService,
   getAllService,
-  getAllServiceByUser,
   getServiceById,
   updateService,
   deleteService,
