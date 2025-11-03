@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { Availability } from './freelancerRegistration.constant';
 
 // Opening hour validation
 const OpeningHourZodSchema = z.object({
@@ -27,8 +26,8 @@ const createFreelancerRegistrationZodSchema = z.object({
       .array(OpeningHourZodSchema)
       .nonempty('At least one opening hour is required'),
 
-    availability: z.enum([...Availability] as [string, ...string[]], {
-      required_error: 'Availability is required',
+    availability: z.array(z.string(), {
+      required_error: 'At least one availability is required',
     }),
   }),
 });

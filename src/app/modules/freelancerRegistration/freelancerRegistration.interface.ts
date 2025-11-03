@@ -3,8 +3,6 @@ import { TUser } from '../user/user.interface';
 
 export type TApprovalStatus = 'pending' | 'approved' | 'rejected';
 
-export type TAvailability = 'salon' | 'mobile' | 'home';
-
 export type TFreelancerRegistration = {
   user: ObjectId | TUser;
   profile: string;
@@ -22,5 +20,5 @@ export type TFreelancerRegistration = {
 
   approvalStatus: TApprovalStatus;
 
-  availability: TAvailability;
+  availability: string[];
 };

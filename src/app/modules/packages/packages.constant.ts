@@ -1,7 +1,0 @@
-import { THighlightStatus } from './packages.interface';
-
-export const packageSearchableFields = ['name', 'serviceType'];
-
-export const ServiceStatus = ['available', 'unavailable'];
-
-export const HighlightStatus: THighlightStatus[] = ['Highlight', 'Highlighted'];

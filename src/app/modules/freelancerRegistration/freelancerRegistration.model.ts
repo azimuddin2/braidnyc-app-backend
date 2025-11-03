@@ -53,11 +53,8 @@ const FreelancerRegistrationSchema = new Schema<TFreelancerRegistration>(
       default: 'pending',
     },
     availability: {
-      type: String,
-      enum: {
-        values: Availability,
-        message: '{VALUE} is not valid',
-      },
+      type: [String],
+      required: true,
     },
   },
   {
