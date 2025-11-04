@@ -24,4 +24,27 @@ router.post(
   OwnerRegistrationController.createOwnerRegistration,
 );
 
+router.get('/', OwnerRegistrationController.getAllOwnerRegistration);
+
+router.get(
+  '/profile',
+  auth('owner'),
+  OwnerRegistrationController.getOwnerProfile,
+);
+
+router.get(
+  '/:id',
+  auth('customer', 'freelancer', 'owner', 'admin'),
+  OwnerRegistrationController.getOwnerRegistrationById,
+);
+
+router.patch(
+  '/:id',
+  auth('owner'),
+  upload.single('image'),
+  parseData(),
+  validateRequest(OwnerRegistrationValidation.updateOwnerRegistrationZodSchema),
+  OwnerRegistrationController.updateOwnerRegistration,
+);
+
 export const OwnerRegistrationRoutes = router;

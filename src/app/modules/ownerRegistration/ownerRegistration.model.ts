@@ -69,6 +69,8 @@ const OwnerRegistrationSchema = new Schema<TOwnerRegistration>(
         lng: { type: Number },
       },
     },
+
+    isDeleted: { type: Boolean, default: false },
   },
   {
     timestamps: true,

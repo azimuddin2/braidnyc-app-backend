@@ -19,7 +19,7 @@ export type TOwnerRegistration = {
 
   approvalStatus: TApprovalStatus;
 
-  salonPhoto?: string;
+  salonPhoto?: string | null;
   businessRegistrationNumber?: number;
 
   location?: {
@@ -29,4 +29,6 @@ export type TOwnerRegistration = {
       lng: number;
     };
   };
+
+  isDeleted: boolean;
 };

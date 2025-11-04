@@ -80,7 +80,7 @@ class QueryBuilder<T> {
   // Pagination
   paginate() {
     const page = Number(this.query.page) || 1;
-    const limit = Number(this.query.limit) || 20;
+    const limit = Number(this.query.limit) || 10;
     const skip = (page - 1) * limit;
 
     this.modelQuery = this.modelQuery.skip(skip).limit(limit);
@@ -99,7 +99,7 @@ class QueryBuilder<T> {
   async countTotal() {
     const totalDoc = await this.baseModel.countDocuments(this.finalFilter);
     const page = Number(this.query.page) || 1;
-    const limit = Number(this.query.limit) || 20;
+    const limit = Number(this.query.limit) || 10;
     const totalPage = Math.ceil(totalDoc / limit);
 
     return {

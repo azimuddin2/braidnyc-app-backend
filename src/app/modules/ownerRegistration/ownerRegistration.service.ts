@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import AppError from '../../errors/AppError';
 import { User } from '../user/user.model';
 import { TOwnerRegistration } from './ownerRegistration.interface';
-import { uploadToS3 } from '../../utils/awsS3FileUploader';
+import { deleteFromS3, uploadToS3 } from '../../utils/awsS3FileUploader';
 import { OwnerRegistration } from './ownerRegistration.model';
 import QueryBuilder from '../../builder/QueryBuilder';
 import { OwnerSearchableFields } from './ownerRegistration.constant';
@@ -140,7 +140,35 @@ const getOwnerRegistrationByIdFromDB = async (id: string) => {
   });
 
   if (!result) {
-    throw new AppError(404, 'This service not found');
+    throw new AppError(404, 'This owner not found');
+  }
+
+  return result;
+};
+
+const getOwnerProfileFromDB = async (userId: string) => {
+  const user = await User.findById(userId).select('role isRegistration');
+  if (!user) {
+    throw new AppError(404, 'User not found');
+  }
+
+  console.log(userId);
+
+  if (user.role !== 'owner') {
+    throw new AppError(403, 'Only owner can perform this access');
+  }
+
+  if (user.isRegistration === false) {
+    throw new AppError(400, 'Owner registration not completed');
+  }
+
+  const result = await OwnerRegistration.findOne({ user: user._id }).populate({
+    path: 'user',
+    select: '-password -needsPasswordChange',
+  });
+
+  if (!result) {
+    throw new AppError(404, 'This owner not found');
   }
 
   return result;
@@ -167,9 +195,9 @@ const updateOwnerRegistrationIntoDB = async (
   }
 
   // 🔍 Step 1: Check if the specialist member exists
-  const existingSpecialist = await Specialist.findById(id);
-  if (!existingSpecialist) {
-    throw new AppError(404, 'Specialist not found');
+  const existingOwner = await OwnerRegistration.findById(id);
+  if (!existingOwner) {
+    throw new AppError(404, 'Owner not found');
   }
 
   try {
@@ -177,32 +205,35 @@ const updateOwnerRegistrationIntoDB = async (
     if (file) {
       const uploadedUrl = await uploadToS3({
         file,
-        fileName: `images/specialist/${Math.floor(100000 + Math.random() * 900000)}`,
+        fileName: `images/salon/${Math.floor(100000 + Math.random() * 900000)}`,
       });
 
       // 🧹 Step 3: Delete the previous image from S3 (if exists)
-      if (existingSpecialist.image) {
-        await deleteFromS3(existingSpecialist.image);
+      if (existingOwner.salonPhoto) {
+        await deleteFromS3(existingOwner.salonPhoto);
       }
 
       // 📝 Step 4: Set the new image URL to payload
-      payload.image = uploadedUrl;
+      payload.salonPhoto = uploadedUrl;
     }
 
     // 🔄 Step 5: Update the specialist member in the database
-    const updatedSpecialist = await Specialist.findByIdAndUpdate(id, payload, {
-      new: true,
-      runValidators: true,
-    });
+    const updatedOwner = await OwnerRegistration.findByIdAndUpdate(
+      id,
+      payload,
+      {
+        new: true,
+        runValidators: true,
+      },
+    );
 
-    if (!updatedSpecialist) {
-      throw new AppError(400, 'Specialist update failed');
+    if (!updatedOwner) {
+      throw new AppError(400, 'Owner update failed');
     }
 
-    return updatedSpecialist;
+    return updatedOwner;
   } catch (error: any) {
-    console.error('updateSpecialistIntoDB Error:', error);
-    throw new AppError(500, 'Failed to update specialist');
+    throw new AppError(500, 'Failed to update owner');
   }
 };
 
@@ -210,4 +241,6 @@ export const OwnerRegistrationService = {
   createOwnerRegistrationIntoDB,
   getAllOwnerRegistrationFromDB,
   getOwnerRegistrationByIdFromDB,
+  getOwnerProfileFromDB,
+  updateOwnerRegistrationIntoDB,
 };
