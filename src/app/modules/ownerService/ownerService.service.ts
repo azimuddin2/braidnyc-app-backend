@@ -72,7 +72,7 @@ const getAllServiceFromDB = async (query: Record<string, unknown>) => {
   // Base query -> always exclude deleted packages service
   let serviceQuery = OwnerService.find({ user, isDeleted: false }).populate({
     path: 'user',
-    select: '-password -needsPasswordChange',
+    select: '-password',
   });
 
   const queryBuilder = new QueryBuilder(serviceQuery, filters)

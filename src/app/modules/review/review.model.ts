@@ -8,14 +8,9 @@ const reviewSchema = new Schema<TReview>(
       required: [true, 'User Id is required'],
       ref: 'User',
     },
-    product: {
-      type: Schema.Types.ObjectId,
-      ref: 'Product',
-      required: false,
-    },
     service: {
       type: Schema.Types.ObjectId,
-      ref: 'Packages',
+      ref: 'OwnerService',
       required: false,
     },
     review: {

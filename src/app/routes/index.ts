@@ -9,6 +9,7 @@ import { OwnerRegistrationRoutes } from '../modules/ownerRegistration/ownerRegis
 import { FreelancerRegistrationRoutes } from '../modules/freelancerRegistration/freelancerRegistration.route';
 import { OwnerServiceRoutes } from '../modules/ownerService/ownerService.route';
 import { SpecialistRoutes } from '../modules/Specialist/Specialist.route';
+import { GalleryRoutes } from '../modules/gallery/gallery.route';
 
 const router = Router();
 
@@ -48,6 +49,10 @@ const moduleRoutes = [
   {
     path: '/owner-services',
     route: OwnerServiceRoutes,
+  },
+  {
+    path: '/gallery',
+    route: GalleryRoutes,
   },
   {
     path: '/specialists',
