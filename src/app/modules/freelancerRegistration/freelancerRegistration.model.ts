@@ -54,6 +54,35 @@ const FreelancerRegistrationSchema = new Schema<TFreelancerRegistration>(
       type: [String],
       required: true,
     },
+
+    salonPhoto: {
+      type: String,
+    },
+    name: {
+      type: String,
+    },
+    businessRegistrationNumber: {
+      type: Number,
+    },
+
+    // ✅ unified location field (object-based)
+    location: {
+      streetAddress: { type: String },
+      coordinates: {
+        lat: { type: Number },
+        lng: { type: Number },
+      },
+    },
+
+    city: {
+      type: String,
+    },
+    postalCode: {
+      type: Number,
+    },
+    country: {
+      type: String,
+    },
   },
   {
     timestamps: true,

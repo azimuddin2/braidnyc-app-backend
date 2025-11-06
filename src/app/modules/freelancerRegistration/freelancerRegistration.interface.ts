@@ -20,6 +20,23 @@ export type TFreelancerRegistration = {
   }[];
 
   approvalStatus: TApprovalStatus;
-
   availability: string[];
+
+  salonPhoto: string | null;
+  name: string;
+  businessRegistrationNumber: number;
+
+  location?: {
+    streetAddress?: string;
+    coordinates?: {
+      lat: number;
+      lng: number;
+    };
+  };
+
+  city: string;
+  postalCode: number;
+  country: string;
+
+  isDeleted: boolean;
 };
