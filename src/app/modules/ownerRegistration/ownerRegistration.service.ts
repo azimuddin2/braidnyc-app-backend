@@ -46,10 +46,8 @@ const createOwnerRegistrationIntoDB = async (
 
   try {
     const payload: Partial<TOwnerRegistration> = {
+      ...data,
       user: user._id,
-      salonName: data.salonName,
-      about: data.about,
-      openingHours: data.openingHours,
     };
 
     // 📸 Handle uploads

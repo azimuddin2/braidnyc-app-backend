@@ -4,6 +4,7 @@ import { ApprovalStatus } from './ownerRegistration.constant';
 
 const OpeningHourSchema = new Schema(
   {
+    enabled: { type: Boolean, required: true, default: true },
     day: { type: String, required: true },
     openTime: { type: String, required: true },
     closeTime: { type: String, required: true },
@@ -68,6 +69,17 @@ const OwnerRegistrationSchema = new Schema<TOwnerRegistration>(
         lat: { type: Number },
         lng: { type: Number },
       },
+    },
+
+    reviews: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'Review',
+      },
+    ],
+    avgRating: {
+      type: Number,
+      default: 0,
     },
 
     isDeleted: { type: Boolean, default: false },

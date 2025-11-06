@@ -15,17 +15,16 @@ const createGallery = catchAsync(async (req, res) => {
   });
 });
 
-// const getAllService = catchAsync(async (req, res) => {
-//   const result = await OwnerServiceServices.getAllServiceFromDB(req.query);
+const getGallery = catchAsync(async (req, res) => {
+  const result = await GalleryServices.getGalleryFromDB(req.query);
 
-//   sendResponse(res, {
-//     statusCode: 200,
-//     success: true,
-//     message: 'Services retrieved successfully',
-//     meta: result.meta,
-//     data: result.result,
-//   });
-// });
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Gallery retrieved successfully',
+    data: result,
+  });
+});
 
 // const getServiceById = catchAsync(async (req, res) => {
 //   const { id } = req.params;
@@ -72,4 +71,5 @@ const createGallery = catchAsync(async (req, res) => {
 
 export const GalleryControllers = {
   createGallery,
+  getGallery,
 };

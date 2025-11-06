@@ -3,7 +3,7 @@ import { TSpecialist } from './Specialist.interface';
 
 const specialistSchema = new Schema<TSpecialist>(
   {
-    user: {
+    owner: {
       type: Schema.Types.ObjectId,
       required: [true, 'User Id is required'],
       ref: 'User',

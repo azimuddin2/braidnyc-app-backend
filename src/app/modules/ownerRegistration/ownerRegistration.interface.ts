@@ -1,4 +1,4 @@
-import { ObjectId } from 'mongoose';
+import { ObjectId, Types } from 'mongoose';
 import { TUser } from '../user/user.interface';
 
 export type TApprovalStatus = 'pending' | 'approved' | 'rejected';
@@ -12,6 +12,7 @@ export type TOwnerRegistration = {
   salonFrontPhoto: string;
   salonInsidePhoto: string;
   openingHours: {
+    enabled: boolean;
     day: string;
     openTime: string; // e.g. "09:00"
     closeTime: string; // e.g. "18:00"
@@ -29,6 +30,9 @@ export type TOwnerRegistration = {
       lng: number;
     };
   };
+
+  reviews?: Types.ObjectId[];
+  avgRating?: number;
 
   isDeleted: boolean;
 };

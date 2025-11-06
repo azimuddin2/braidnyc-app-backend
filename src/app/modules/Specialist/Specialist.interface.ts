@@ -1,9 +1,9 @@
-import { Types } from 'mongoose';
+import { ObjectId } from 'mongoose';
 import { TUser } from '../user/user.interface';
 
 export type TSpecialist = {
   _id?: string;
-  user: Types.ObjectId | TUser;
+  owner: ObjectId | TUser;
   name: string;
   image: string | null;
   isDeleted: boolean;

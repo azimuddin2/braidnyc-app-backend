@@ -13,11 +13,11 @@ router.post(
   GalleryControllers.createGallery,
 );
 
-// router.get(
-//   '/',
-//   auth('owner', 'customer', 'freelancer', 'admin'),
-//   OwnerServiceControllers.getAllService,
-// );
+router.get(
+  '/',
+  auth('owner', 'customer', 'freelancer', 'admin'),
+  GalleryControllers.getGallery,
+);
 
 // router.get('/:id', OwnerServiceControllers.getServiceById);
 

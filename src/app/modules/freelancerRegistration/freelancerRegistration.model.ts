@@ -1,12 +1,10 @@
 import { model, Schema } from 'mongoose';
 import { TFreelancerRegistration } from './freelancerRegistration.interface';
-import {
-  ApprovalStatus,
-  Availability,
-} from './freelancerRegistration.constant';
+import { ApprovalStatus } from './freelancerRegistration.constant';
 
 const OpeningHourSchema = new Schema(
   {
+    enabled: { type: Boolean, required: true, default: true },
     day: { type: String, required: true },
     openTime: { type: String, required: true },
     closeTime: { type: String, required: true },

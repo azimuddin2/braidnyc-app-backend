@@ -52,7 +52,7 @@ const createServiceIntoDB = async (
   }
 
   // ✅ Set the user field before saving
-  payload.user = userId as any;
+  payload.owner = userId as any;
 
   const result = await OwnerService.create(payload);
   if (!result) {
@@ -63,17 +63,14 @@ const createServiceIntoDB = async (
 };
 
 const getAllServiceFromDB = async (query: Record<string, unknown>) => {
-  const { user, ...filters } = query;
+  const { owner, ...filters } = query;
 
-  if (!user || !mongoose.Types.ObjectId.isValid(user as string)) {
+  if (!owner || !mongoose.Types.ObjectId.isValid(owner as string)) {
     throw new AppError(400, 'Invalid User ID');
   }
 
   // Base query -> always exclude deleted packages service
-  let serviceQuery = OwnerService.find({ user, isDeleted: false }).populate({
-    path: 'user',
-    select: '-password',
-  });
+  let serviceQuery = OwnerService.find({ owner, isDeleted: false });
 
   const queryBuilder = new QueryBuilder(serviceQuery, filters)
     .search(serviceSearchableFields)
@@ -90,7 +87,7 @@ const getAllServiceFromDB = async (query: Record<string, unknown>) => {
 
 const getServiceByIdFromDB = async (id: string) => {
   const result = await OwnerService.findById(id).populate({
-    path: 'user',
+    path: 'owner',
     select: '-password -needsPasswordChange',
   });
 

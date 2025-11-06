@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 // Opening hour validation
 const OpeningHourZodSchema = z.object({
+  enabled: z.boolean().default(true),
   day: z.string({ required_error: 'Day is required' }),
   openTime: z
     .string({ required_error: 'Open time is required' })

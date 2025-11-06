@@ -12,9 +12,9 @@ const imageSchema = new Schema(
 
 const ownerServiceSchema = new Schema<TOwnerService>(
   {
-    user: {
+    owner: {
       type: Schema.Types.ObjectId,
-      required: [true, 'User Id is required'],
+      required: [true, 'Owner Id is required'],
       ref: 'User',
     },
     deleteKey: [{ type: String, required: true }],

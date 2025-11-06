@@ -10,7 +10,7 @@ export type TServiceStatus = 'available' | 'unavailable';
 
 export type TOwnerService = {
   _id?: string;
-  user: ObjectId | TUser;
+  owner: ObjectId | TUser;
   deleteKey: string[];
   images: TImage[];
   name: string;

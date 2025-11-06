@@ -36,7 +36,7 @@ const createSpecialistIntoDB = async (
   }
 
   // ✅ Set the user field before saving
-  payload.user = userId as any;
+  payload.owner = userId as any;
 
   // 🧑‍💼 Create the Specialist
   const result = await Specialist.create(payload);
@@ -48,14 +48,14 @@ const createSpecialistIntoDB = async (
 };
 
 const getAllSpecialistFromDB = async (query: Record<string, unknown>) => {
-  const { user, ...filters } = query;
+  const { owner, ...filters } = query;
 
-  if (!user || !mongoose.Types.ObjectId.isValid(user as string)) {
+  if (!owner || !mongoose.Types.ObjectId.isValid(owner as string)) {
     throw new AppError(400, 'Invalid User ID');
   }
 
   // Base query -> always exclude deleted packages service
-  let specialistQuery = Specialist.find({ user, isDeleted: false });
+  let specialistQuery = Specialist.find({ owner, isDeleted: false });
 
   const queryBuilder = new QueryBuilder(specialistQuery, filters)
     .search(SpecialistSearchableFields)

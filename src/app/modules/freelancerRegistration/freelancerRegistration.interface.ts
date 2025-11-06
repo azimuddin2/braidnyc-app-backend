@@ -13,6 +13,7 @@ export type TFreelancerRegistration = {
   businessRegistration?: string;
 
   openingHours: {
+    enabled: boolean;
     day: string;
     openTime: string; // e.g. "09:00"
     closeTime: string; // e.g. "18:00"

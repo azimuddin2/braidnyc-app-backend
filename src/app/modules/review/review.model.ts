@@ -13,7 +13,7 @@ const reviewSchema = new Schema<TReview>(
       ref: 'OwnerService',
       required: false,
     },
-    review: {
+    comment: {
       type: String,
       required: true,
       trim: true,
@@ -32,14 +32,14 @@ const reviewSchema = new Schema<TReview>(
 
 // 🔹 Validation: Ensure only ONE of product/service is filled
 reviewSchema.pre('save', function (next) {
-  if (this.product && this.service) {
+  if (this.service) {
     return next(
       new Error(
         'A review can only be linked to either a product OR a service.',
       ),
     );
   }
-  if (!this.product && !this.service) {
+  if (!this.service) {
     return next(
       new Error('A review must be linked to either a product OR a service.'),
     );

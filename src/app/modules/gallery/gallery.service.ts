@@ -65,18 +65,22 @@ const createGalleryIntoDB = async (userId: string, files: any) => {
   }
 };
 
-const getGalleryFromDB = async (userId: string) => {
-  const user = await User.findById(userId).select('role');
-  if (!user) throw new AppError(404, 'User not found');
+const getGalleryFromDB = async (query: Record<string, unknown>) => {
+  const { user } = query;
 
-  // Fetch gallery
-  const gallery = await Gallery.findOne({ user: userId }).lean();
+  if (!user || !mongoose.Types.ObjectId.isValid(user as string)) {
+    throw new AppError(400, 'Invalid User ID');
+  }
 
-  if (!gallery) {
+  const filter = { user: user as string, isDeleted: false };
+
+  const result = await Gallery.find(filter);
+
+  if (!result || result.length === 0) {
     throw new AppError(404, 'Gallery not found');
   }
 
-  return gallery;
+  return result;
 };
 
 // const updateServiceIntoDB = async (
@@ -192,4 +196,5 @@ const getGalleryFromDB = async (userId: string) => {
 
 export const GalleryServices = {
   createGalleryIntoDB,
+  getGalleryFromDB,
 };
