@@ -1,7 +1,4 @@
-import {
-  TApprovalStatus,
-  TAvailability,
-} from './freelancerRegistration.interface';
+import { TApprovalStatus } from './freelancerRegistration.interface';
 
 export const ApprovalStatus: TApprovalStatus[] = [
   'pending',
@@ -9,4 +6,4 @@ export const ApprovalStatus: TApprovalStatus[] = [
   'rejected',
 ];
 
-export const Availability: TAvailability[] = ['salon', 'mobile', 'home'];
+export const FreelancerSearchableFields = ['name', 'about'];

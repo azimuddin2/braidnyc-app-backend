@@ -24,4 +24,29 @@ router.post(
   FreelancerRegistrationController.createFreelancerRegistration,
 );
 
+router.get('/', FreelancerRegistrationController.getAllFreelancers);
+
+router.get(
+  '/profile',
+  auth('freelancer'),
+  FreelancerRegistrationController.getFreelancerProfile,
+);
+
+router.get(
+  '/:id',
+  auth('customer', 'freelancer', 'owner', 'admin'),
+  FreelancerRegistrationController.getFreelancerById,
+);
+
+router.patch(
+  '/:id',
+  auth('freelancer'),
+  upload.single('image'),
+  parseData(),
+  validateRequest(
+    FreelancerRegistrationValidation.updateFreelancerRegistrationZodSchema,
+  ),
+  FreelancerRegistrationController.updateFreelancerRegistration,
+);
+
 export const FreelancerRegistrationRoutes = router;

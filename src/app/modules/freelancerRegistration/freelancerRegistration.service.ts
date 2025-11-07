@@ -1,9 +1,11 @@
 import mongoose from 'mongoose';
 import AppError from '../../errors/AppError';
 import { User } from '../user/user.model';
-import { uploadToS3 } from '../../utils/awsS3FileUploader';
+import { deleteFromS3, uploadToS3 } from '../../utils/awsS3FileUploader';
 import { TFreelancerRegistration } from './freelancerRegistration.interface';
 import { FreelancerRegistration } from './freelancerRegistration.model';
+import QueryBuilder from '../../builder/QueryBuilder';
+import { FreelancerSearchableFields } from './freelancerRegistration.constant';
 
 const createFreelancerRegistrationIntoDB = async (
   userId: string,
@@ -105,6 +107,134 @@ const createFreelancerRegistrationIntoDB = async (
   }
 };
 
+const getAllFreelancersFromDB = async (query: Record<string, unknown>) => {
+  const freelancerQuery = new QueryBuilder(
+    FreelancerRegistration.find({ isDeleted: false }).populate({
+      path: 'user',
+      select: '-password -needsPasswordChange',
+    }),
+    query,
+  )
+    .search(FreelancerSearchableFields)
+    .filter()
+    .sort()
+    .paginate()
+    .fields();
+
+  const meta = await freelancerQuery.countTotal();
+  const result = await freelancerQuery.modelQuery;
+
+  return { meta, result };
+};
+
+const getFreelancerByIdFromDB = async (id: string) => {
+  const result = await FreelancerRegistration.findById(id).populate({
+    path: 'user',
+    select: '-password -needsPasswordChange',
+  });
+
+  if (!result) {
+    throw new AppError(404, 'This freelancer not found');
+  }
+
+  return result;
+};
+
+const getFreelancerProfileFromDB = async (userId: string) => {
+  const user = await User.findById(userId).select('role isRegistration');
+  if (!user) {
+    throw new AppError(404, 'User not found');
+  }
+
+  if (user.role !== 'freelancer') {
+    throw new AppError(403, 'Only freelancer can perform this access');
+  }
+
+  if (user.isRegistration === false) {
+    throw new AppError(400, 'Freelancer registration not completed');
+  }
+
+  const result = await FreelancerRegistration.findOne({
+    user: user._id,
+  }).populate({
+    path: 'user',
+    select: '-password -needsPasswordChange',
+  });
+
+  if (!result) {
+    throw new AppError(404, 'This freelancer not found');
+  }
+
+  return result;
+};
+
+const updateFreelancerRegistrationIntoDB = async (
+  userId: string,
+  id: string,
+  payload: Partial<TFreelancerRegistration>,
+  file?: Express.Multer.File,
+) => {
+  // 🔍 Step 0: Check if the user exists
+  const user = await User.findById(userId).select('role isRegistration');
+  if (!user) {
+    throw new AppError(404, 'User not found');
+  }
+
+  if (user.role !== 'freelancer') {
+    throw new AppError(403, 'Only freelancer can perform this action');
+  }
+
+  if (user.isRegistration === false) {
+    throw new AppError(400, 'Freelancer registration not completed');
+  }
+
+  // 🔍 Step 1: Check if the specialist member exists
+  const existingFreelancer = await FreelancerRegistration.findById(id);
+  if (!existingFreelancer) {
+    throw new AppError(404, 'Freelancer not found');
+  }
+
+  try {
+    // 📸 Step 2: Handle new image upload
+    if (file) {
+      const uploadedUrl = await uploadToS3({
+        file,
+        fileName: `images/salon/${Math.floor(100000 + Math.random() * 900000)}`,
+      });
+
+      // 🧹 Step 3: Delete the previous image from S3 (if exists)
+      if (existingFreelancer.salonPhoto) {
+        await deleteFromS3(existingFreelancer.salonPhoto);
+      }
+
+      // 📝 Step 4: Set the new image URL to payload
+      payload.salonPhoto = uploadedUrl;
+    }
+
+    // 🔄 Step 5: Update the specialist member in the database
+    const updatedOwner = await FreelancerRegistration.findByIdAndUpdate(
+      id,
+      payload,
+      {
+        new: true,
+        runValidators: true,
+      },
+    );
+
+    if (!updatedOwner) {
+      throw new AppError(400, 'Freelancer update failed');
+    }
+
+    return updatedOwner;
+  } catch (error: any) {
+    throw new AppError(500, 'Failed to update freelancer');
+  }
+};
+
 export const FreelancerRegistrationService = {
   createFreelancerRegistrationIntoDB,
+  getAllFreelancersFromDB,
+  getFreelancerByIdFromDB,
+  getFreelancerProfileFromDB,
+  updateFreelancerRegistrationIntoDB,
 };

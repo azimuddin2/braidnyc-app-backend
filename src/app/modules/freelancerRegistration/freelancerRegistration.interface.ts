@@ -1,4 +1,4 @@
-import { ObjectId } from 'mongoose';
+import { ObjectId, Types } from 'mongoose';
 import { TUser } from '../user/user.interface';
 
 export type TApprovalStatus = 'pending' | 'approved' | 'rejected';
@@ -37,6 +37,9 @@ export type TFreelancerRegistration = {
   city: string;
   postalCode: number;
   country: string;
+
+  reviews?: Types.ObjectId[];
+  avgRating?: number;
 
   isDeleted: boolean;
 };

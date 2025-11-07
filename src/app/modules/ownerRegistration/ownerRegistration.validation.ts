@@ -4,18 +4,8 @@ import { z } from 'zod';
 const OpeningHourZodSchema = z.object({
   enabled: z.boolean().default(true),
   day: z.string({ required_error: 'Day is required' }),
-  openTime: z
-    .string({ required_error: 'Open time is required' })
-    .regex(
-      /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/,
-      'Invalid open time format (HH:mm)',
-    ),
-  closeTime: z
-    .string({ required_error: 'Close time is required' })
-    .regex(
-      /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/,
-      'Invalid close time format (HH:mm)',
-    ),
+  openTime: z.string({ required_error: 'Open time is required' }),
+  closeTime: z.string({ required_error: 'Close time is required' }),
 });
 
 // ✅ Location nested schema
