@@ -26,50 +26,25 @@ const getGallery = catchAsync(async (req, res) => {
   });
 });
 
-// const getServiceById = catchAsync(async (req, res) => {
-//   const { id } = req.params;
-//   const result = await OwnerServiceServices.getServiceByIdFromDB(id);
+const updateGallery = catchAsync(async (req, res) => {
+  const userId = req.user.userId;
 
-//   sendResponse(res, {
-//     statusCode: 200,
-//     success: true,
-//     message: 'Service retrieved successfully',
-//     data: result,
-//   });
-// });
+  const result = await GalleryServices.updateGalleryIntoDB(
+    userId,
+    req.body,
+    req.files,
+  );
 
-// const updateService = catchAsync(async (req, res) => {
-//   const userId = req.user.userId;
-
-//   const { id } = req.params;
-//   const result = await OwnerServiceServices.updateServiceIntoDB(
-//     userId,
-//     id,
-//     req.body,
-//     req.files,
-//   );
-
-//   sendResponse(res, {
-//     statusCode: 200,
-//     success: true,
-//     message: 'Service updated successfully',
-//     data: result,
-//   });
-// });
-
-// const deleteService = catchAsync(async (req, res) => {
-//   const { id } = req.params;
-//   const result = await OwnerServiceServices.deleteServiceFromDB(id);
-
-//   sendResponse(res, {
-//     statusCode: 200,
-//     success: true,
-//     message: 'Service deleted successfully',
-//     data: result,
-//   });
-// });
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Gallery updated successfully',
+    data: result,
+  });
+});
 
 export const GalleryControllers = {
   createGallery,
   getGallery,
+  updateGallery,
 };

@@ -3,7 +3,8 @@ import sendResponse from '../../utils/sendResponse';
 import { ReviewService } from './review.service';
 
 const createReview = catchAsync(async (req, res) => {
-  const result = await ReviewService.createReviewIntoDB(req.body);
+  const userId = req.user.userId;
+  const result = await ReviewService.createReviewIntoDB(req.body, userId);
 
   sendResponse(res, {
     statusCode: 201,
@@ -19,7 +20,7 @@ const getAllReviews = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: 200,
     success: true,
-    message: 'Products retrieved successfully',
+    message: 'Reviews retrieved successfully',
     meta: result.meta,
     data: result.data,
   });

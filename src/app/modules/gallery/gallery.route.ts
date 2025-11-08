@@ -2,6 +2,7 @@ import express from 'express';
 import multer, { memoryStorage } from 'multer';
 import auth from '../../middlewares/auth';
 import { GalleryControllers } from './gallery.controller';
+import parseData from '../../middlewares/parseData';
 
 const router = express.Router();
 const upload = multer({ storage: memoryStorage() });
@@ -9,7 +10,7 @@ const upload = multer({ storage: memoryStorage() });
 router.post(
   '/',
   auth('owner', 'freelancer'),
-  upload.fields([{ name: 'images', maxCount: 10 }]),
+  upload.fields([{ name: 'images', maxCount: 12 }]),
   GalleryControllers.createGallery,
 );
 
@@ -19,17 +20,12 @@ router.get(
   GalleryControllers.getGallery,
 );
 
-// router.get('/:id', OwnerServiceControllers.getServiceById);
-
-// router.patch(
-//   '/:id',
-//   auth('owner'),
-//   upload.fields([{ name: 'images', maxCount: 10 }]),
-//   parseData(),
-//   validateRequest(OwnerServiceValidations.updateOwnerServiceValidationSchema),
-//   OwnerServiceControllers.updateService,
-// );
-
-// router.delete('/:id', auth('owner'), OwnerServiceControllers.deleteService);
+router.patch(
+  '/',
+  auth('owner', 'freelancer'),
+  upload.fields([{ name: 'images', maxCount: 12 }]),
+  parseData(),
+  GalleryControllers.updateGallery,
+);
 
 export const GalleryRoutes = router;

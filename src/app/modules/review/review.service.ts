@@ -1,61 +1,65 @@
-import { ClientSession, startSession } from 'mongoose';
+import { ClientSession, startSession, Types } from 'mongoose';
 import { TReview } from './review.interface';
-import { Product } from '../product/product.model';
-import { Packages } from '../packages/packages.model';
 import { Review } from './review.model';
-import {
-  getAverageProductRating,
-  getAverageServiceRating,
-} from './review.utils';
 import AppError from '../../errors/AppError';
 import QueryBuilder from '../../builder/QueryBuilder';
+import { FreelancerRegistration } from '../freelancerRegistration/freelancerRegistration.model';
+import { OwnerRegistration } from '../ownerRegistration/ownerRegistration.model';
 
-const createReviewIntoDB = async (payload: TReview) => {
+const createReviewIntoDB = async (payload: TReview, userId: string) => {
   const session: ClientSession = await startSession();
   session.startTransaction();
 
   try {
-    // Create the review
-    const result: TReview[] = await Review.create([payload], { session });
-    if (!result || result.length === 0) {
-      throw new AppError(400, 'Failed to create review');
-    }
+    payload.user = new Types.ObjectId(userId);
 
-    let targetId: string | undefined;
-    let modelToUpdate: any;
-    let averageData: { averageRating: number; totalReviews: number };
+    // 1️⃣ Create the review
+    const [review] = await Review.create([payload], { session });
+    if (!review) throw new AppError(400, 'Failed to create review');
 
-    if (result[0].product) {
-      targetId = result[0].product.toString();
-      modelToUpdate = Product;
-      averageData = await getAverageProductRating(targetId); // ✅ product rating
-    } else if (result[0].service) {
-      targetId = result[0].service.toString();
-      modelToUpdate = Packages;
-      averageData = await getAverageServiceRating(targetId); // ✅ service rating
+    // 2️⃣ Determine target model and ID
+    let targetId: string;
+    let targetModel: any;
+
+    if (review.freelancer) {
+      targetId = review.freelancer.toString();
+      targetModel = FreelancerRegistration;
+    } else if (review.owner) {
+      targetId = review.owner.toString();
+      targetModel = OwnerRegistration;
     } else {
-      throw new AppError(400, 'Review must belong to a product or service');
+      throw new AppError(400, 'Review must belong to a freelancer or owner');
     }
 
-    const { averageRating, totalReviews } = averageData;
+    // 3️⃣ Calculate avgRating
+    const filter = review.freelancer
+      ? { freelancer: targetId }
+      : { owner: targetId };
 
-    const newAvgRating =
-      (Number(averageRating) * Number(totalReviews) + Number(payload.rating)) /
-      (totalReviews + 1);
+    const allReviews = await Review.find(filter).session(session);
 
-    await modelToUpdate.findByIdAndUpdate(
+    const avgRating =
+      allReviews.length > 0
+        ? allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length
+        : 0;
+
+    const avgRatingRounded = Math.round(avgRating * 10) / 10;
+
+    // 4️⃣ Use findByIdAndUpdate with session for reliability
+    await targetModel.findByIdAndUpdate(
       targetId,
       {
-        avgRating: newAvgRating,
-        $addToSet: { reviews: result[0]._id },
+        avgRating: avgRatingRounded,
+        $addToSet: { reviews: review._id },
       },
-      { session },
+      { session, new: true },
     );
 
+    // 5️⃣ Commit transaction
     await session.commitTransaction();
     session.endSession();
 
-    return result[0];
+    return { review, avgRating: avgRatingRounded };
   } catch (error: any) {
     await session.abortTransaction();
     session.endSession();
@@ -64,15 +68,21 @@ const createReviewIntoDB = async (payload: TReview) => {
 };
 
 const getAllReviewsFromDB = async (query: Record<string, any>) => {
-  const reviewsModel = new QueryBuilder(
-    Review.find().populate([
-      { path: 'product', select: 'name images productType' },
-      { path: 'service', select: 'name type images' },
-      { path: 'user', select: 'fullName email image' },
-    ]),
-    query,
-  )
-    .search(['review'])
+  const { freelancer, owner, ...restQuery } = query;
+
+  // ❌ Require either freelancer or owner
+  if (!freelancer && !owner) {
+    throw new AppError(400, 'Freelancer ID or Owner ID is required');
+  }
+
+  // Base filter
+  const filter: Record<string, any> = { isDeleted: false };
+
+  if (freelancer) filter.freelancer = freelancer;
+  if (owner) filter.owner = owner;
+
+  const reviewsModel = new QueryBuilder(Review.find(filter), restQuery)
+    .search(['comment'])
     .filter()
     .paginate()
     .sort()

@@ -8,7 +8,7 @@ const router = express.Router();
 
 router.post(
   '/',
-  auth('user'),
+  auth('customer'),
   validateRequest(ReviewValidation.createReviewValidationSchema),
   ReviewController.createReview,
 );

@@ -12,24 +12,23 @@ const objectId = z
 export const createReviewValidationSchema = z.object({
   body: z
     .object({
-      user: objectId,
-      product: objectId.optional(),
-      service: objectId.optional(),
-      review: z
-        .string({ required_error: 'Review is required' })
-        .min(12, 'Review must be at least 12 characters long'),
+      freelancer: objectId.optional(), // target freelancer
+      owner: objectId.optional(), // target owner
+      comment: z
+        .string({ required_error: 'Comment is required' })
+        .min(12, 'Comment must be at least 12 characters long'),
       rating: z
         .number({ required_error: 'Rating is required' })
         .min(1, 'Rating must be at least 1')
         .max(5, 'Rating must be at most 5'),
     })
-    .refine((data) => data.product || data.service, {
-      message: 'Either product or service must be provided',
-      path: ['product'],
+    .refine((data) => data.freelancer || data.owner, {
+      message: 'Either freelancer or owner must be provided',
+      path: ['freelancer'],
     })
-    .refine((data) => !(data.product && data.service), {
-      message: 'Provide either product or service, not both',
-      path: ['service'],
+    .refine((data) => !(data.freelancer && data.owner), {
+      message: 'Provide either freelancer or owner, not both',
+      path: ['owner'],
     }),
 });
 

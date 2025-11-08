@@ -1,28 +1,38 @@
-import { model, Schema } from 'mongoose';
+import { Schema, model } from 'mongoose';
 import { TReview } from './review.interface';
 
-const reviewSchema = new Schema<TReview>(
+const ReviewSchema = new Schema<TReview>(
   {
     user: {
       type: Schema.Types.ObjectId,
-      required: [true, 'User Id is required'],
       ref: 'User',
+      required: [true, 'User ID is required'],
     },
-    service: {
+
+    // 🎯 One of these will be present — freelancer or owner
+    freelancer: {
       type: Schema.Types.ObjectId,
-      ref: 'OwnerService',
-      required: false,
+      ref: 'FreelancerRegistration',
     },
+    owner: {
+      type: Schema.Types.ObjectId,
+      ref: 'OwnerRegistration',
+    },
+
     comment: {
       type: String,
-      required: true,
+      required: [true, 'Review comment is required'],
       trim: true,
     },
     rating: {
       type: Number,
-      required: true,
-      min: 1,
-      max: 5,
+      required: [true, 'Rating is required'],
+      min: [1, 'Minimum rating is 1'],
+      max: [5, 'Maximum rating is 5'],
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
     },
   },
   {
@@ -30,21 +40,4 @@ const reviewSchema = new Schema<TReview>(
   },
 );
 
-// 🔹 Validation: Ensure only ONE of product/service is filled
-reviewSchema.pre('save', function (next) {
-  if (this.service) {
-    return next(
-      new Error(
-        'A review can only be linked to either a product OR a service.',
-      ),
-    );
-  }
-  if (!this.service) {
-    return next(
-      new Error('A review must be linked to either a product OR a service.'),
-    );
-  }
-  next();
-});
-
-export const Review = model<TReview>('Review', reviewSchema);
+export const Review = model<TReview>('Review', ReviewSchema);

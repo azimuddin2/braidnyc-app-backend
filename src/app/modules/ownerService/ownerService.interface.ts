@@ -18,8 +18,6 @@ export type TOwnerService = {
   price: number;
   description: string;
   status: TServiceStatus;
-  reviews?: Types.ObjectId[];
-  avgRating?: number;
 
   isDeleted: boolean;
 };

@@ -11,6 +11,7 @@ import { OwnerServiceRoutes } from '../modules/ownerService/ownerService.route';
 import { SpecialistRoutes } from '../modules/Specialist/Specialist.route';
 import { GalleryRoutes } from '../modules/gallery/gallery.route';
 import { FreelancerServiceRoutes } from '../modules/freelancerService/freelancerService.route';
+import { ReviewRoutes } from '../modules/review/review.route';
 
 const router = Router();
 
@@ -62,6 +63,10 @@ const moduleRoutes = [
   {
     path: '/freelancer-services',
     route: FreelancerServiceRoutes,
+  },
+  {
+    path: '/reviews',
+    route: ReviewRoutes,
   },
 
   // TODO: ROUTE UPDATE

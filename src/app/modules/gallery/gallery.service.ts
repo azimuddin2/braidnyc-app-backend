@@ -1,7 +1,5 @@
 import mongoose from 'mongoose';
-import QueryBuilder from '../../builder/QueryBuilder';
 import AppError from '../../errors/AppError';
-import { UploadedFiles } from '../../interface/common.interface';
 import {
   deleteManyFromS3,
   uploadManyToS3,
@@ -83,118 +81,92 @@ const getGalleryFromDB = async (query: Record<string, unknown>) => {
   return result;
 };
 
-// const updateServiceIntoDB = async (
-//     userId: string,
-//     id: string,
-//     payload: Partial<TOwnerService>,
-//     files: any,
-// ) => {
-//     const user = await User.findById(userId).select('role isRegistration');
-//     if (!user) {
-//         throw new AppError(404, 'User not found');
-//     }
+const updateGalleryIntoDB = async (
+  userId: string,
+  payload: Partial<TGallery>,
+  files?: any,
+) => {
+  // 1️⃣ Validate User
+  const user = await User.findById(userId).select('role isRegistration');
+  if (!user) throw new AppError(404, 'User not found');
 
-//     if (user.role !== 'owner') {
-//         throw new AppError(403, 'Only owner can perform this action');
-//     }
+  if (!['owner', 'freelancer'].includes(user.role)) {
+    throw new AppError(403, 'Only owner or freelancer can update gallery');
+  }
 
-//     if (user.isRegistration === false) {
-//         throw new AppError(400, 'Owner registration not completed');
-//     }
+  if (!user.isRegistration) {
+    throw new AppError(400, 'Registration not completed');
+  }
 
-//     const isServiceExists = await OwnerService.findById(id);
+  // 2️⃣ Find existing gallery
+  const existingGallery = await Gallery.findOne({ user: userId });
+  if (!existingGallery) {
+    throw new AppError(404, 'Gallery not found');
+  }
 
-//     if (!isServiceExists) {
-//         throw new AppError(404, 'This service is not found');
-//     }
+  // 3️⃣ Parse deleteKey if coming as string
+  if (typeof payload.deleteKey === 'string') {
+    try {
+      payload.deleteKey = JSON.parse(payload.deleteKey);
+    } catch {
+      throw new AppError(400, 'Invalid deleteKey format');
+    }
+  }
 
-//     const { deleteKey, ...updateData } = payload;
+  // 4️⃣ Upload new images (if provided)
+  let uploadedImages: any[] = [];
+  const galleryFiles = files?.images ?? files?.['images'];
 
-//     // Handle image upload to S3
-//     if (files) {
-//         const { images } = files as UploadedFiles;
+  if (Array.isArray(galleryFiles) && galleryFiles.length > 0) {
+    const imgsArray = galleryFiles.map((image: any) => ({
+      file: image,
+      path: `images/gallery`,
+    }));
 
-//         if (images?.length) {
-//             const imgsArray = images.map((image) => ({
-//                 file: image,
-//                 path: `images/service`,
-//             }));
+    try {
+      uploadedImages = await uploadManyToS3(imgsArray);
+    } catch (error) {
+      throw new AppError(500, 'Image upload failed');
+    }
+  }
 
-//             try {
-//                 payload.images = await uploadManyToS3(imgsArray);
-//             } catch (error) {
-//                 throw new AppError(500, 'Image upload failed');
-//             }
-//         }
-//     }
+  // 5️⃣ Delete existing images (if deleteKey provided)
+  if (Array.isArray(payload.deleteKey) && payload.deleteKey.length > 0) {
+    const keysToDelete = payload.deleteKey.map(
+      (key: string) => `images/gallery/${key}`,
+    );
 
-//     // Handle image deletions (if any)
-//     if (deleteKey && deleteKey.length > 0) {
-//         const newKey = deleteKey.map((key: any) => `images/service/${key}`);
+    try {
+      await deleteManyFromS3(keysToDelete); // Remove from AWS S3
 
-//         if (newKey.length > 0) {
-//             await deleteManyFromS3(newKey); // Delete images from S3
-//             // Remove deleted images from the product
-//             await OwnerService.findByIdAndUpdate(
-//                 id,
-//                 {
-//                     $pull: { images: { key: { $in: deleteKey } } },
-//                 },
-//                 { new: true },
-//             );
-//         }
-//     }
+      // Remove from local MongoDB document
+      existingGallery.images = existingGallery.images.filter(
+        (img: any) => !payload.deleteKey!.includes(img.key),
+      );
 
-//     // If new images are provided, push them to the service
-//     if (payload?.images && payload.images.length > 0) {
-//         try {
-//             await OwnerService.findByIdAndUpdate(
-//                 id,
-//                 { $addToSet: { images: { $each: payload.images } } }, // Push new images to the product
-//                 { new: true },
-//             );
-//             delete payload.images; // Remove images from the payload after pushing
-//         } catch (error) {
-//             throw new AppError(400, 'Failed to update images');
-//         }
-//     }
+      existingGallery.deleteKey = existingGallery.deleteKey.filter(
+        (key: string) => !payload.deleteKey!.includes(key),
+      );
+    } catch (error) {
+      throw new AppError(500, 'Failed to delete images');
+    }
+  }
 
-//     // Update other product details
-//     try {
-//         const result = await OwnerService.findByIdAndUpdate(id, updateData, {
-//             new: true,
-//         });
-//         if (!result) {
-//             throw new AppError(400, 'Service update failed');
-//         }
+  // 6️⃣ Add newly uploaded images to gallery
+  if (uploadedImages.length > 0) {
+    existingGallery.images.push(...uploadedImages);
+    existingGallery.deleteKey.push(...uploadedImages.map((img) => img.key));
+  }
 
-//         return result;
-//     } catch (error: any) {
-//         console.log(error);
-//         throw new AppError(500, 'Service update failed');
-//     }
-// };
+  // 7️⃣ Save updated gallery
+  const updatedGallery = await existingGallery.save();
+  if (!updatedGallery) throw new AppError(400, 'Failed to update gallery');
 
-// const deleteServiceFromDB = async (id: string) => {
-//     const isServiceExists = await OwnerService.findById(id);
-
-//     if (!isServiceExists) {
-//         throw new AppError(404, 'This service is not found');
-//     }
-
-//     const result = await OwnerService.findByIdAndUpdate(
-//         id,
-//         { isDeleted: true },
-//         { new: true },
-//     );
-//     if (!result) {
-//         throw new AppError(400, 'Failed to delete service');
-//     }
-
-//     return result;
-// };
+  return updatedGallery;
+};
 
 export const GalleryServices = {
   createGalleryIntoDB,
   getGalleryFromDB,
+  updateGalleryIntoDB,
 };
