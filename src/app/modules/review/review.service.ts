@@ -81,7 +81,14 @@ const getAllReviewsFromDB = async (query: Record<string, any>) => {
   if (freelancer) filter.freelancer = freelancer;
   if (owner) filter.owner = owner;
 
-  const reviewsModel = new QueryBuilder(Review.find(filter), restQuery)
+  // ✅ Populate user info (name + image)
+  const reviewsModel = new QueryBuilder(
+    Review.find(filter).populate({
+      path: 'user',
+      select: 'fullName image email', // fields you want
+    }),
+    restQuery,
+  )
     .search(['comment'])
     .filter()
     .paginate()

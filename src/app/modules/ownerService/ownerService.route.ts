@@ -12,7 +12,7 @@ const upload = multer({ storage: memoryStorage() });
 router.post(
   '/',
   auth('owner'),
-  upload.fields([{ name: 'images', maxCount: 10 }]),
+  upload.fields([{ name: 'images', maxCount: 1 }]),
   parseData(),
   validateRequest(OwnerServiceValidations.createOwnerServiceValidationSchema),
   OwnerServiceControllers.createService,
@@ -31,7 +31,7 @@ router.get('/:id', OwnerServiceControllers.getServiceById);
 router.patch(
   '/:id',
   auth('owner'),
-  upload.fields([{ name: 'images', maxCount: 10 }]),
+  upload.fields([{ name: 'images', maxCount: 1 }]),
   parseData(),
   validateRequest(OwnerServiceValidations.updateOwnerServiceValidationSchema),
   OwnerServiceControllers.updateService,

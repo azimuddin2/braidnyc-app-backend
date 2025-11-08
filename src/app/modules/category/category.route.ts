@@ -1,8 +1,8 @@
 import express from 'express';
 import validateRequest from '../../middlewares/validateRequest';
 import auth from '../../middlewares/auth';
-import { ProductTypeValidation } from './productType.validation';
-import { ProductTypeControllers } from './productType.controller';
+import { ProductTypeValidation } from './category.validation';
+import { ProductTypeControllers } from './category.controller';
 
 const router = express.Router();
 

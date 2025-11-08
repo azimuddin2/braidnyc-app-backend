@@ -1,8 +1,8 @@
 import QueryBuilder from '../../builder/QueryBuilder';
 import AppError from '../../errors/AppError';
-import { productTypeSearchableFields } from './productType.constant';
-import { TProductType } from './productType.interface';
-import { ProductType } from './productType.model';
+import { productTypeSearchableFields } from './category.constant';
+import { TProductType } from './category.interface';
+import { ProductType } from './category.model';
 
 const createProductTypeIntoDB = async (payload: TProductType) => {
   const filter = { name: payload.name };
