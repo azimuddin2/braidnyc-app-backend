@@ -1,24 +1,24 @@
 import { z } from 'zod';
 
-const createProductTypeValidationSchema = z.object({
+const createCategoryValidationSchema = z.object({
   body: z.object({
     name: z.string({
-      required_error: 'Product type is required',
+      required_error: 'Category name is required',
     }),
   }),
 });
 
-const updateProductTypeValidationSchema = z.object({
+const updateCategoryValidationSchema = z.object({
   body: z.object({
     name: z
       .string({
-        required_error: 'Product type is required',
+        required_error: 'Category name is required',
       })
       .optional(),
   }),
 });
 
-export const ProductTypeValidation = {
-  createProductTypeValidationSchema,
-  updateProductTypeValidationSchema,
+export const CategoryValidation = {
+  createCategoryValidationSchema,
+  updateCategoryValidationSchema,
 };

@@ -12,6 +12,7 @@ import { SpecialistRoutes } from '../modules/Specialist/Specialist.route';
 import { GalleryRoutes } from '../modules/gallery/gallery.route';
 import { FreelancerServiceRoutes } from '../modules/freelancerService/freelancerService.route';
 import { ReviewRoutes } from '../modules/review/review.route';
+import { CategoryRoutes } from '../modules/category/category.route';
 
 const router = Router();
 
@@ -67,6 +68,10 @@ const moduleRoutes = [
   {
     path: '/reviews',
     route: ReviewRoutes,
+  },
+  {
+    path: '/categories',
+    route: CategoryRoutes,
   },
 
   // TODO: ROUTE UPDATE

@@ -1,29 +1,36 @@
 import express from 'express';
 import validateRequest from '../../middlewares/validateRequest';
 import auth from '../../middlewares/auth';
-import { ProductTypeValidation } from './category.validation';
-import { ProductTypeControllers } from './category.controller';
+import { CategoryValidation } from './category.validation';
+import { CategoryControllers } from './category.controller';
+import multer, { memoryStorage } from 'multer';
+import parseData from '../../middlewares/parseData';
 
 const router = express.Router();
+const upload = multer({ storage: memoryStorage() });
 
 router.post(
   '/',
   auth('admin'),
-  validateRequest(ProductTypeValidation.createProductTypeValidationSchema),
-  ProductTypeControllers.createProductType,
+  upload.single('image'),
+  parseData(),
+  validateRequest(CategoryValidation.createCategoryValidationSchema),
+  CategoryControllers.createCategory,
 );
 
-router.get('/', ProductTypeControllers.getAllProductType);
+router.get('/', CategoryControllers.getAllCategory);
 
-router.get('/:id', ProductTypeControllers.getProductTypeById);
+router.get('/:id', CategoryControllers.getCategoryById);
 
 router.patch(
   '/:id',
   auth('admin'),
-  validateRequest(ProductTypeValidation.updateProductTypeValidationSchema),
-  ProductTypeControllers.updateProductType,
+  upload.single('image'),
+  parseData(),
+  validateRequest(CategoryValidation.updateCategoryValidationSchema),
+  CategoryControllers.updateCategory,
 );
 
-router.delete('/:id', auth('admin'), ProductTypeControllers.deleteProductType);
+router.delete('/:id', auth('admin'), CategoryControllers.deleteCategory);
 
-export const ProductTypeRoutes = router;
+export const CategoryRoutes = router;

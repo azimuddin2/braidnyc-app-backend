@@ -1,105 +1,150 @@
+import slugify from 'slugify';
 import QueryBuilder from '../../builder/QueryBuilder';
 import AppError from '../../errors/AppError';
-import { productTypeSearchableFields } from './category.constant';
-import { TProductType } from './category.interface';
-import { ProductType } from './category.model';
+import { deleteFromS3, uploadToS3 } from '../../utils/awsS3FileUploader';
+import { TCategory } from './category.interface';
+import { Category } from './category.model';
+import { categorySearchableFields } from './category.constant';
 
-const createProductTypeIntoDB = async (payload: TProductType) => {
-  const filter = { name: payload.name };
-
-  const isProductTypeExists = await ProductType.findOne(filter);
-
-  if (isProductTypeExists) {
-    throw new AppError(404, 'This product type already exists');
+const createCategoryIntoDB = async (payload: TCategory, file: any) => {
+  // 🔹 1. Check if category already exists
+  const isCategoryExists = await Category.findOne({ name: payload.name });
+  if (isCategoryExists) {
+    throw new AppError(400, 'This category already exists');
   }
 
-  const result = await ProductType.create(payload);
+  // 🔹 2. Auto generate slug from name
+  if (payload.name) {
+    payload.slug = slugify(payload.name, { lower: true, strict: true });
+  }
+
+  // 🔹 3. Handle image upload to S3
+  if (file) {
+    const uploadedUrl = await uploadToS3({
+      file,
+      fileName: `images/category/${Math.floor(100000 + Math.random() * 900000)}`,
+    });
+    payload.image = uploadedUrl;
+  }
+
+  // 🔹 4. Create new category
+  const result = await Category.create(payload);
   if (!result) {
-    throw new AppError(400, 'Failed to create product type');
+    throw new AppError(400, 'Failed to create category');
   }
+
   return result;
 };
 
-const getAllProductTypeFromDB = async (query: Record<string, unknown>) => {
-  const productTypeQuery = new QueryBuilder(
-    ProductType.find({ isDeleted: false }),
+const getAllCategoryFromDB = async (query: Record<string, unknown>) => {
+  const categoryQuery = new QueryBuilder(
+    Category.find({ isDeleted: false }),
     query,
   )
-    .search(productTypeSearchableFields)
+    .search(categorySearchableFields)
     .filter()
     .sort()
     .paginate()
     .fields();
 
-  const meta = await productTypeQuery.countTotal();
-  const result = await productTypeQuery.modelQuery;
+  const meta = await categoryQuery.countTotal();
+  const result = await categoryQuery.modelQuery;
 
   return { meta, result };
 };
 
-const getProductTypeByIdFromDB = async (id: string) => {
-  const result = await ProductType.findById(id);
+const getCategoryByIdFromDB = async (id: string) => {
+  const result = await Category.findById(id);
 
   if (!result) {
-    throw new AppError(404, 'This product type not found');
+    throw new AppError(404, 'This category not found');
   }
 
   if (result.isDeleted === true) {
-    throw new AppError(400, 'This product type has been deleted');
+    throw new AppError(400, 'This category has been deleted');
   }
 
   return result;
 };
 
-const updateProductTypeIntoDB = async (
+const updateCategoryIntoDB = async (
   id: string,
-  payload: Partial<TProductType>,
+  payload: Partial<TCategory>,
+  file?: Express.Multer.File,
 ) => {
-  const isProductTypeExists = await ProductType.findById(id);
+  // 🔍 Step 1: Check if the category exists
+  const isCategoryExists = await Category.findById(id);
 
-  if (!isProductTypeExists) {
-    throw new AppError(404, 'This product type not exists');
+  if (!isCategoryExists) {
+    throw new AppError(404, 'This category not exists');
   }
 
-  if (isProductTypeExists.isDeleted === true) {
-    throw new AppError(400, 'This product type has been deleted');
+  if (isCategoryExists.isDeleted === true) {
+    throw new AppError(400, 'This category has been deleted');
   }
 
-  const updatedProductType = await ProductType.findByIdAndUpdate(id, payload, {
-    new: true,
-    runValidators: true,
-  });
-
-  if (!updatedProductType) {
-    throw new AppError(400, 'Product type update failed');
+  // 🔹 2. Auto generate slug from name
+  if (payload.name) {
+    payload.slug = slugify(payload.name, { lower: true, strict: true });
   }
 
-  return updatedProductType;
+  try {
+    // 📸 Step 2: Handle new image upload
+    if (file) {
+      const uploadedUrl = await uploadToS3({
+        file,
+        fileName: `images/category/${Math.floor(100000 + Math.random() * 900000)}`,
+      });
+
+      // 🧹 Step 3: Delete the previous image from S3 (if exists)
+      if (isCategoryExists.image) {
+        await deleteFromS3(isCategoryExists.image);
+      }
+
+      // 📝 Step 4: Set the new image URL to payload
+      payload.image = uploadedUrl;
+    }
+
+    // 🔄 Step 5: Update the category in the database
+    const updatedCategory = await Category.findByIdAndUpdate(id, payload, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!updatedCategory) {
+      throw new AppError(400, 'Category update failed');
+    }
+
+    return updatedCategory;
+  } catch (error: any) {
+    console.error('updateCategoryIntoDB Error:', error);
+    throw new AppError(500, 'Failed to update category');
+  }
 };
 
-const deleteProductTypeFromDB = async (id: string) => {
-  const isProductTypeExists = await ProductType.findById(id);
+const deleteCategoryFromDB = async (id: string) => {
+  const isCategoryExists = await Category.findById(id);
 
-  if (!isProductTypeExists) {
-    throw new AppError(404, 'Product type not found');
+  if (!isCategoryExists) {
+    throw new AppError(404, 'Category not found');
   }
 
-  const result = await ProductType.findByIdAndUpdate(
+  const result = await Category.findByIdAndUpdate(
     id,
     { isDeleted: true },
     { new: true },
   );
   if (!result) {
-    throw new AppError(400, 'Failed to delete product type');
+    throw new AppError(400, 'Failed to delete category');
   }
 
   return result;
 };
 
-export const ProductTypeServices = {
-  createProductTypeIntoDB,
-  getAllProductTypeFromDB,
-  getProductTypeByIdFromDB,
-  updateProductTypeIntoDB,
-  deleteProductTypeFromDB,
+export const CategoryServices = {
+  createCategoryIntoDB,
+  getAllCategoryFromDB,
+  getCategoryByIdFromDB,
+  updateCategoryIntoDB,
+  deleteCategoryFromDB,
 };

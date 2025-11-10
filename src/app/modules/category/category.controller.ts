@@ -1,73 +1,77 @@
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
-import { ProductTypeServices } from './category.service';
+import { CategoryServices } from './category.service';
 
-const createProductType = catchAsync(async (req, res) => {
-  const result = await ProductTypeServices.createProductTypeIntoDB(req.body);
+const createCategory = catchAsync(async (req, res) => {
+  const result = await CategoryServices.createCategoryIntoDB(
+    req.body,
+    req.file,
+  );
 
   sendResponse(res, {
     statusCode: 201,
     success: true,
-    message: 'Product type add successfully',
+    message: 'Category added successfully',
     data: result,
   });
 });
 
-const getAllProductType = catchAsync(async (req, res) => {
-  const result = await ProductTypeServices.getAllProductTypeFromDB(req.query);
+const getAllCategory = catchAsync(async (req, res) => {
+  const result = await CategoryServices.getAllCategoryFromDB(req.query);
 
   sendResponse(res, {
     statusCode: 200,
     success: true,
-    message: 'Product type retrieved successfully',
+    message: 'Categories retrieved successfully',
     meta: result.meta,
     data: result.result,
   });
 });
 
-const getProductTypeById = catchAsync(async (req, res) => {
+const getCategoryById = catchAsync(async (req, res) => {
   const { id } = req.params;
-  const result = await ProductTypeServices.getProductTypeByIdFromDB(id);
+  const result = await CategoryServices.getCategoryByIdFromDB(id);
 
   sendResponse(res, {
     statusCode: 200,
     success: true,
-    message: 'Product type retrieved successfully',
+    message: 'Category retrieved successfully',
     data: result,
   });
 });
 
-const updateProductType = catchAsync(async (req, res) => {
+const updateCategory = catchAsync(async (req, res) => {
   const { id } = req.params;
-  const result = await ProductTypeServices.updateProductTypeIntoDB(
+  const result = await CategoryServices.updateCategoryIntoDB(
     id,
     req.body,
+    req.file,
   );
 
   sendResponse(res, {
     statusCode: 200,
     success: true,
-    message: 'Product type has been updated successfully.',
+    message: 'Category has been updated successfully.',
     data: result,
   });
 });
 
-const deleteProductType = catchAsync(async (req, res) => {
+const deleteCategory = catchAsync(async (req, res) => {
   const { id } = req.params;
-  const result = await ProductTypeServices.deleteProductTypeFromDB(id);
+  const result = await CategoryServices.deleteCategoryFromDB(id);
 
   sendResponse(res, {
     statusCode: 200,
     success: true,
-    message: 'Product type deleted successfully',
+    message: 'Category deleted successfully',
     data: result,
   });
 });
 
-export const ProductTypeControllers = {
-  createProductType,
-  getAllProductType,
-  getProductTypeById,
-  updateProductType,
-  deleteProductType,
+export const CategoryControllers = {
+  createCategory,
+  getAllCategory,
+  getCategoryById,
+  updateCategory,
+  deleteCategory,
 };
