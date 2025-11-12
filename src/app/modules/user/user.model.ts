@@ -33,7 +33,7 @@ const userSchema = new Schema<TUser, UserModel>(
       lowercase: true,
       validate: {
         validator: function (v: string) {
-          return /^\w+([-]?\w+)*@\w+([-]?\w+)*(\.\w{2,3})+$/.test(v);
+          return /^[\w-.]+@([\w-]+\.)+[\w-]{2,}$/.test(v);
         },
         message: 'Please enter a valid email address',
       },

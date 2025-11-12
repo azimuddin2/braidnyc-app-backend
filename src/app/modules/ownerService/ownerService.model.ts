@@ -42,7 +42,7 @@ const ownerServiceSchema = new Schema<TOwnerService>(
       },
       default: 'available',
     },
-    description: {
+    about: {
       type: String,
       required: true,
     },

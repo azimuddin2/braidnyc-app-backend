@@ -16,7 +16,7 @@ export type TFreelancerService = {
   studioInsidePhoto: string | null;
 
   name: string;
-  duration: string;
+  time: string;
   price: number;
   about: string;
 

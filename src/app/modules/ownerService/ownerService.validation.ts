@@ -10,7 +10,7 @@ const createOwnerServiceValidationSchema = z.object({
     status: z
       .enum([...ServiceStatus] as [string, ...string[]])
       .default('available'),
-    description: z.string({ required_error: 'Description is required' }),
+    about: z.string({ required_error: 'About is required' }),
     isDeleted: z.boolean().default(false),
   }),
 });
@@ -25,9 +25,7 @@ const updateOwnerServiceValidationSchema = z.object({
       .enum([...ServiceStatus] as [string, ...string[]])
       .default('available')
       .optional(),
-    description: z
-      .string({ required_error: 'Description is required' })
-      .optional(),
+    about: z.string({ required_error: 'About is required' }).optional(),
     isDeleted: z.boolean().default(false).optional(),
   }),
 });

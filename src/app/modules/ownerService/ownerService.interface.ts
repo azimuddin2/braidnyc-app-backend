@@ -16,7 +16,7 @@ export type TOwnerService = {
   name: string;
   time: string;
   price: number;
-  description: string;
+  about: string;
   status: TServiceStatus;
 
   isDeleted: boolean;

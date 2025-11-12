@@ -21,7 +21,7 @@ const freelancerServiceSchema = new Schema<TFreelancerService>(
       type: String,
       required: true,
     },
-    duration: {
+    time: {
       type: String,
       required: true,
     },
