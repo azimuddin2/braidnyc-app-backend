@@ -13,6 +13,7 @@ import { GalleryRoutes } from '../modules/gallery/gallery.route';
 import { FreelancerServiceRoutes } from '../modules/freelancerService/freelancerService.route';
 import { ReviewRoutes } from '../modules/review/review.route';
 import { CategoryRoutes } from '../modules/category/category.route';
+import { OnServiceRoutes } from '../modules/onService/onService.route';
 
 const router = Router();
 
@@ -72,6 +73,10 @@ const moduleRoutes = [
   {
     path: '/categories',
     route: CategoryRoutes,
+  },
+  {
+    path: '/on-services',
+    route: OnServiceRoutes,
   },
 
   // TODO: ROUTE UPDATE

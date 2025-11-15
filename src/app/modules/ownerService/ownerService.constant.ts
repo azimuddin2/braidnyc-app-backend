@@ -2,4 +2,4 @@ import { TServiceStatus } from './ownerService.interface';
 
 export const ServiceStatus: TServiceStatus[] = ['available', 'unavailable'];
 
-export const serviceSearchableFields = ['name', 'description', 'time'];
+export const serviceSearchableFields = ['name', 'about', 'time'];
