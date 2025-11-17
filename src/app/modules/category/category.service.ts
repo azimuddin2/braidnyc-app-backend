@@ -7,18 +7,22 @@ import { Category } from './category.model';
 import { categorySearchableFields } from './category.constant';
 
 const createCategoryIntoDB = async (payload: TCategory, file: any) => {
-  // 🔹 1. Check if category already exists
-  const isCategoryExists = await Category.findOne({ name: payload.name });
+  // 1. Check if category exists but ignore soft deleted
+  const isCategoryExists = await Category.findOne({
+    name: payload.name,
+    isDeleted: false,
+  });
+
   if (isCategoryExists) {
     throw new AppError(400, 'This category already exists');
   }
 
-  // 🔹 2. Auto generate slug from name
+  // 2. Auto slug
   if (payload.name) {
     payload.slug = slugify(payload.name, { lower: true, strict: true });
   }
 
-  // 🔹 3. Handle image upload to S3
+  // 3. Upload image
   if (file) {
     const uploadedUrl = await uploadToS3({
       file,
@@ -27,7 +31,7 @@ const createCategoryIntoDB = async (payload: TCategory, file: any) => {
     payload.image = uploadedUrl;
   }
 
-  // 🔹 4. Create new category
+  // 4. Create category
   const result = await Category.create(payload);
   if (!result) {
     throw new AppError(400, 'Failed to create category');
@@ -38,7 +42,7 @@ const createCategoryIntoDB = async (payload: TCategory, file: any) => {
 
 const getAllCategoryFromDB = async (query: Record<string, unknown>) => {
   const categoryQuery = new QueryBuilder(
-    Category.find({ isDeleted: false }),
+    Category.find({ isDeleted: false }).populate('subcategories'),
     query,
   )
     .search(categorySearchableFields)
@@ -54,13 +58,13 @@ const getAllCategoryFromDB = async (query: Record<string, unknown>) => {
 };
 
 const getCategoryByIdFromDB = async (id: string) => {
-  const result = await Category.findById(id);
+  const result = await Category.findById(id).populate('Subcategory');
 
   if (!result) {
     throw new AppError(404, 'This category not found');
   }
 
-  if (result.isDeleted === true) {
+  if (result.isDeleted) {
     throw new AppError(400, 'This category has been deleted');
   }
 
@@ -72,40 +76,37 @@ const updateCategoryIntoDB = async (
   payload: Partial<TCategory>,
   file?: Express.Multer.File,
 ) => {
-  // 🔍 Step 1: Check if the category exists
   const isCategoryExists = await Category.findById(id);
 
   if (!isCategoryExists) {
     throw new AppError(404, 'This category not exists');
   }
 
-  if (isCategoryExists.isDeleted === true) {
+  if (isCategoryExists.isDeleted) {
     throw new AppError(400, 'This category has been deleted');
   }
 
-  // 🔹 2. Auto generate slug from name
+  // Auto slug update
   if (payload.name) {
     payload.slug = slugify(payload.name, { lower: true, strict: true });
   }
 
   try {
-    // 📸 Step 2: Handle new image upload
+    // If new image is passed
     if (file) {
       const uploadedUrl = await uploadToS3({
         file,
         fileName: `images/category/${Math.floor(100000 + Math.random() * 900000)}`,
       });
 
-      // 🧹 Step 3: Delete the previous image from S3 (if exists)
+      // Delete previous
       if (isCategoryExists.image) {
         await deleteFromS3(isCategoryExists.image);
       }
 
-      // 📝 Step 4: Set the new image URL to payload
       payload.image = uploadedUrl;
     }
 
-    // 🔄 Step 5: Update the category in the database
     const updatedCategory = await Category.findByIdAndUpdate(id, payload, {
       new: true,
       runValidators: true,
@@ -129,11 +130,16 @@ const deleteCategoryFromDB = async (id: string) => {
     throw new AppError(404, 'Category not found');
   }
 
+  if (isCategoryExists.isDeleted) {
+    throw new AppError(400, 'Category is already deleted');
+  }
+
   const result = await Category.findByIdAndUpdate(
     id,
     { isDeleted: true },
     { new: true },
   );
+
   if (!result) {
     throw new AppError(400, 'Failed to delete category');
   }

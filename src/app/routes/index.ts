@@ -14,6 +14,7 @@ import { FreelancerServiceRoutes } from '../modules/freelancerService/freelancer
 import { ReviewRoutes } from '../modules/review/review.route';
 import { CategoryRoutes } from '../modules/category/category.route';
 import { OnServiceRoutes } from '../modules/onService/onService.route';
+import { SubcategoryRoutes } from '../modules/subcategory/subcategory.route';
 
 const router = Router();
 
@@ -73,6 +74,10 @@ const moduleRoutes = [
   {
     path: '/categories',
     route: CategoryRoutes,
+  },
+  {
+    path: '/subcategories',
+    route: SubcategoryRoutes,
   },
   {
     path: '/on-services',

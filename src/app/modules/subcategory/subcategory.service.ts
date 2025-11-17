@@ -1,150 +1,190 @@
+import mongoose from 'mongoose';
 import slugify from 'slugify';
-import QueryBuilder from '../../builder/QueryBuilder';
+import { Subcategory } from './subcategory.model';
+import { Category } from '../category/category.model';
+import { TSubcategory } from './subcategory.interface';
 import AppError from '../../errors/AppError';
 import { deleteFromS3, uploadToS3 } from '../../utils/awsS3FileUploader';
-import { TCategory } from './category.interface';
-import { Category } from './category.model';
-import { categorySearchableFields } from './category.constant';
+import QueryBuilder from '../../builder/QueryBuilder';
 
-const createCategoryIntoDB = async (payload: TCategory, file: any) => {
-  // 🔹 1. Check if category already exists
-  const isCategoryExists = await Category.findOne({ name: payload.name });
-  if (isCategoryExists) {
-    throw new AppError(400, 'This category already exists');
+const createSubcategoryIntoDB = async (
+  payload: TSubcategory,
+  file?: Express.Multer.File,
+) => {
+  const { category } = payload;
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    payload.category = category;
+
+    // 1️⃣ Check if subcategory exists
+    const exists = await Subcategory.findOne({
+      name: payload.name,
+      isDeleted: false,
+    }).session(session);
+
+    if (exists) {
+      throw new AppError(400, 'This subcategory already exists');
+    }
+
+    // 2️⃣ Auto generate slug
+    if (payload.name) {
+      payload.slug = slugify(payload.name, { lower: true, strict: true });
+    }
+
+    // 3️⃣ Upload image if provided
+    if (file) {
+      const uploadedUrl = await uploadToS3({
+        file,
+        fileName: `images/subcategory/${Date.now()}-${Math.floor(
+          1000 + Math.random() * 9000,
+        )}`,
+      });
+      payload.image = uploadedUrl;
+    }
+
+    // 4️⃣ Create subcategory inside transaction
+    const created = await Subcategory.create([payload], { session });
+    if (!created || created.length === 0) {
+      throw new AppError(400, 'Failed to create subcategory');
+    }
+
+    // 5️⃣ Push subcategory ID to Category
+    const updatedCategory = await Category.findByIdAndUpdate(
+      category,
+      { $push: { subcategories: created[0]._id } },
+      { new: true, session },
+    );
+
+    if (!updatedCategory) {
+      throw new AppError(404, 'Category not found');
+    }
+
+    // 6️⃣ Commit transaction
+    await session.commitTransaction();
+    session.endSession();
+
+    return created[0];
+  } catch (error: any) {
+    await session.abortTransaction();
+    session.endSession();
+    throw new AppError(500, error.message || 'Subcategory creation failed');
   }
-
-  // 🔹 2. Auto generate slug from name
-  if (payload.name) {
-    payload.slug = slugify(payload.name, { lower: true, strict: true });
-  }
-
-  // 🔹 3. Handle image upload to S3
-  if (file) {
-    const uploadedUrl = await uploadToS3({
-      file,
-      fileName: `images/category/${Math.floor(100000 + Math.random() * 900000)}`,
-    });
-    payload.image = uploadedUrl;
-  }
-
-  // 🔹 4. Create new category
-  const result = await Category.create(payload);
-  if (!result) {
-    throw new AppError(400, 'Failed to create category');
-  }
-
-  return result;
 };
 
-const getAllCategoryFromDB = async (query: Record<string, unknown>) => {
-  const categoryQuery = new QueryBuilder(
-    Category.find({ isDeleted: false }),
-    query,
-  )
-    .search(categorySearchableFields)
+const getAllSubcategoryFromDB = async (query: Record<string, unknown>) => {
+  const { category, ...filters } = query;
+
+  if (!category || !mongoose.Types.ObjectId.isValid(category as string)) {
+    throw new AppError(400, 'Invalid Category ID');
+  }
+
+  // Base query -> always exclude deleted packages service
+  let subcategoryQuery = Subcategory.find({ category, isDeleted: false });
+
+  const queryBuilder = new QueryBuilder(subcategoryQuery, filters)
+    .search(['name'])
     .filter()
     .sort()
     .paginate()
     .fields();
 
-  const meta = await categoryQuery.countTotal();
-  const result = await categoryQuery.modelQuery;
+  const meta = await queryBuilder.countTotal();
+  const result = await queryBuilder.modelQuery;
 
   return { meta, result };
 };
 
-const getCategoryByIdFromDB = async (id: string) => {
-  const result = await Category.findById(id);
+const getSubcategoryByIdFromDB = async (id: string) => {
+  const result = await Subcategory.findById(id);
 
   if (!result) {
-    throw new AppError(404, 'This category not found');
+    throw new AppError(404, 'This subcategory not found');
   }
 
-  if (result.isDeleted === true) {
-    throw new AppError(400, 'This category has been deleted');
+  if (result.isDeleted) {
+    throw new AppError(400, 'This subcategory has been deleted');
   }
 
   return result;
 };
 
-const updateCategoryIntoDB = async (
+const updateSubcategoryIntoDB = async (
   id: string,
-  payload: Partial<TCategory>,
+  payload: Partial<TSubcategory>,
   file?: Express.Multer.File,
 ) => {
-  // 🔍 Step 1: Check if the category exists
-  const isCategoryExists = await Category.findById(id);
+  const isSubcategoryExists = await Subcategory.findById(id);
 
-  if (!isCategoryExists) {
-    throw new AppError(404, 'This category not exists');
+  if (!isSubcategoryExists) {
+    throw new AppError(404, 'This subcategory not exists');
   }
 
-  if (isCategoryExists.isDeleted === true) {
-    throw new AppError(400, 'This category has been deleted');
+  if (isSubcategoryExists.isDeleted) {
+    throw new AppError(400, 'This subcategory has been deleted');
   }
 
-  // 🔹 2. Auto generate slug from name
+  // Auto slug update
   if (payload.name) {
     payload.slug = slugify(payload.name, { lower: true, strict: true });
   }
 
-  try {
-    // 📸 Step 2: Handle new image upload
-    if (file) {
-      const uploadedUrl = await uploadToS3({
-        file,
-        fileName: `images/category/${Math.floor(100000 + Math.random() * 900000)}`,
-      });
-
-      // 🧹 Step 3: Delete the previous image from S3 (if exists)
-      if (isCategoryExists.image) {
-        await deleteFromS3(isCategoryExists.image);
-      }
-
-      // 📝 Step 4: Set the new image URL to payload
-      payload.image = uploadedUrl;
-    }
-
-    // 🔄 Step 5: Update the category in the database
-    const updatedCategory = await Category.findByIdAndUpdate(id, payload, {
-      new: true,
-      runValidators: true,
+  // If new image is passed
+  if (file) {
+    const uploadedUrl = await uploadToS3({
+      file,
+      fileName: `images/category/${Math.floor(100000 + Math.random() * 900000)}`,
     });
 
-    if (!updatedCategory) {
-      throw new AppError(400, 'Category update failed');
+    // Delete previous
+    if (isSubcategoryExists.image) {
+      await deleteFromS3(isSubcategoryExists.image);
     }
 
-    return updatedCategory;
-  } catch (error: any) {
-    console.error('updateCategoryIntoDB Error:', error);
-    throw new AppError(500, 'Failed to update category');
+    payload.image = uploadedUrl;
   }
+
+  const updatedCategory = await Category.findByIdAndUpdate(id, payload, {
+    new: true,
+    runValidators: true,
+  });
+
+  if (!updatedCategory) {
+    throw new AppError(400, 'Subcategory update failed');
+  }
+
+  return updatedCategory;
 };
 
-const deleteCategoryFromDB = async (id: string) => {
-  const isCategoryExists = await Category.findById(id);
+const deleteSubcategoryFromDB = async (id: string) => {
+  const isSubcategoryExists = await Subcategory.findById(id);
 
-  if (!isCategoryExists) {
-    throw new AppError(404, 'Category not found');
+  if (!isSubcategoryExists) {
+    throw new AppError(404, 'Subcategory not found');
   }
 
-  const result = await Category.findByIdAndUpdate(
+  if (isSubcategoryExists.isDeleted) {
+    throw new AppError(400, 'Subcategory is already deleted');
+  }
+
+  const result = await Subcategory.findByIdAndUpdate(
     id,
     { isDeleted: true },
     { new: true },
   );
+
   if (!result) {
-    throw new AppError(400, 'Failed to delete category');
+    throw new AppError(400, 'Failed to delete subcategory');
   }
 
   return result;
 };
 
-export const CategoryServices = {
-  createCategoryIntoDB,
-  getAllCategoryFromDB,
-  getCategoryByIdFromDB,
-  updateCategoryIntoDB,
-  deleteCategoryFromDB,
+export const SubcategoryService = {
+  createSubcategoryIntoDB,
+  getAllSubcategoryFromDB,
+  getSubcategoryByIdFromDB,
+  deleteSubcategoryFromDB,
 };

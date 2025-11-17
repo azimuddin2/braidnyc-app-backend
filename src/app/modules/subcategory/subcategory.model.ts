@@ -1,4 +1,4 @@
-import { model, Schema } from 'mongoose';
+import mongoose, { model, Schema } from 'mongoose';
 import { TSubcategory } from './subcategory.interface';
 
 const SubcategorySchema = new Schema<TSubcategory>(
@@ -7,6 +7,10 @@ const SubcategorySchema = new Schema<TSubcategory>(
       type: String,
       required: true,
       trim: true,
+    },
+    category: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Category',
     },
     slug: {
       type: String,
@@ -26,4 +30,7 @@ const SubcategorySchema = new Schema<TSubcategory>(
   { timestamps: true },
 );
 
-export const Subcategory = model<TSubcategory>('Category', SubcategorySchema);
+export const Subcategory = model<TSubcategory>(
+  'Subcategory',
+  SubcategorySchema,
+);

@@ -1,13 +1,7 @@
 import mongoose from 'mongoose';
 import QueryBuilder from '../../builder/QueryBuilder';
 import AppError from '../../errors/AppError';
-import { UploadedFiles } from '../../interface/common.interface';
-import {
-  deleteFromS3,
-  deleteManyFromS3,
-  uploadManyToS3,
-  uploadToS3,
-} from '../../utils/awsS3FileUploader';
+import { deleteFromS3, uploadToS3 } from '../../utils/awsS3FileUploader';
 import { User } from '../user/user.model';
 import { TFreelancerService } from './freelancerService.interface';
 import { FreelancerService } from './freelancerService.model';
