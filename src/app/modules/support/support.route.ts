@@ -3,11 +3,17 @@ import validateRequest from '../../middlewares/validateRequest';
 import auth from '../../middlewares/auth';
 import { SupportValidation } from './support.validation';
 import { SupportControllers } from './support.controller';
+import parseData from '../../middlewares/parseData';
+import multer, { memoryStorage } from 'multer';
 
 const router = express.Router();
+const upload = multer({ storage: memoryStorage() });
 
 router.post(
   '/',
+  auth('customer'),
+  upload.single('image'),
+  parseData(),
   validateRequest(SupportValidation.createSupportValidationSchema),
   SupportControllers.createSupport,
 );
@@ -20,7 +26,7 @@ router.patch(
   '/:id',
   auth('admin'),
   validateRequest(SupportValidation.replyAdminSupportValidationSchema),
-  SupportControllers.updateSupport,
+  SupportControllers.adminSupportMessageReply,
 );
 
 router.delete('/:id', auth('admin'), SupportControllers.deleteSupport);

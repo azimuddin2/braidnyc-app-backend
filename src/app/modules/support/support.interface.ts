@@ -2,8 +2,9 @@ export type TSupport = {
   firstName: string;
   lastName: string;
   email: string;
+  phone: string;
   message: string;
   messageReply?: string;
-  follow: boolean;
+  image: string | null;
   isDeleted: boolean;
 };

@@ -3,7 +3,7 @@ import sendResponse from '../../utils/sendResponse';
 import { SupportServices } from './support.service';
 
 const createSupport = catchAsync(async (req, res) => {
-  const result = await SupportServices.createSupportIntoDB(req.body);
+  const result = await SupportServices.createSupportIntoDB(req.body, req.file);
 
   sendResponse(res, {
     statusCode: 201,
@@ -37,9 +37,12 @@ const getSupportById = catchAsync(async (req, res) => {
   });
 });
 
-const updateSupport = catchAsync(async (req, res) => {
+const adminSupportMessageReply = catchAsync(async (req, res) => {
   const { id } = req.params;
-  const result = await SupportServices.updateSupportIntoDB(id, req.body);
+  const result = await SupportServices.adminSupportMessageReplyIntoDB(
+    id,
+    req.body,
+  );
 
   sendResponse(res, {
     statusCode: 200,
@@ -56,7 +59,7 @@ const deleteSupport = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: 200,
     success: true,
-    message: 'Support deleted successfully',
+    message: 'Support message deleted successfully',
     data: result,
   });
 });
@@ -65,6 +68,6 @@ export const SupportControllers = {
   createSupport,
   getAllSupport,
   getSupportById,
-  updateSupport,
+  adminSupportMessageReply,
   deleteSupport,
 };

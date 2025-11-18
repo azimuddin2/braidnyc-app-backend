@@ -1,15 +1,27 @@
 import QueryBuilder from '../../builder/QueryBuilder';
 import AppError from '../../errors/AppError';
+import { uploadToS3 } from '../../utils/awsS3FileUploader';
 import { sendEmail } from '../../utils/sendEmail';
 import { supportSearchableFields } from './support.constant';
 import { TSupport } from './support.interface';
 import { Support } from './support.modal';
 
-const createSupportIntoDB = async (payload: TSupport) => {
+const createSupportIntoDB = async (payload: TSupport, file: any) => {
+  // 1. Upload image
+  if (file) {
+    const uploadedUrl = await uploadToS3({
+      file,
+      fileName: `images/support/${Math.floor(100000 + Math.random() * 900000)}`,
+    });
+    payload.image = uploadedUrl;
+  }
+
+  // 2. Create support message
   const result = await Support.create(payload);
   if (!result) {
-    throw new AppError(400, 'Failed to create Support');
+    throw new AppError(400, 'Failed to support message');
   }
+
   return result;
 };
 
@@ -34,7 +46,7 @@ const getSupportByIdFromDB = async (id: string) => {
   const result = await Support.findById(id);
 
   if (!result) {
-    throw new AppError(404, 'This support not found');
+    throw new AppError(404, 'This support message not found');
   }
 
   if (result.isDeleted === true) {
@@ -44,7 +56,10 @@ const getSupportByIdFromDB = async (id: string) => {
   return result;
 };
 
-const updateSupportIntoDB = async (id: string, payload: Partial<TSupport>) => {
+const adminSupportMessageReplyIntoDB = async (
+  id: string,
+  payload: Partial<TSupport>,
+) => {
   const isSupportExists = await Support.findById(id);
 
   if (!isSupportExists) {
@@ -104,7 +119,7 @@ const updateSupportIntoDB = async (id: string, payload: Partial<TSupport>) => {
               <p style="margin-top:30px;font-size:13px;color:#999;">
                 Best Regards,<br/>
                 <strong>Support Team</strong><br/>
-                Crystal Cleaners
+                BraidNYC
               </p>
             </td>
           </tr>
@@ -122,7 +137,7 @@ const deleteSupportFromDB = async (id: string) => {
   const isSupportExists = await Support.findById(id);
 
   if (!isSupportExists) {
-    throw new AppError(404, 'Support not found');
+    throw new AppError(404, 'Support message not found');
   }
 
   const result = await Support.findByIdAndUpdate(
@@ -131,7 +146,7 @@ const deleteSupportFromDB = async (id: string) => {
     { new: true },
   );
   if (!result) {
-    throw new AppError(400, 'Failed to delete support');
+    throw new AppError(400, 'Failed to delete support message');
   }
 
   return result;
@@ -141,6 +156,6 @@ export const SupportServices = {
   createSupportIntoDB,
   getAllSupportFromDB,
   getSupportByIdFromDB,
-  updateSupportIntoDB,
+  adminSupportMessageReplyIntoDB,
   deleteSupportFromDB,
 };

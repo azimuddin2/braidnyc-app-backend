@@ -1,1 +1,6 @@
-export const supportSearchableFields = ['email', 'firstName', 'lastName'];
+export const supportSearchableFields = [
+  'email',
+  'firstName',
+  'lastName',
+  'phone',
+];

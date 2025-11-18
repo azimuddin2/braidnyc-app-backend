@@ -15,6 +15,7 @@ import { ReviewRoutes } from '../modules/review/review.route';
 import { CategoryRoutes } from '../modules/category/category.route';
 import { OnServiceRoutes } from '../modules/onService/onService.route';
 import { SubcategoryRoutes } from '../modules/subcategory/subcategory.route';
+import { SupportRoutes } from '../modules/support/support.route';
 
 const router = Router();
 
@@ -83,6 +84,10 @@ const moduleRoutes = [
     path: '/on-services',
     route: OnServiceRoutes,
   },
+  {
+    path: '/supports',
+    route: SupportRoutes,
+  },
 
   // TODO: ROUTE UPDATE
   // {
@@ -120,10 +125,6 @@ const moduleRoutes = [
   // {
   //   path: '/orders',
   //   route: OrderRoutes,
-  // },
-  // {
-  //   path: '/payments',
-  //   route: PaymentRoutes,
   // },
   // {
   //   path: '/sub-payments',

@@ -12,18 +12,18 @@ const createSupportValidationSchema = z.object({
     email: z
       .string({ required_error: 'Email is required' })
       .email('Invalid email address'),
+    phone: z.string({ required_error: 'Phone is required' }),
     message: z
       .string({ required_error: 'Message is required' })
       .min(1, 'Message cannot be empty'),
-    messageReply: z.string().optional().default(''),
-    follow: z.boolean().default(true),
+
     isDeleted: z.boolean().optional().default(false),
   }),
 });
 
 const replyAdminSupportValidationSchema = z.object({
   body: z.object({
-    messageReply: z.string().optional().default(''),
+    messageReply: z.string({ required_error: 'Message Reply is required' }),
   }),
 });
 
