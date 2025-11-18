@@ -16,6 +16,7 @@ import { CategoryRoutes } from '../modules/category/category.route';
 import { OnServiceRoutes } from '../modules/onService/onService.route';
 import { SubcategoryRoutes } from '../modules/subcategory/subcategory.route';
 import { SupportRoutes } from '../modules/support/support.route';
+import { MemberRoutes } from '../modules/member/member.route';
 
 const router = Router();
 
@@ -87,6 +88,10 @@ const moduleRoutes = [
   {
     path: '/supports',
     route: SupportRoutes,
+  },
+  {
+    path: '/members',
+    route: MemberRoutes,
   },
 
   // TODO: ROUTE UPDATE
