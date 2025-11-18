@@ -27,8 +27,8 @@ router.patch(
   auth('admin'),
   upload.single('image'),
   parseData(),
-  validateRequest(CategoryValidation.updateCategoryValidationSchema),
-  CategoryControllers.updateCategory,
+  validateRequest(SubcategoryValidation.updateSubcategoryValidationSchema),
+  SubcategoryController.updateSubcategory,
 );
 
 router.delete('/:id', auth('admin'), SubcategoryController.deleteSubcategory);

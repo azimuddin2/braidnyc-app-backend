@@ -40,9 +40,9 @@ const getSubcategoryById = catchAsync(async (req, res) => {
   });
 });
 
-const updateCategory = catchAsync(async (req, res) => {
+const updateSubcategory = catchAsync(async (req, res) => {
   const { id } = req.params;
-  const result = await CategoryServices.updateCategoryIntoDB(
+  const result = await SubcategoryService.updateSubcategoryIntoDB(
     id,
     req.body,
     req.file,
@@ -51,7 +51,7 @@ const updateCategory = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: 200,
     success: true,
-    message: 'Category has been updated successfully.',
+    message: 'Subcategory has been updated successfully.',
     data: result,
   });
 });
@@ -72,5 +72,6 @@ export const SubcategoryController = {
   createSubcategory,
   getAllSubcategory,
   getSubcategoryById,
+  updateSubcategory,
   deleteSubcategory,
 };

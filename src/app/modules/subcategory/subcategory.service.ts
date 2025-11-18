@@ -135,7 +135,7 @@ const updateSubcategoryIntoDB = async (
   if (file) {
     const uploadedUrl = await uploadToS3({
       file,
-      fileName: `images/category/${Math.floor(100000 + Math.random() * 900000)}`,
+      fileName: `images/subcategory/${Math.floor(100000 + Math.random() * 900000)}`,
     });
 
     // Delete previous
@@ -146,7 +146,7 @@ const updateSubcategoryIntoDB = async (
     payload.image = uploadedUrl;
   }
 
-  const updatedCategory = await Category.findByIdAndUpdate(id, payload, {
+  const updatedCategory = await Subcategory.findByIdAndUpdate(id, payload, {
     new: true,
     runValidators: true,
   });
@@ -186,5 +186,6 @@ export const SubcategoryService = {
   createSubcategoryIntoDB,
   getAllSubcategoryFromDB,
   getSubcategoryByIdFromDB,
+  updateSubcategoryIntoDB,
   deleteSubcategoryFromDB,
 };

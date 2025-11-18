@@ -10,6 +10,8 @@ import { TOwnerService } from './ownerService.interface';
 import { OwnerService } from './ownerService.model';
 import { User } from '../user/user.model';
 import { serviceSearchableFields } from './ownerService.constant';
+import { Category } from '../category/category.model';
+import { Subcategory } from '../subcategory/subcategory.model';
 
 const createServiceIntoDB = async (
   userId: string,
@@ -27,6 +29,16 @@ const createServiceIntoDB = async (
 
   if (user.isRegistration === false) {
     throw new AppError(400, 'Owner registration not completed');
+  }
+
+  const category = await Category.findOne({ name: payload.category });
+  if (!category) {
+    throw new AppError(404, 'Category not found');
+  }
+
+  const subcategory = await Subcategory.findOne({ name: payload.subcategory });
+  if (!subcategory) {
+    throw new AppError(404, 'Subcategory not found');
   }
 
   // Handle image upload to S3

@@ -58,7 +58,7 @@ const getAllCategoryFromDB = async (query: Record<string, unknown>) => {
 };
 
 const getCategoryByIdFromDB = async (id: string) => {
-  const result = await Category.findById(id).populate('Subcategory');
+  const result = await Category.findById(id).populate('subcategories');
 
   if (!result) {
     throw new AppError(404, 'This category not found');

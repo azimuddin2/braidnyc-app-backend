@@ -21,6 +21,14 @@ const freelancerServiceSchema = new Schema<TFreelancerService>(
       type: String,
       required: true,
     },
+    category: {
+      type: String,
+      required: true,
+    },
+    subcategory: {
+      type: String,
+      required: true,
+    },
     time: {
       type: String,
       required: true,

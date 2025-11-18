@@ -5,6 +5,8 @@ import { ServiceStatus } from './freelancerService.constant';
 const createFreelancerServiceValidationSchema = z.object({
   body: z.object({
     name: z.string({ required_error: 'Name is required' }),
+    category: z.string({ required_error: 'Category is required' }),
+    subcategory: z.string({ required_error: 'Subcategory is required' }),
     time: z.string({ required_error: 'Time is required' }),
     price: z.number({ required_error: 'Price is required' }),
     status: z
@@ -18,6 +20,10 @@ const createFreelancerServiceValidationSchema = z.object({
 const updateFreelancerServiceValidationSchema = z.object({
   body: z.object({
     name: z.string({ required_error: 'Name is required' }).optional(),
+    category: z.string({ required_error: 'Category is required' }).optional(),
+    subcategory: z
+      .string({ required_error: 'Subcategory is required' })
+      .optional(),
     time: z.string({ required_error: 'Time is required' }).optional(),
     price: z.number({ required_error: 'Price is required' }).optional(),
     status: z

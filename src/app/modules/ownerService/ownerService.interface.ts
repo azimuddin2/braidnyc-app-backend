@@ -14,6 +14,8 @@ export type TOwnerService = {
   deleteKey: string[];
   images: TImage[];
   name: string;
+  category: string;
+  subcategory: string;
   time: string;
   price: number;
   about: string;
