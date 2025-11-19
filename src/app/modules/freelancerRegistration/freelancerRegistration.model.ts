@@ -65,13 +65,17 @@ const FreelancerRegistrationSchema = new Schema<TFreelancerRegistration>(
       type: Number,
     },
 
-    // ✅ unified location field (object-based)
     location: {
-      streetAddress: { type: String },
-      coordinates: {
-        lat: { type: Number },
-        lng: { type: Number },
+      type: {
+        type: String,
+        enum: ['Point'],
+        default: 'Point',
       },
+      coordinates: {
+        type: [Number], // [longitude, latitude]
+        required: true,
+      },
+      streetAddress: { type: String },
     },
 
     city: {

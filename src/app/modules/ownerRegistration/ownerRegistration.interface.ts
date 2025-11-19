@@ -23,15 +23,14 @@ export type TOwnerRegistration = {
   salonPhoto?: string | null;
   businessRegistrationNumber?: number;
 
-  location?: {
+  location: {
+    type: 'Point';
+    coordinates: [number, number]; // [longitude, latitude]
     streetAddress?: string;
-    coordinates?: {
-      lat: number;
-      lng: number;
-    };
   };
 
-  reviews?: Types.ObjectId[];
+  services: Types.ObjectId[];
+  reviews: Types.ObjectId[];
   avgRating?: number;
 
   isDeleted: boolean;

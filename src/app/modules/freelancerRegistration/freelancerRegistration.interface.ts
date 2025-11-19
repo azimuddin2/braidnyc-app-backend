@@ -26,12 +26,10 @@ export type TFreelancerRegistration = {
   name: string;
   businessRegistrationNumber: number;
 
-  location?: {
+  location: {
+    type: 'Point';
+    coordinates: [number, number]; // [longitude, latitude]
     streetAddress?: string;
-    coordinates?: {
-      lat: number;
-      lng: number;
-    };
   };
 
   city: string;

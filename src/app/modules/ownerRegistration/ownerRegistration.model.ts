@@ -62,15 +62,25 @@ const OwnerRegistrationSchema = new Schema<TOwnerRegistration>(
       type: Number,
     },
 
-    // ✅ unified location field (object-based)
     location: {
-      streetAddress: { type: String },
-      coordinates: {
-        lat: { type: Number },
-        lng: { type: Number },
+      type: {
+        type: String,
+        enum: ['Point'],
+        default: 'Point',
       },
+      coordinates: {
+        type: [Number], // [longitude, latitude]
+        required: true,
+      },
+      streetAddress: { type: String },
     },
 
+    services: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'OwnerService',
+      },
+    ],
     reviews: [
       {
         type: Schema.Types.ObjectId,
