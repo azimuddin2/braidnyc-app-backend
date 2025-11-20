@@ -17,6 +17,7 @@ import { OnServiceRoutes } from '../modules/onService/onService.route';
 import { SubcategoryRoutes } from '../modules/subcategory/subcategory.route';
 import { SupportRoutes } from '../modules/support/support.route';
 import { MemberRoutes } from '../modules/member/member.route';
+import { CustomerRoutes } from '../modules/customer/customer.route';
 
 const router = Router();
 
@@ -92,6 +93,10 @@ const moduleRoutes = [
   {
     path: '/members',
     route: MemberRoutes,
+  },
+  {
+    path: '/customers',
+    route: CustomerRoutes,
   },
 
   // TODO: ROUTE UPDATE
