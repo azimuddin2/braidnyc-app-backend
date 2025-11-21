@@ -6,6 +6,7 @@ import { TFreelancerRegistration } from './freelancerRegistration.interface';
 import { FreelancerRegistration } from './freelancerRegistration.model';
 import QueryBuilder from '../../builder/QueryBuilder';
 import { FreelancerSearchableFields } from './freelancerRegistration.constant';
+import { FreelancerService } from '../freelancerService/freelancerService.model';
 
 const createFreelancerRegistrationIntoDB = async (
   userId: string,
@@ -108,11 +109,37 @@ const createFreelancerRegistrationIntoDB = async (
 };
 
 const getAllFreelancersFromDB = async (query: Record<string, unknown>) => {
-  const freelancerQuery = new QueryBuilder(
-    FreelancerRegistration.find({ isDeleted: false }).populate({
-      path: 'user',
-      select: '-password -needsPasswordChange',
-    }),
+  const baseQuery: Record<string, any> = { isDeleted: false };
+
+  // ⭐ Single subcategory filter — EXACT SAME PATTERN FOLLOWED
+  if (query.subcategory) {
+    const services = await FreelancerService.find({
+      subcategory: query.subcategory,
+      isDeleted: false,
+    }).select('_id');
+
+    const serviceIds = services.map((s) => s._id);
+
+    // Always apply the filter — even if empty
+    baseQuery.services = { $in: serviceIds };
+
+    // Prevent QueryBuilder.filter() conflict
+    delete query.subcategory;
+  }
+
+  // 🔹 Use QueryBuilder EXACTLY like your old structure
+  const ownerRegistrationQuery = new QueryBuilder(
+    FreelancerRegistration.find(baseQuery)
+      .populate({
+        path: 'user',
+        select: '-password -needsPasswordChange',
+      })
+      .populate({
+        path: 'services',
+        match: baseQuery.services
+          ? { _id: { $in: baseQuery.services.$in } }
+          : {},
+      }),
     query,
   )
     .search(FreelancerSearchableFields)
@@ -121,8 +148,8 @@ const getAllFreelancersFromDB = async (query: Record<string, unknown>) => {
     .paginate()
     .fields();
 
-  const meta = await freelancerQuery.countTotal();
-  const result = await freelancerQuery.modelQuery;
+  const meta = await ownerRegistrationQuery.countTotal();
+  const result = await ownerRegistrationQuery.modelQuery;
 
   return { meta, result };
 };

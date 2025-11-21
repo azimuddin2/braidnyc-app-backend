@@ -87,6 +87,12 @@ const FreelancerRegistrationSchema = new Schema<TFreelancerRegistration>(
     country: {
       type: String,
     },
+    services: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'FreelancerService',
+      },
+    ],
 
     reviews: [
       {

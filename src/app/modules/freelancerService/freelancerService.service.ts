@@ -8,6 +8,7 @@ import { FreelancerService } from './freelancerService.model';
 import { serviceSearchableFields } from './freelancerService.constant';
 import { Category } from '../category/category.model';
 import { Subcategory } from '../subcategory/subcategory.model';
+import { FreelancerRegistration } from '../freelancerRegistration/freelancerRegistration.model';
 
 const createServiceIntoDB = async (
   userId: string,
@@ -17,70 +18,96 @@ const createServiceIntoDB = async (
     studioInsidePhoto?: Express.Multer.File[];
   },
 ) => {
-  // 1️⃣ Validate user existence and role
-  const user = await User.findById(userId).select('role isRegistration');
-  if (!user) {
-    throw new AppError(404, 'User not found');
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    // 1️⃣ Validate user (same as before)
+    const user = await User.findById(userId)
+      .select('role isRegistration')
+      .session(session);
+
+    if (!user) {
+      throw new AppError(404, 'User not found');
+    }
+
+    if (user.role !== 'freelancer') {
+      throw new AppError(403, 'Only freelancers can perform this action');
+    }
+
+    if (user.isRegistration === false) {
+      throw new AppError(400, 'Freelancer registration not completed');
+    }
+
+    // 2️⃣ Validate category + subcategory
+    const category = await Category.findOne({ name: payload.category }).session(
+      session,
+    );
+    if (!category) throw new AppError(404, 'Category not found');
+
+    const subcategory = await Subcategory.findOne({
+      name: payload.subcategory,
+    }).session(session);
+    if (!subcategory) throw new AppError(404, 'Subcategory not found');
+
+    // 3️⃣ Handle image uploads
+    if (files) {
+      const uploadSingleFile = async (
+        fileArray: Express.Multer.File[] | undefined,
+        folder: string,
+      ): Promise<string | null> => {
+        if (fileArray && fileArray[0]) {
+          const file = fileArray[0];
+
+          const uploadedUrl = await uploadToS3({
+            file,
+            fileName: `images/freelancer/${folder}/${Date.now()}-${Math.floor(
+              1000 + Math.random() * 9000,
+            )}`,
+          });
+
+          return uploadedUrl as string;
+        }
+        return null;
+      };
+
+      payload.studioFrontPhoto =
+        (await uploadSingleFile(files.studioFrontPhoto, 'frontPhoto')) ?? null;
+
+      payload.studioInsidePhoto =
+        (await uploadSingleFile(files.studioInsidePhoto, 'insidePhoto')) ??
+        null;
+    }
+
+    // 4️⃣ Attach freelancer ID
+    payload.freelancer = userId as any;
+
+    // 5️⃣ Create freelancer service
+    const service = await FreelancerService.create([payload], { session });
+
+    if (!service || !service[0]) {
+      throw new AppError(400, 'Failed to create service');
+    }
+
+    const createdService = service[0];
+
+    // 6️⃣ Add service ID into FreelancerRegistration.services[]
+    await FreelancerRegistration.findOneAndUpdate(
+      { user: userId },
+      { $push: { services: createdService._id } },
+      { session, new: true },
+    );
+
+    // 7️⃣ Commit transaction
+    await session.commitTransaction();
+    session.endSession();
+
+    return createdService;
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    throw error;
   }
-
-  if (user.role !== 'freelancer') {
-    throw new AppError(403, 'Only freelancers can perform this action');
-  }
-
-  if (user.isRegistration === false) {
-    throw new AppError(400, 'Freelancer registration not completed');
-  }
-
-  const category = await Category.findOne({ name: payload.category });
-  if (!category) {
-    throw new AppError(404, 'Category not found');
-  }
-
-  const subcategory = await Subcategory.findOne({ name: payload.subcategory });
-  if (!subcategory) {
-    throw new AppError(404, 'Subcategory not found');
-  }
-
-  // 2️⃣ Handle image uploads
-  if (files) {
-    // Helper to upload a single file to S3
-    const uploadSingleFile = async (
-      fileArray: Express.Multer.File[] | undefined,
-      folder: string,
-    ): Promise<string | null> => {
-      if (fileArray && fileArray[0]) {
-        const file = fileArray[0];
-        const uploadedUrl = await uploadToS3({
-          file,
-          fileName: `images/freelancer/${folder}/${Date.now()}-${Math.floor(
-            1000 + Math.random() * 9000,
-          )}`,
-        });
-        return uploadedUrl as string;
-      }
-      return null; // ✅ Return null for consistency
-    };
-
-    // Upload both photos if available
-    payload.studioFrontPhoto =
-      (await uploadSingleFile(files.studioFrontPhoto, 'frontPhoto')) ?? null;
-
-    payload.studioInsidePhoto =
-      (await uploadSingleFile(files.studioInsidePhoto, 'insidePhoto')) ?? null;
-  }
-
-  // 3️⃣ Attach the freelancer (user) ID to the payload
-  payload.freelancer = userId as any;
-
-  // 4️⃣ Create the freelancer service document in DB
-  const result = await FreelancerService.create(payload);
-
-  if (!result) {
-    throw new AppError(400, 'Failed to create service');
-  }
-
-  // 5️⃣ Return created service
-  return result;
 };
 
 const getAllServiceFromDB = async (query: Record<string, unknown>) => {

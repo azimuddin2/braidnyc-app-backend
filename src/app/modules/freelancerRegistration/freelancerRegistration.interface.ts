@@ -36,6 +36,8 @@ export type TFreelancerRegistration = {
   postalCode: number;
   country: string;
 
+  services: Types.ObjectId[];
+
   reviews?: Types.ObjectId[];
   avgRating?: number;
 

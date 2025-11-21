@@ -12,66 +12,110 @@ import { User } from '../user/user.model';
 import { serviceSearchableFields } from './ownerService.constant';
 import { Category } from '../category/category.model';
 import { Subcategory } from '../subcategory/subcategory.model';
+import { OwnerRegistration } from '../ownerRegistration/ownerRegistration.model';
 
 const createServiceIntoDB = async (
   userId: string,
   payload: TOwnerService,
   files: any,
 ) => {
-  const user = await User.findById(userId).select('role isRegistration');
-  if (!user) {
-    throw new AppError(404, 'User not found');
-  }
+  // ✅ Start Transaction Session
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
-  if (user.role !== 'owner') {
-    throw new AppError(403, 'Only owner can perform this action');
-  }
+  try {
+    const user = await User.findById(userId)
+      .select('role isRegistration')
+      .session(session);
 
-  if (user.isRegistration === false) {
-    throw new AppError(400, 'Owner registration not completed');
-  }
-
-  const category = await Category.findOne({ name: payload.category });
-  if (!category) {
-    throw new AppError(404, 'Category not found');
-  }
-
-  const subcategory = await Subcategory.findOne({ name: payload.subcategory });
-  if (!subcategory) {
-    throw new AppError(404, 'Subcategory not found');
-  }
-
-  // Handle image upload to S3
-  if (files) {
-    const { images } = files as UploadedFiles;
-
-    if (!images?.length) {
-      throw new AppError(404, 'At least one image is required');
+    if (!user) {
+      throw new AppError(404, 'User not found');
     }
 
-    if (images?.length) {
-      const imgsArray = images.map((image) => ({
-        file: image,
-        path: `images/service`,
-      }));
+    if (user.role !== 'owner') {
+      throw new AppError(403, 'Only owner can perform this action');
+    }
 
-      try {
-        payload.images = await uploadManyToS3(imgsArray);
-      } catch (error) {
-        throw new AppError(500, 'Image upload failed');
+    if (user.isRegistration === false) {
+      throw new AppError(400, 'Owner registration not completed');
+    }
+
+    const category = await Category.findOne({ name: payload.category }).session(
+      session,
+    );
+    if (!category) {
+      throw new AppError(404, 'Category not found');
+    }
+
+    const subcategory = await Subcategory.findOne({
+      name: payload.subcategory,
+    }).session(session);
+    if (!subcategory) {
+      throw new AppError(404, 'Subcategory not found');
+    }
+
+    //  ✔️ FILE UPLOAD
+    if (files) {
+      const { images } = files as UploadedFiles;
+
+      if (!images?.length) {
+        throw new AppError(404, 'At least one image is required');
+      }
+
+      if (images?.length) {
+        const imgsArray = images.map((image) => ({
+          file: image,
+          path: `images/service`,
+        }));
+
+        try {
+          payload.images = await uploadManyToS3(imgsArray);
+        } catch (error) {
+          throw new AppError(500, 'Image upload failed');
+        }
       }
     }
+
+    //  ✔️ SET OWNER ID
+    payload.owner = userId as any;
+
+    // ------------------------------------------------------
+    //    ✔️ CREATE SERVICE  (inside transaction)
+    // ------------------------------------------------------
+    const createdServiceArr = await OwnerService.create([payload], { session });
+    const createdService = createdServiceArr[0];
+
+    if (!createdService) {
+      throw new AppError(400, 'Failed to create service');
+    }
+
+    // ------------------------------------------------------
+    //    ✔️ ADD service._id INTO OwnerRegistration.services
+    //    ☐ checkbox-style comment: OwnerRegistration update task
+    //       ☑ Add service id to services[] field
+    // ------------------------------------------------------
+    const updatedOwnerReg = await OwnerRegistration.findOneAndUpdate(
+      { user: userId },
+      { $push: { services: createdService._id } },
+      { new: true, session },
+    );
+
+    if (!updatedOwnerReg) {
+      throw new AppError(404, 'Owner registration not found');
+    }
+
+    // ------------------------------------------------------
+    //    ✔️ Commit Transaction
+    // ------------------------------------------------------
+    await session.commitTransaction();
+    session.endSession();
+
+    return createdService;
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    throw error;
   }
-
-  // ✅ Set the user field before saving
-  payload.owner = userId as any;
-
-  const result = await OwnerService.create(payload);
-  if (!result) {
-    throw new AppError(400, 'Failed to create service');
-  }
-
-  return result;
 };
 
 const getAllServiceFromDB = async (query: Record<string, unknown>) => {

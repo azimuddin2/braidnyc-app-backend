@@ -6,6 +6,7 @@ import { deleteFromS3, uploadToS3 } from '../../utils/awsS3FileUploader';
 import { OwnerRegistration } from './ownerRegistration.model';
 import QueryBuilder from '../../builder/QueryBuilder';
 import { OwnerSearchableFields } from './ownerRegistration.constant';
+import { OwnerService } from '../ownerService/ownerService.model';
 
 const createOwnerRegistrationIntoDB = async (
   userId: string,
@@ -112,11 +113,37 @@ const createOwnerRegistrationIntoDB = async (
 const getAllOwnerRegistrationFromDB = async (
   query: Record<string, unknown>,
 ) => {
+  const baseQuery: Record<string, any> = { isDeleted: false };
+
+  // ⭐ Single subcategory filter
+  if (query.subcategory) {
+    const services = await OwnerService.find({
+      subcategory: query.subcategory,
+      isDeleted: false,
+    }).select('_id');
+
+    const serviceIds = services.map((s) => s._id);
+
+    // Apply filter even if serviceIds is empty
+    baseQuery.services = { $in: serviceIds };
+
+    // Remove from query to avoid conflicts with QueryBuilder.filter()
+    delete query.subcategory;
+  }
+
+  // 🔹 Use QueryBuilder exactly like before
   const ownerRegistrationQuery = new QueryBuilder(
-    OwnerRegistration.find({ isDeleted: false }).populate({
-      path: 'user',
-      select: '-password -needsPasswordChange',
-    }),
+    OwnerRegistration.find(baseQuery)
+      .populate({
+        path: 'user',
+        select: '-password -needsPasswordChange',
+      })
+      .populate({
+        path: 'services',
+        match: baseQuery.services
+          ? { _id: { $in: baseQuery.services.$in } }
+          : {},
+      }),
     query,
   )
     .search(OwnerSearchableFields)
