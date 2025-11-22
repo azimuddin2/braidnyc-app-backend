@@ -8,11 +8,23 @@ const getAllRecommendOwner = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: 200,
     success: true,
-    message: 'Freelancers retrieved successfully',
+    message: 'Owner profile retrieved successfully',
+    data: result,
+  });
+});
+
+const getTopFeaturedStylist = catchAsync(async (req, res) => {
+  const result = await CustomerService.getTopFeaturedStylistFromDB();
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Top featured stylist profile retrieved successfully',
     data: result,
   });
 });
 
 export const CustomerController = {
   getAllRecommendOwner,
+  getTopFeaturedStylist,
 };

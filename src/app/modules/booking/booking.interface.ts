@@ -1,24 +1,10 @@
 import { Types } from 'mongoose';
 
-export type TBookingStatus =
-  | 'pending'
-  | 'confirmed'
-  | 'cancelled'
-  | 'ongoing'
-  | 'completed';
-export type TPaymentType = 'half' | 'full' | 'later';
-export type TPaymentStatus = 'pending' | 'paid' | 'refunded' | 'failed';
+export type TBookingStatus = 'pending' | 'canceled' | 'completed';
 
-export type TBookingRequestType = 'none' | 'cancel' | 'reschedule';
+export type TBookingRequest = 'pending' | 'approved' | 'decline';
 
-export interface IBookingRequest {
-  type?: TBookingRequestType;
-  reason?: string;
-  newDate?: string;
-  newTime?: string;
-  vendorApproved?: boolean;
-  updatedAt?: Date;
-}
+// export type TPaymentStatus = 'pending' | 'paid' | 'refunded' | 'failed';
 
 export type TBooking = {
   vendor: Types.ObjectId;
@@ -26,21 +12,19 @@ export type TBooking = {
   serviceId: string;
   service: Types.ObjectId;
   serviceItemId: string;
+
   name: string;
   email: string;
   phone: string;
+
   serviceName: string;
   date: string;
   time: string;
   duration: string;
   price: number;
   status: TBookingStatus;
-  paymentType: TPaymentType;
-  paymentStatus: TPaymentStatus;
+  // paymentStatus: TPaymentStatus;
   isDeleted: boolean;
 
-  assignedTo: string;
-
-  // Request field for cancel/reschedule
-  request?: IBookingRequest;
+  request?: TBookingRequest;
 };

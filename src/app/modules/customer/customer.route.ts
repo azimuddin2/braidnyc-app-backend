@@ -6,4 +6,6 @@ const router = express.Router();
 
 router.get('/recommend', CustomerController.getAllRecommendOwner);
 
+router.get('/top-stylist', CustomerController.getTopFeaturedStylist);
+
 export const CustomerRoutes = router;
