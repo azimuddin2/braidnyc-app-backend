@@ -1,18 +1,20 @@
 import {
+  TBookingRequest,
   TBookingStatus,
   TPaymentStatus,
-  TPaymentType,
 } from './booking.interface';
 
 export const BookingStatus: TBookingStatus[] = [
   'pending',
-  'ongoing',
-  'confirmed',
-  'cancelled',
   'completed',
+  'canceled',
 ];
 
-export const PaymentType: TPaymentType[] = ['half', 'full', 'later'];
+export const BookingRequest: TBookingRequest[] = [
+  'pending',
+  'approved',
+  'decline',
+];
 
 export const PaymentStatus: TPaymentStatus[] = [
   'pending',

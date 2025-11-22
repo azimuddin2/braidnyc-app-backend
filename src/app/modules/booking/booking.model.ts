@@ -1,121 +1,60 @@
-import { model, Schema } from 'mongoose';
-import { IBookingRequest, TBooking } from './booking.interface';
-import { BookingStatus, PaymentStatus, PaymentType } from './booking.constant';
+import { Schema, model } from 'mongoose';
+import { TBooking } from './booking.interface';
 
-const BookingRequestSchema = new Schema<IBookingRequest>({
-  type: {
-    type: String,
-    enum: ['none', 'cancel', 'reschedule'],
-    default: 'none',
-  },
-  reason: { type: String },
-  newDate: { type: String },
-  newTime: { type: String },
-  vendorApproved: { type: Boolean, default: false },
-  updatedAt: { type: Date, default: Date.now },
-});
-
-const bookingSchema = new Schema<TBooking>(
+const BookingSchema = new Schema<TBooking>(
   {
-    vendor: {
-      type: Schema.Types.ObjectId,
-      required: [true, 'Vendor Id is required'],
-      ref: 'Vendor',
-    },
-    user: {
-      type: Schema.Types.ObjectId,
-      required: [true, 'User Id is required'],
-      ref: 'User',
-    },
-    serviceId: {
+    serviceType: {
       type: String,
+      enum: ['owner', 'freelancer'],
       required: true,
     },
+
+    // Dynamically reference service based on serviceType
     service: {
       type: Schema.Types.ObjectId,
-      required: [true, 'Service Id is required'],
-      ref: 'Packages',
-    },
-    serviceItemId: {
-      type: String,
       required: true,
+      refPath: 'serviceType',
     },
-    name: {
-      type: String,
+
+    // Dynamically reference vendor (owner or freelancer)
+    vendor: {
+      type: Schema.Types.ObjectId,
       required: true,
-      trim: true,
+      refPath: 'serviceType',
     },
-    email: {
-      type: String,
-      required: true,
-      lowercase: true,
-      trim: true,
-    },
-    phone: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    serviceName: {
-      type: String,
-      required: true,
-    },
-    date: {
-      type: String,
-      required: true,
-    },
-    time: {
-      type: String,
-      required: true,
-    },
-    duration: {
-      type: String,
-      required: true,
-    },
-    price: {
-      type: Number,
-      required: true,
-    },
+
+    customer: { type: Schema.Types.ObjectId, required: true, ref: 'User' },
+
+    email: { type: String, required: true },
+
+    date: { type: String, required: true },
+    time: { type: String, required: true },
+    duration: { type: String, required: true },
+    totalPrice: { type: Number, required: true },
+
     status: {
       type: String,
-      enum: {
-        values: BookingStatus,
-        message: '{VALUE} is not valid',
-      },
+      enum: ['pending', 'canceled', 'completed'],
       default: 'pending',
-    },
-    paymentType: {
-      type: String,
-      enum: {
-        values: PaymentType,
-        message: '{VALUE} is not valid',
-      },
-      default: 'full',
     },
     paymentStatus: {
       type: String,
-      enum: {
-        values: PaymentStatus,
-        message: '{VALUE} is not valid',
-      },
+      enum: ['pending', 'paid', 'refunded', 'failed'],
       default: 'pending',
     },
-    isDeleted: {
-      type: Boolean,
-      default: false,
-    },
-    assignedTo: {
+
+    image: { type: String },
+    notes: { type: String },
+
+    request: {
       type: String,
+      enum: ['pending', 'approved', 'decline'],
+      default: 'pending',
     },
-    request: { type: BookingRequestSchema, default: {} },
+
+    isDeleted: { type: Boolean, default: false },
   },
   { timestamps: true },
 );
 
-// ✅ Enforce one-slot-one-booking
-bookingSchema.index(
-  { service: 1, serviceName: 1, date: 1, time: 1 },
-  { unique: true, partialFilterExpression: { isDeleted: false } },
-);
-
-export const Booking = model<TBooking>('Booking', bookingSchema);
+export const Booking = model<TBooking>('Booking', BookingSchema);

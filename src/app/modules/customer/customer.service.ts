@@ -1,3 +1,4 @@
+import { FreelancerRegistration } from '../freelancerRegistration/freelancerRegistration.model';
 import { OwnerRegistration } from '../ownerRegistration/ownerRegistration.model';
 
 const getAllRecommendOwnerFromDB = async (query: Record<string, unknown>) => {
@@ -35,7 +36,7 @@ const getAllRecommendOwnerFromDB = async (query: Record<string, unknown>) => {
 };
 
 const getTopFeaturedStylistFromDB = async () => {
-  const [topOwner] = await OwnerRegistration.aggregate([
+  const [topOwner] = await FreelancerRegistration.aggregate([
     // 1️⃣ Match only active owners
     { $match: { isDeleted: false } },
 
