@@ -102,6 +102,9 @@ const bookingSchema = new Schema<TBooking>(
       default: 'pending',
     },
 
+    slotStart: { type: Number }, // minutes since 00:00
+    slotEnd: { type: Number }, // minutes since 00:00
+
     isDeleted: {
       type: Boolean,
       default: false,

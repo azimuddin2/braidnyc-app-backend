@@ -37,5 +37,8 @@ export type TBooking = {
 
   request?: TBookingRequest;
 
+  slotStart?: number; // minutes since 00:00
+  slotEnd?: number; // minutes since 00:00
+
   isDeleted: boolean;
 };

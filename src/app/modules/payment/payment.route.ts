@@ -9,7 +9,7 @@ router.get('/', PaymentController.getAllPayment);
 
 router.post(
   '/checkout',
-  auth(USER_ROLE.customer),
+  // auth(USER_ROLE.customer),
   PaymentController.createPayment,
 );
 

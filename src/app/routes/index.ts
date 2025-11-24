@@ -19,6 +19,7 @@ import { SupportRoutes } from '../modules/support/support.route';
 import { MemberRoutes } from '../modules/member/member.route';
 import { CustomerRoutes } from '../modules/customer/customer.route';
 import { BookingRoutes } from '../modules/booking/booking.route';
+import { PaymentRoutes } from '../modules/payment/payment.route';
 
 const router = Router();
 
@@ -102,6 +103,10 @@ const moduleRoutes = [
   {
     path: '/bookings',
     route: BookingRoutes,
+  },
+  {
+    path: '/payments',
+    route: PaymentRoutes,
   },
 
   // TODO: ROUTE UPDATE

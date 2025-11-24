@@ -1,83 +1,84 @@
-import mongoose, { Types } from 'mongoose';
 import AppError from '../../errors/AppError';
 import { Booking } from './booking.model';
-// import { Packages } from '../packages/packages.model';
-import { SERVICE_MODEL_TYPE, TBooking } from './booking.interface';
-// import { TWeekDay } from '../packages/packages.interface';
-import QueryBuilder from '../../builder/QueryBuilder';
-import { bookingSearchableFields } from './booking.constant';
-import { NotificationServices } from '../notification/notification.service';
-import { ModeType } from '../notification/notification.interface';
+import { TBooking } from './booking.interface';
+import { User } from '../user/user.model';
+import { OwnerService } from '../ownerService/ownerService.model';
+import { FreelancerService } from '../freelancerService/freelancerService.model';
 
-const createBookingIntoDB = async (payload: TBooking) => {
-  const { service, serviceType, date, time } = payload;
-
-  // Validate ObjectId
-  if (!Types.ObjectId.isValid(service)) {
-    throw new AppError(400, 'Invalid service ID');
-  }
-
-  // Load correct model dynamically
-  const serviceModel =
-    serviceType === SERVICE_MODEL_TYPE.OwnerService
-      ? require('../ownerService/ownerService.model').OwnerService
-      : require('../freelancerService/freelancerService.model')
-          .FreelancerService;
-
-  const serviceData = await serviceModel.findById(service).lean();
-  if (!serviceData) {
-    throw new AppError(404, 'Service not found');
-  }
-
-  // Parse selected date
-  const dayOfWeek = new Date(date)
-    .toLocaleDateString('en-US', { weekday: 'long' })
-    .toLowerCase();
-
-  const schedule = serviceData.availability?.weeklySchedule?.[dayOfWeek];
-
-  if (!schedule?.enabled) {
-    throw new AppError(400, 'Service not available on this day');
-  }
-
-  // Convert time to minutes
-  const parseToMinutes = (timeStr: string) => {
-    // Supports "10:00 AM" or "14:00"
-    let [time, modifier] = timeStr.split(' ');
-    let [hour, minute] = time.split(':').map(Number);
-
-    if (modifier) {
-      if (modifier === 'PM' && hour !== 12) hour += 12;
-      if (modifier === 'AM' && hour === 12) hour = 0;
-    }
-
-    return hour * 60 + (minute || 0);
-  };
-
-  const [slotStartStr, slotEndStr] = time.split(' - ');
-  const slotStart = parseToMinutes(slotStartStr);
-  const slotEnd = parseToMinutes(slotEndStr);
-  const scheduleStart = parseToMinutes(schedule.startTime);
-  const scheduleEnd = parseToMinutes(schedule.endTime);
-
-  if (slotStart < scheduleStart || slotEnd > scheduleEnd) {
-    throw new AppError(400, 'Selected time is outside service working hours');
-  }
-
-  // Check existing booking
-  const existingBooking = await Booking.findOne({
+export const createBookingIntoDB = async (payload: TBooking, session?: any) => {
+  const {
+    customer,
     service,
+    vendor,
     date,
     time,
-    isDeleted: false,
-  }).lean();
+    specialist,
+    duration,
+    serviceType,
+  } = payload;
 
-  if (existingBooking) {
-    throw new AppError(409, 'This time slot is already booked');
+  const customerExists = await User.findById(customer);
+  if (!customerExists) throw new AppError(404, 'Customer does not exist');
+
+  const vendorExists = await User.findById(vendor);
+  if (!vendorExists) throw new AppError(404, 'Vendor does not exist');
+
+  let serviceExists;
+  if (serviceType === 'OwnerService') {
+    serviceExists = await OwnerService.findById(service);
+  } else if (serviceType === 'FreelancerService') {
+    serviceExists = await FreelancerService.findById(service);
+  } else {
+    throw new AppError(400, 'Invalid service type');
   }
 
-  // Create booking
-  const booking = await Booking.create(payload);
+  if (!serviceExists) throw new AppError(404, 'Service does not exist');
+
+  const durationMinutes = Number(duration) * 60;
+
+  const parseToMinutes = (t: string) => {
+    let [timeStr, mod] = t.split(' ');
+    let [h, m] = timeStr.split(':').map(Number);
+    m = m || 0;
+
+    if (mod) {
+      if (mod === 'PM' && h !== 12) h += 12;
+      if (mod === 'AM' && h === 12) h = 0;
+    }
+    return h * 60 + m;
+  };
+
+  const [slotStartStr] = time.split(' - ');
+  const slotStart = parseToMinutes(slotStartStr);
+  const slotEnd = slotStart + durationMinutes;
+
+  // Specialist conflict
+  if (specialist) {
+    const conflict = await Booking.findOne({
+      specialist,
+      date,
+      isDeleted: false,
+      $or: [
+        {
+          $and: [
+            { slotStart: { $lt: slotEnd } },
+            { slotEnd: { $gt: slotStart } },
+          ],
+        },
+      ],
+    });
+
+    if (conflict)
+      throw new AppError(409, 'Specialist is not available for this duration');
+  }
+
+  payload.slotStart = slotStart;
+  payload.slotEnd = slotEnd;
+
+  // 👇👇 IMPORTANT PART — session support
+  const booking = await Booking.create([payload], { session }).then(
+    (d) => d[0],
+  );
 
   return booking;
 };

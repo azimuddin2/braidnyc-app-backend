@@ -8,6 +8,8 @@ import StripePaymentService from '../../class/stripe';
 import QueryBuilder from '../../builder/QueryBuilder';
 import { TPayment } from './payment.interface';
 import { Booking } from '../booking/booking.model';
+import { BookingServices } from '../booking/booking.service';
+import { TBooking } from '../booking/booking.interface';
 
 // 🔹 Helper → calculate commission split (10% admin, 90% vendor)
 const calculateAmounts = (price: number) => ({
@@ -15,80 +17,73 @@ const calculateAmounts = (price: number) => ({
   vendorAmount: price * 0.9,
 });
 
-const createPayment = async (payload: TPayment) => {
+const createPayment = async (payload: any) => {
   const session = await startSession();
   session.startTransaction();
 
   try {
-    // STEP 1 — Ensure booking exists
-    const booking = await Booking.findById(payload.booking).lean().exec();
+    // STEP 1 — VALIDATED BOOKING CREATION
+    const bookingPayload: any = {
+      customer: payload.customer,
+      vendor: payload.vendor,
+      service: payload.service,
+      serviceType: payload.serviceType,
+      onServices: payload.onServices,
+      email: payload.email,
+      date: payload.date,
+      time: payload.time,
+      duration: payload.duration,
+      specialist: payload.specialist,
+      serviceLocation: payload.serviceLocation,
+      image: payload.image,
+      notes: payload.notes,
+      totalPrice: payload.totalPrice,
+    };
 
-    if (!booking) {
-      throw new AppError(httpStatus.NOT_FOUND, 'Booking not found');
-    }
+    const booking = await BookingServices.createBookingIntoDB(
+      bookingPayload,
+      session,
+    );
 
-    // STEP 2 — Prevent duplicate payments
+    if (!booking) throw new AppError(400, 'Booking creation failed');
+
+    // STEP 2 — Prevent Duplicate Payments
     const existingPaid = await Payment.findOne({
-      booking: payload.booking,
+      booking: booking._id,
       status: 'paid',
-      isDeleted: false,
-    });
-
-    if (existingPaid) {
-      throw new AppError(
-        httpStatus.BAD_REQUEST,
-        'Payment already completed for this booking',
-      );
-    }
-
-    // STEP 3 — Reuse a pending payment OR create new
-    let payment = await Payment.findOne({
-      booking: payload.booking,
-      status: 'pending',
       isDeleted: false,
     }).session(session);
 
-    const trnId = Math.random().toString(36).substring(2, 12);
-
-    if (payment) {
-      payment.trnId = trnId;
-      payment.price = booking.totalPrice;
-
-      const { adminAmount, vendorAmount } = calculateAmounts(
-        booking.totalPrice,
-      );
-      payment.adminAmount = adminAmount;
-      payment.vendorAmount = vendorAmount;
-
-      await payment.save({ session });
-    } else {
-      const { adminAmount, vendorAmount } = calculateAmounts(
-        booking.totalPrice,
-      );
-
-      payment = await Payment.create(
-        [
-          {
-            user: payload.user,
-            vendor: payload.vendor,
-            booking: payload.booking,
-            trnId,
-            price: booking.totalPrice,
-            adminAmount,
-            vendorAmount,
-          },
-        ],
-        { session },
-      ).then((docs) => docs[0]);
+    if (existingPaid) {
+      throw new AppError(400, 'Payment already completed for this booking');
     }
+
+    // STEP 3 — Create Payment
+    const trnId = Math.random().toString(36).substring(2, 12);
+    const { adminAmount, vendorAmount } = calculateAmounts(booking.totalPrice);
+
+    const payment = await Payment.create(
+      [
+        {
+          user: payload.customer,
+          vendor: payload.vendor,
+          booking: booking._id,
+          trnId,
+          price: booking.totalPrice,
+          adminAmount,
+          vendorAmount,
+        },
+      ],
+      { session },
+    ).then((docs) => docs[0]);
 
     if (!payment) {
-      throw new AppError(httpStatus.BAD_REQUEST, 'Payment creation failed');
+      throw new AppError(400, 'Payment creation failed');
     }
 
-    // STEP 4 — Get user & create stripe customer if needed
-    const user = await User.findById(payment.user).session(session);
-    if (!user) throw new AppError(httpStatus.NOT_FOUND, 'User not found');
+    // STEP 4 — STRIPE CUSTOMER
+    const user = await User.findById(payload.customer).session(session);
+    if (!user) throw new AppError(404, 'User not found');
 
     let customerId = user.stripeCustomerId;
 
@@ -106,7 +101,7 @@ const createPayment = async (payload: TPayment) => {
       );
     }
 
-    // STEP 5 — Stripe Line Item (simple)
+    // STEP 5 — Stripe Line Item
     const lineItems: any = [
       {
         price_data: {
@@ -118,11 +113,11 @@ const createPayment = async (payload: TPayment) => {
       },
     ];
 
-    // STEP 6 — Success & Cancel URL
+    // STEP 6 — SUCCESS/CANCEL URLs
     const successUrl = `${config.server_url}/payments/confirm-payment?sessionId={CHECKOUT_SESSION_ID}&paymentId=${payment._id}`;
     const cancelUrl = `${config.server_url}/payments/cancel?paymentId=${payment._id}`;
 
-    // STEP 7 — Stripe Checkout Session
+    // STEP 7 — Create Checkout Session
     const checkoutSession = await StripePaymentService.getCheckoutSession(
       lineItems,
       successUrl,
@@ -132,7 +127,12 @@ const createPayment = async (payload: TPayment) => {
     );
 
     await session.commitTransaction();
-    return checkoutSession?.url;
+
+    return {
+      checkoutUrl: checkoutSession?.url,
+      bookingId: booking._id,
+      paymentId: payment._id,
+    };
   } catch (error) {
     await session.abortTransaction();
     throw error;
