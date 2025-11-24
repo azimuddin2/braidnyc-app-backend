@@ -1,5 +1,5 @@
 import { Schema, model } from 'mongoose';
-import { TPayment, PAYMENT_MODEL_TYPE } from './payment.interface';
+import { TPayment } from './payment.interface';
 import { Status } from './payment.constant';
 
 const paymentSchema = new Schema<TPayment>(
@@ -11,20 +11,8 @@ const paymentSchema = new Schema<TPayment>(
     },
     vendor: {
       type: Schema.Types.ObjectId,
-      ref: 'Vendor',
+      ref: 'User',
       required: true,
-    },
-
-    modelType: {
-      type: String,
-      enum: Object.values(PAYMENT_MODEL_TYPE),
-      required: true,
-    },
-
-    reference: {
-      type: Schema.Types.ObjectId,
-      required: true,
-      refPath: 'modelType', // 👈 dynamic reference (Order / Booking)
     },
 
     status: {
@@ -32,15 +20,6 @@ const paymentSchema = new Schema<TPayment>(
       enum: {
         values: Status,
         message: '{VALUE} is not valid',
-      },
-      default: 'pending',
-    },
-
-    deliveryStatus: {
-      type: String,
-      enum: ['pending', 'ongoing', 'shipped', 'delivered'],
-      required: function () {
-        return this.modelType === PAYMENT_MODEL_TYPE.Order;
       },
       default: 'pending',
     },

@@ -1,26 +1,16 @@
 import { Types } from 'mongoose';
-import { TOrder } from '../order/order.interface';
+import { TUser } from '../user/user.interface';
 import { TBooking } from '../booking/booking.interface';
 
 export type TStatus = 'pending' | 'paid' | 'refunded';
 
-export type TDeliveryStatus = 'pending' | 'ongoing' | 'shipped' | 'delivered';
-
-export enum PAYMENT_MODEL_TYPE {
-  Order = 'Order',
-  Booking = 'Booking',
-}
-
 export type TPayment = {
-  user: Types.ObjectId;
-  vendor: Types.ObjectId;
+  user: Types.ObjectId | TUser;
+  vendor: Types.ObjectId | TUser;
 
-  modelType: PAYMENT_MODEL_TYPE;
-  reference: Types.ObjectId | TOrder | TBooking;
+  booking: Types.ObjectId | TBooking;
 
   status: TStatus;
-
-  deliveryStatus?: TDeliveryStatus;
 
   trnId: string;
   adminAmount: number;

@@ -1,126 +1,40 @@
 import { z } from 'zod';
-import { BookingStatus } from './booking.constant';
-
-const BookingRequestSchemaZod = z.object({
-  type: z.enum(['none', 'cancel', 'reschedule']).optional().default('none'),
-  reason: z.string().optional(),
-  newDate: z.string().optional(),
-  newTime: z.string().optional(),
-  vendorApproved: z.boolean().optional().default(false),
-  updatedAt: z.date().optional(),
-});
+import { SERVICE_MODEL_TYPE } from './booking.interface';
 
 const createBookingValidationSchema = z.object({
   body: z.object({
-    name: z
-      .string({ required_error: 'Full name is required' })
-      .min(3, 'Full name must be at least 3 characters'),
+    vendor: z.string().min(1, 'Vendor is required'),
+    customer: z.string().min(1, 'Customer is required'),
 
-    email: z
-      .string({ required_error: 'Email is required' })
-      .email('Invalid email address'),
+    service: z.string().min(1, 'Service is required'),
 
-    phone: z
-      .string({ required_error: 'Phone number is required' })
-      .min(1, 'Phone number is required')
-      .regex(/^\+?\d+$/, 'Phone number must contain only digits'),
+    serviceType: z.enum([
+      SERVICE_MODEL_TYPE.OwnerService,
+      SERVICE_MODEL_TYPE.FreelancerService,
+    ]),
 
-    serviceName: z
-      .string({ required_error: 'Service name is required' })
-      .min(1, 'Service name is required'),
+    onServices: z.array(z.string()).optional(),
 
-    duration: z
-      .string({ required_error: 'Duration is required' })
-      .min(1, 'Duration is required'),
+    email: z.string().email('Invalid email format'),
 
-    price: z
-      .number({ required_error: 'Price is required' })
-      .positive('Price must be a positive number')
-      .refine((val) => Number(val.toFixed(2)) === val, {
-        message: 'Price can have at most 2 decimal places',
-      }),
+    date: z.string().min(1, 'Date is required'),
+    time: z.string().min(1, 'Time is required'),
+    duration: z.string().min(1, 'Duration is required'),
 
-    date: z
-      .string({ required_error: 'Date is required' })
-      .min(1, 'Date is required'),
+    specialist: z.string().optional(),
 
-    time: z
-      .string({ required_error: 'Time is required' })
-      .min(1, 'Time is required'),
+    serviceLocation: z.string().min(1, 'Service location is required'),
 
-    // Optional booking request field
-    request: BookingRequestSchemaZod.optional(),
-  }),
-});
+    image: z.string().nullable().optional(),
 
-const updateBookingValidationSchema = z.object({
-  body: z.object({
-    name: z
-      .string({ required_error: 'Full name is required' })
-      .min(3, 'Full name must be at least 3 characters')
-      .optional(),
+    notes: z.string().min(1, 'Notes is required'),
 
-    email: z
-      .string({ required_error: 'Email is required' })
-      .email('Invalid email address')
-      .optional(),
+    totalPrice: z.number().min(0, 'Total price must be a positive number'),
 
-    phone: z
-      .string({ required_error: 'Phone number is required' })
-      .min(1, 'Phone number is required')
-      .regex(/^\+?\d+$/, 'Phone number must contain only digits')
-      .optional(),
-
-    serviceName: z
-      .string({ required_error: 'Service name is required' })
-      .min(1, 'Service name is required')
-      .optional(),
-
-    duration: z
-      .string({ required_error: 'Duration is required' })
-      .min(1, 'Duration is required')
-      .optional(),
-
-    price: z
-      .number({ required_error: 'Price is required' })
-      .positive('Price must be a positive number')
-      .refine((val) => Number(val.toFixed(2)) === val, {
-        message: 'Price can have at most 2 decimal places',
-      })
-      .optional(),
-
-    date: z
-      .string({ required_error: 'Date is required' })
-      .min(1, 'Date is required')
-      .optional(),
-
-    time: z
-      .string({ required_error: 'Time is required' })
-      .min(1, 'Time is required')
-      .optional(),
-
-    // Optional booking request field
-    request: BookingRequestSchemaZod.optional(),
-  }),
-});
-
-const assignedMemberValidationSchema = z.object({
-  body: z.object({
-    assignedTo: z
-      .string({ required_error: 'Please select a member to assign' })
-      .min(1, 'Assigned member cannot be empty'), // ensures non-empty string
-  }),
-});
-
-const updateBookingStatusValidationSchema = z.object({
-  body: z.object({
-    status: z.enum([...BookingStatus] as [string, ...string[]]),
+    isDeleted: z.boolean().optional(),
   }),
 });
 
 export const BookingValidation = {
   createBookingValidationSchema,
-  updateBookingValidationSchema,
-  assignedMemberValidationSchema,
-  updateBookingStatusValidationSchema,
 };

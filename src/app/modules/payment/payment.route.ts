@@ -7,7 +7,11 @@ const router = Router();
 
 router.get('/', PaymentController.getAllPayment);
 
-router.post('/checkout', auth(USER_ROLE.user), PaymentController.createPayment);
+router.post(
+  '/checkout',
+  auth(USER_ROLE.customer),
+  PaymentController.createPayment,
+);
 
 router.get('/confirm-payment', PaymentController.confirmPayment);
 
