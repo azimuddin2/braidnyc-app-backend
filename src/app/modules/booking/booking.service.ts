@@ -1,85 +1,144 @@
 import AppError from '../../errors/AppError';
 import { Booking } from './booking.model';
-import { TBooking } from './booking.interface';
+import { SERVICE_MODEL_TYPE, TBooking } from './booking.interface';
 import { User } from '../user/user.model';
 import { OwnerService } from '../ownerService/ownerService.model';
 import { FreelancerService } from '../freelancerService/freelancerService.model';
 
-export const createBookingIntoDB = async (payload: TBooking, session?: any) => {
-  const {
-    customer,
-    service,
-    vendor,
-    date,
-    time,
-    specialist,
-    duration,
-    serviceType,
-  } = payload;
+const createBookingIntoDB = async (payload: TBooking) => {
+  const { customer, service, vendor, date, time, specialist, serviceType } =
+    payload;
 
+  // -------------------------------
+  // 1️⃣ Validate Time Format
+  // -------------------------------
+  const timeRegex = /^\d{1,2}:\d{2} (AM|PM) - \d{1,2}:\d{2} (AM|PM)$/;
+  if (!timeRegex.test(time)) {
+    throw new AppError(
+      400,
+      'Invalid time format. Use: "hh:mm AM - hh:mm PM" (Example: 05:30 PM - 06:30 PM)',
+    );
+  }
+
+  // -------------------------------
+  // 2️⃣ Convert "hh:mm AM/PM" → minutes
+  // -------------------------------
+  const parseToMinutes = (t: string) => {
+    const [timeStr, mod] = t.trim().split(' ');
+    let [h, m] = timeStr.split(':').map(Number);
+
+    if (h < 1 || h > 12 || m < 0 || m > 59) {
+      throw new AppError(400, 'Invalid time value inside range');
+    }
+
+    if (mod === 'PM' && h !== 12) h += 12;
+    if (mod === 'AM' && h === 12) h = 0;
+
+    return h * 60 + m;
+  };
+
+  const [slotStartStr, slotEndStr] = time.split(' - ');
+  const slotStart = parseToMinutes(slotStartStr);
+  const slotEnd = parseToMinutes(slotEndStr);
+
+  // -------------------------------
+  // 3️⃣ Validate Start < End
+  // -------------------------------
+  if (slotEnd <= slotStart) {
+    throw new AppError(400, 'End time must be later than start time');
+  }
+
+  // -------------------------------
+  // 4️⃣ Auto Calculate Duration
+  // -------------------------------
+  const durationMinutes = slotEnd - slotStart;
+  payload.duration = (durationMinutes / 60).toString();
+
+  // -------------------------------
+  // 5️⃣ Validate Date (no past days)
+  // -------------------------------
+  const currentDate = new Date();
+  const bookingDate = new Date(date);
+  if (bookingDate < new Date(currentDate.toDateString())) {
+    throw new AppError(400, 'Cannot create booking for a past date');
+  }
+
+  // -------------------------------
+  // 6️⃣ Attach Slots
+  // -------------------------------
+  payload.slotStart = slotStart;
+  payload.slotEnd = slotEnd;
+
+  // -------------------------------
+  // 7️⃣ Validate Customer + Vendor
+  // -------------------------------
   const customerExists = await User.findById(customer);
   if (!customerExists) throw new AppError(404, 'Customer does not exist');
 
   const vendorExists = await User.findById(vendor);
   if (!vendorExists) throw new AppError(404, 'Vendor does not exist');
 
-  let serviceExists;
-  if (serviceType === 'OwnerService') {
-    serviceExists = await OwnerService.findById(service);
-  } else if (serviceType === 'FreelancerService') {
-    serviceExists = await FreelancerService.findById(service);
-  } else {
-    throw new AppError(400, 'Invalid service type');
-  }
+  const vendorRole = vendorExists.role; // 'owner' or 'freelancer'
 
+  // -------------------------------
+  // 8️⃣ Validate Service Type & ID
+  // -------------------------------
+  let serviceExists;
+  switch (serviceType) {
+    case SERVICE_MODEL_TYPE.OwnerService:
+      serviceExists = await OwnerService.findById(service);
+      break;
+    case SERVICE_MODEL_TYPE.FreelancerService:
+      serviceExists = await FreelancerService.findById(service);
+      break;
+    default:
+      throw new AppError(400, 'Invalid service type');
+  }
   if (!serviceExists) throw new AppError(404, 'Service does not exist');
 
-  const durationMinutes = Number(duration) * 60;
-
-  const parseToMinutes = (t: string) => {
-    let [timeStr, mod] = t.split(' ');
-    let [h, m] = timeStr.split(':').map(Number);
-    m = m || 0;
-
-    if (mod) {
-      if (mod === 'PM' && h !== 12) h += 12;
-      if (mod === 'AM' && h === 12) h = 0;
+  // -------------------------------
+  // 9️⃣ Specialist Logic (role-aware)
+  // -------------------------------
+  if (vendorRole === 'owner') {
+    if (specialist) {
+      const conflict = await Booking.findOne({
+        specialist,
+        date,
+        isDeleted: false,
+        $and: [
+          { slotStart: { $lt: slotEnd } },
+          { slotEnd: { $gt: slotStart } },
+        ],
+      });
+      if (conflict)
+        throw new AppError(409, 'Specialist is not available at this time');
     }
-    return h * 60 + m;
-  };
-
-  const [slotStartStr] = time.split(' - ');
-  const slotStart = parseToMinutes(slotStartStr);
-  const slotEnd = slotStart + durationMinutes;
-
-  // Specialist conflict
-  if (specialist) {
-    const conflict = await Booking.findOne({
-      specialist,
-      date,
-      isDeleted: false,
-      $or: [
-        {
-          $and: [
-            { slotStart: { $lt: slotEnd } },
-            { slotEnd: { $gt: slotStart } },
-          ],
-        },
-      ],
-    });
-
-    if (conflict)
-      throw new AppError(409, 'Specialist is not available for this duration');
+  } else if (vendorRole === 'freelancer') {
+    if (specialist) {
+      throw new AppError(400, 'Freelancers cannot have a specialist');
+    }
   }
 
-  payload.slotStart = slotStart;
-  payload.slotEnd = slotEnd;
+  // -------------------------------
+  // 🔟 Vendor Slot Conflict Check
+  // -------------------------------
+  const vendorConflict = await Booking.findOne({
+    vendor,
+    date,
+    isDeleted: false,
+    $and: [{ slotStart: { $lt: slotEnd } }, { slotEnd: { $gt: slotStart } }],
+  });
+  if (vendorConflict)
+    throw new AppError(409, 'Vendor already has a booking at this time');
 
-  // 👇👇 IMPORTANT PART — session support
-  const booking = await Booking.create([payload], { session }).then(
-    (d) => d[0],
-  );
+  // -------------------------------
+  // 1️⃣1️⃣ Customer can book overlapping slots (no conflict check)
+  // -------------------------------
 
+  // -------------------------------
+  // 1️⃣2️⃣ Save Booking
+  // -------------------------------
+  const booking = await Booking.create(payload);
   return booking;
 };
 

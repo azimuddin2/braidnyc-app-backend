@@ -12,14 +12,20 @@ export enum SERVICE_MODEL_TYPE {
   FreelancerService = 'FreelancerService',
 }
 
+export type TAddOnService = {
+  name: string;
+  qty: number;
+  price: number;
+};
+
 export type TBooking = {
-  vendor: Types.ObjectId | TUser;
+  vendor: Types.ObjectId | TUser; //Owner and Freelancer ID
   customer: Types.ObjectId | TUser;
 
   service: Types.ObjectId;
   serviceType: SERVICE_MODEL_TYPE;
 
-  onServices: Types.ObjectId[];
+  addOnServices: TAddOnService[];
 
   email: string;
   date: string;
@@ -35,10 +41,10 @@ export type TBooking = {
   status: TBookingStatus;
   paymentStatus: TPaymentStatus;
 
-  request?: TBookingRequest;
+  request: TBookingRequest;
 
-  slotStart?: number; // minutes since 00:00
-  slotEnd?: number; // minutes since 00:00
+  slotStart?: number;
+  slotEnd?: number;
 
   isDeleted: boolean;
 };
