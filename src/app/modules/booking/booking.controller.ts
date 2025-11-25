@@ -3,7 +3,7 @@ import sendResponse from '../../utils/sendResponse';
 import { BookingServices } from './booking.service';
 
 const createBooking = catchAsync(async (req, res) => {
-  const result = await BookingServices.createBookingIntoDB(req.body);
+  const result = await BookingServices.createBookingIntoDB(req.body, req.files);
 
   sendResponse(res, {
     statusCode: 201,

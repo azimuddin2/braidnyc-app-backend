@@ -22,7 +22,6 @@ const createPayment = async (payload: TPayment) => {
   try {
     // STEP 1 — Ensure booking exists
     const booking = await Booking.findById(payload.booking).lean().exec();
-
     if (!booking) {
       throw new AppError(httpStatus.NOT_FOUND, 'Booking not found');
     }
@@ -69,8 +68,8 @@ const createPayment = async (payload: TPayment) => {
       payment = await Payment.create(
         [
           {
-            user: payload.user,
-            vendor: payload.vendor,
+            user: booking.customer,
+            vendor: booking.vendor,
             booking: payload.booking,
             trnId,
             price: booking.totalPrice,

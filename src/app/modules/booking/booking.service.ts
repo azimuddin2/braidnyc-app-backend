@@ -4,8 +4,10 @@ import { SERVICE_MODEL_TYPE, TBooking } from './booking.interface';
 import { User } from '../user/user.model';
 import { OwnerService } from '../ownerService/ownerService.model';
 import { FreelancerService } from '../freelancerService/freelancerService.model';
+import { uploadManyToS3 } from '../../utils/awsS3FileUploader';
+import { Specialist } from '../Specialist/Specialist.model';
 
-const createBookingIntoDB = async (payload: TBooking) => {
+const createBookingIntoDB = async (payload: TBooking, files: any) => {
   const { customer, service, vendor, date, time, specialist, serviceType } =
     payload;
 
@@ -21,14 +23,14 @@ const createBookingIntoDB = async (payload: TBooking) => {
   }
 
   // -------------------------------
-  // 2️⃣ Convert "hh:mm AM/PM" → minutes
+  // 2️⃣ Convert time to minutes
   // -------------------------------
   const parseToMinutes = (t: string) => {
     const [timeStr, mod] = t.trim().split(' ');
     let [h, m] = timeStr.split(':').map(Number);
 
     if (h < 1 || h > 12 || m < 0 || m > 59) {
-      throw new AppError(400, 'Invalid time value inside range');
+      throw new AppError(400, 'Invalid time range values');
     }
 
     if (mod === 'PM' && h !== 12) h += 12;
@@ -49,28 +51,26 @@ const createBookingIntoDB = async (payload: TBooking) => {
   }
 
   // -------------------------------
-  // 4️⃣ Auto Calculate Duration
+  // 4️⃣ Auto duration (hours)
   // -------------------------------
-  const durationMinutes = slotEnd - slotStart;
-  payload.duration = (durationMinutes / 60).toString();
+  payload.duration = ((slotEnd - slotStart) / 60).toString();
 
   // -------------------------------
-  // 5️⃣ Validate Date (no past days)
+  // 5️⃣ Validate Date
   // -------------------------------
-  const currentDate = new Date();
+  const today = new Date();
   const bookingDate = new Date(date);
-  if (bookingDate < new Date(currentDate.toDateString())) {
+
+  if (bookingDate < new Date(today.toDateString())) {
     throw new AppError(400, 'Cannot create booking for a past date');
   }
 
-  // -------------------------------
-  // 6️⃣ Attach Slots
-  // -------------------------------
+  // Attach slots into payload
   payload.slotStart = slotStart;
   payload.slotEnd = slotEnd;
 
   // -------------------------------
-  // 7️⃣ Validate Customer + Vendor
+  // 6️⃣ Validate Customer + Vendor
   // -------------------------------
   const customerExists = await User.findById(customer);
   if (!customerExists) throw new AppError(404, 'Customer does not exist');
@@ -78,68 +78,87 @@ const createBookingIntoDB = async (payload: TBooking) => {
   const vendorExists = await User.findById(vendor);
   if (!vendorExists) throw new AppError(404, 'Vendor does not exist');
 
-  const vendorRole = vendorExists.role; // 'owner' or 'freelancer'
+  const vendorRole = vendorExists.role; // owner | freelancer
 
   // -------------------------------
-  // 8️⃣ Validate Service Type & ID
+  // 7️⃣ Validate Service Type
   // -------------------------------
-  let serviceExists;
-  switch (serviceType) {
-    case SERVICE_MODEL_TYPE.OwnerService:
-      serviceExists = await OwnerService.findById(service);
-      break;
-    case SERVICE_MODEL_TYPE.FreelancerService:
-      serviceExists = await FreelancerService.findById(service);
-      break;
-    default:
-      throw new AppError(400, 'Invalid service type');
-  }
+  const serviceModelMap: any = {
+    [SERVICE_MODEL_TYPE.OwnerService]: OwnerService,
+    [SERVICE_MODEL_TYPE.FreelancerService]: FreelancerService,
+  };
+
+  const ServiceModel = serviceModelMap[serviceType];
+  if (!ServiceModel) throw new AppError(400, 'Invalid service type');
+
+  const serviceExists = await ServiceModel.findById(service);
   if (!serviceExists) throw new AppError(404, 'Service does not exist');
 
   // -------------------------------
-  // 9️⃣ Specialist Logic (role-aware)
+  // 8️⃣ Specialist Logic
   // -------------------------------
   if (vendorRole === 'owner') {
-    if (specialist) {
-      const conflict = await Booking.findOne({
-        specialist,
-        date,
-        isDeleted: false,
-        $and: [
-          { slotStart: { $lt: slotEnd } },
-          { slotEnd: { $gt: slotStart } },
-        ],
-      });
-      if (conflict)
-        throw new AppError(409, 'Specialist is not available at this time');
+    if (!specialist) {
+      throw new AppError(400, 'Specialist ID is required for owner vendor');
     }
-  } else if (vendorRole === 'freelancer') {
+
+    const dbSpecialist = await Specialist.findById(specialist);
+    if (!dbSpecialist) {
+      throw new AppError(404, 'Specialist does not exist');
+    }
+
+    // Specialist conflict check using specialist _id
+    const specialistConflict = await Booking.findOne({
+      specialist,
+      date,
+      isDeleted: false,
+      slotStart: { $lt: slotEnd },
+      slotEnd: { $gt: slotStart },
+    });
+
+    if (specialistConflict) {
+      throw new AppError(409, 'Specialist is not available at this time');
+    }
+  }
+
+  if (vendorRole === 'freelancer') {
     if (specialist) {
-      throw new AppError(400, 'Freelancers cannot have a specialist');
+      throw new AppError(400, 'Freelancers cannot assign specialists');
     }
   }
 
   // -------------------------------
-  // 🔟 Vendor Slot Conflict Check
+  // 9️⃣ Vendor Conflict Check
   // -------------------------------
   const vendorConflict = await Booking.findOne({
     vendor,
     date,
     isDeleted: false,
-    $and: [{ slotStart: { $lt: slotEnd } }, { slotEnd: { $gt: slotStart } }],
+    slotStart: { $lt: slotEnd },
+    slotEnd: { $gt: slotStart },
   });
-  if (vendorConflict)
+
+  if (vendorConflict) {
     throw new AppError(409, 'Vendor already has a booking at this time');
+  }
 
   // -------------------------------
-  // 1️⃣1️⃣ Customer can book overlapping slots (no conflict check)
+  // 🔟 File Upload
   // -------------------------------
+  if (files?.images?.length) {
+    const imgsArray = files.images.map((img: any) => ({
+      file: img,
+      path: 'images/service',
+    }));
+    payload.images = await uploadManyToS3(imgsArray);
+  } else {
+    throw new AppError(400, 'At least one image is required');
+  }
 
   // -------------------------------
-  // 1️⃣2️⃣ Save Booking
+  // 1️⃣1️⃣ Save Booking
   // -------------------------------
-  const booking = await Booking.create(payload);
-  return booking;
+  return await Booking.create(payload);
 };
 
 // const getAllBookingByUserFromDB = async (query: Record<string, unknown>) => {

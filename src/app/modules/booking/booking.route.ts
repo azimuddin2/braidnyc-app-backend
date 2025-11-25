@@ -3,12 +3,17 @@ import auth from '../../middlewares/auth';
 import validateRequest from '../../middlewares/validateRequest';
 import { BookingValidation } from './booking.validation';
 import { BookingControllers } from './booking.controller';
+import parseData from '../../middlewares/parseData';
+import multer, { memoryStorage } from 'multer';
 
 const router = express.Router();
+const upload = multer({ storage: memoryStorage() });
 
 router.post(
   '/',
-  // auth('customer'),
+  auth('customer'),
+  upload.fields([{ name: 'images', maxCount: 3 }]),
+  parseData(),
   validateRequest(BookingValidation.createBookingValidationSchema),
   BookingControllers.createBooking,
 );

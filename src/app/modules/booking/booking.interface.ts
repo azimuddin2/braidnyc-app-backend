@@ -1,5 +1,6 @@
 import { Types } from 'mongoose';
 import { TUser } from '../user/user.interface';
+import { TSpecialist } from '../Specialist/Specialist.interface';
 
 export type TBookingStatus = 'pending' | 'canceled' | 'completed';
 
@@ -18,6 +19,11 @@ export type TAddOnService = {
   price: number;
 };
 
+export type TImage = {
+  url: string;
+  key: string;
+};
+
 export type TBooking = {
   vendor: Types.ObjectId | TUser; //Owner and Freelancer ID
   customer: Types.ObjectId | TUser;
@@ -32,9 +38,10 @@ export type TBooking = {
   time: string;
   duration: string;
 
-  specialist?: string;
+  specialist?: Types.ObjectId | TSpecialist;
+
   serviceLocation: string;
-  image: string;
+  images: TImage[];
   notes: string;
   totalPrice: number;
 

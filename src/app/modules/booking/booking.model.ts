@@ -19,10 +19,26 @@ const addOnServiceSchema = new Schema<TAddOnService>(
   { _id: false }, // optional: don't create separate _id for each add-on
 );
 
+const imageSchema = new Schema(
+  {
+    url: { type: String, required: true },
+    key: { type: String, required: true },
+  },
+  { _id: false },
+);
+
 const bookingSchema = new Schema<TBooking>(
   {
-    vendor: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-    customer: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    vendor: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    customer: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
 
     // Polymorphic service reference
     service: {
@@ -55,18 +71,18 @@ const bookingSchema = new Schema<TBooking>(
       type: String,
       required: true,
     },
-
     specialist: {
-      type: String,
+      type: Schema.Types.ObjectId,
+      ref: 'Specialist',
       required: false,
     },
     serviceLocation: {
       type: String,
       required: true,
     },
-    image: {
-      type: String,
-      default: null,
+    images: {
+      type: [imageSchema],
+      required: true,
     },
     notes: {
       type: String,
