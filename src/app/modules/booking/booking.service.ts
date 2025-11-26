@@ -232,6 +232,34 @@ const getBookingByIdFromDB = async (id: string) => {
   return result;
 };
 
+const bookingCompletedStatusIntoDB = async (
+  id: string,
+  payload: { status: string },
+) => {
+  const isBookingExists = await Booking.findById(id);
+
+  if (!isBookingExists) {
+    throw new AppError(404, 'This booking is not found');
+  }
+
+  const result = await Booking.findByIdAndUpdate(id, payload, { new: true });
+  return result;
+};
+
+const bookingCanceledStatusIntoDB = async (
+  id: string,
+  payload: { status: string },
+) => {
+  const isBookingExists = await Booking.findById(id);
+
+  if (!isBookingExists) {
+    throw new AppError(404, 'This booking is not found');
+  }
+
+  const result = await Booking.findByIdAndUpdate(id, payload, { new: true });
+  return result;
+};
+
 // const getAllBookingByUserFromDB = async (query: Record<string, unknown>) => {
 //   const { vendor, requestType, ...filters } = query;
 
@@ -418,6 +446,8 @@ export const BookingServices = {
   createBookingIntoDB,
   getBookingsByCustomerFromDB,
   getBookingByIdFromDB,
+  bookingCompletedStatusIntoDB,
+  bookingCanceledStatusIntoDB,
   // getBookingsByEmailFromDB,
   // getBookingByIdFromDB,
   // updateBookingRequestIntoDB,

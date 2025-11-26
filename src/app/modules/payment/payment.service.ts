@@ -177,8 +177,8 @@ const confirmPayment = async (query: Record<string, any>) => {
     const booking = await Booking.findByIdAndUpdate(
       payment.booking,
       {
-        // status: 'confirmed',
-        paymentStatus: 'paid',
+        status: 'pending',
+        isPaid: true,
       },
       { new: true, session },
     );

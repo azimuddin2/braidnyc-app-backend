@@ -4,11 +4,7 @@ import {
   TAddOnService,
   TBooking,
 } from './booking.interface';
-import {
-  BookingRequest,
-  BookingStatus,
-  PaymentStatus,
-} from './booking.constant';
+import { BookingRequest, BookingStatus } from './booking.constant';
 
 const addOnServiceSchema = new Schema<TAddOnService>(
   {
@@ -98,10 +94,9 @@ const bookingSchema = new Schema<TBooking>(
       enum: BookingStatus,
       default: 'pending',
     },
-    paymentStatus: {
-      type: String,
-      enum: PaymentStatus,
-      default: 'pending',
+    isPaid: {
+      type: Boolean,
+      default: false,
     },
     request: {
       type: String,

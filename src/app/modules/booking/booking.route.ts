@@ -30,6 +30,20 @@ router.get('/', auth('customer'), BookingControllers.getBookingsByCustomer);
 
 router.get('/:id', BookingControllers.getBookingById);
 
+router.put(
+  '/completed-status/:id',
+  auth('customer'),
+  validateRequest(BookingValidation.updateBookingStatusValidationSchema),
+  BookingControllers.bookingCompletedStatus,
+);
+
+router.put(
+  '/canceled-status/:id',
+  auth('customer'),
+  validateRequest(BookingValidation.updateBookingStatusValidationSchema),
+  BookingControllers.bookingCompletedStatus,
+);
+
 // router.patch(
 //   '/:id',
 //   auth('user'),

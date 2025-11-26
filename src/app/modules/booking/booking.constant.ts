@@ -1,8 +1,4 @@
-import {
-  TBookingRequest,
-  TBookingStatus,
-  TPaymentStatus,
-} from './booking.interface';
+import { TBookingRequest, TBookingStatus } from './booking.interface';
 
 export const BookingStatus: TBookingStatus[] = [
   'pending',
@@ -16,12 +12,12 @@ export const BookingRequest: TBookingRequest[] = [
   'decline',
 ];
 
-export const PaymentStatus: TPaymentStatus[] = [
-  'pending',
-  'paid',
-  'refunded',
-  'failed',
-];
+// export const PaymentStatus: TPaymentStatus[] = [
+//   'pending',
+//   'paid',
+//   'refunded',
+//   'failed',
+// ];
 
 export const bookingSearchableFields = [
   'name',

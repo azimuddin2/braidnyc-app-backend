@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { SERVICE_MODEL_TYPE } from './booking.interface';
+import { BookingStatus } from './booking.constant';
 
 const addOnServiceSchema = z.object({
   name: z.string().min(1, 'Add-on service name is required'),
@@ -37,6 +38,13 @@ const createBookingValidationSchema = z.object({
   }),
 });
 
+const updateBookingStatusValidationSchema = z.object({
+  body: z.object({
+    status: z.enum([...BookingStatus] as [string, ...string[]]),
+  }),
+});
+
 export const BookingValidation = {
   createBookingValidationSchema,
+  updateBookingStatusValidationSchema,
 };

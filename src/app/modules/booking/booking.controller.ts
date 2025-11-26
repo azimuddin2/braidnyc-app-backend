@@ -47,6 +47,36 @@ const getBookingById = catchAsync(async (req, res) => {
   });
 });
 
+const bookingCompletedStatus = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const result = await BookingServices.bookingCompletedStatusIntoDB(
+    id,
+    req.body,
+  );
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'The booking has been marked as completed successfully.',
+    data: result,
+  });
+});
+
+const bookingCanceledStatus = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const result = await BookingServices.bookingCanceledStatusIntoDB(
+    id,
+    req.body,
+  );
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'The booking has been marked as completed successfully.',
+    data: result,
+  });
+});
+
 // const getAllBookingByUser = catchAsync(async (req, res) => {
 //   const result = await BookingServices.getAllBookingByUserFromDB(req.query);
 
@@ -144,6 +174,8 @@ export const BookingControllers = {
   createBooking,
   getBookingsByCustomer,
   getBookingById,
+  bookingCompletedStatus,
+  bookingCanceledStatus,
   // getAllBookingByUser,
   // getBookingAppointments,
   // getBookingsByEmail,

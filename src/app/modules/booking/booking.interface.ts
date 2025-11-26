@@ -6,8 +6,6 @@ export type TBookingStatus = 'pending' | 'canceled' | 'completed';
 
 export type TBookingRequest = 'pending' | 'approved' | 'decline';
 
-export type TPaymentStatus = 'pending' | 'paid' | 'refunded' | 'failed';
-
 export enum SERVICE_MODEL_TYPE {
   OwnerService = 'OwnerService',
   FreelancerService = 'FreelancerService',
@@ -46,9 +44,9 @@ export type TBooking = {
   totalPrice: number;
 
   status: TBookingStatus;
-  paymentStatus: TPaymentStatus;
 
   request: TBookingRequest;
+  isPaid: boolean;
 
   slotStart?: number;
   slotEnd?: number;
