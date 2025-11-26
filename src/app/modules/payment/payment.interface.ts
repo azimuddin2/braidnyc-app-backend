@@ -2,7 +2,7 @@ import { Types } from 'mongoose';
 import { TUser } from '../user/user.interface';
 import { TBooking } from '../booking/booking.interface';
 
-export type TStatus = 'pending' | 'paid' | 'refunded';
+export type TStatus = 'pending' | 'paid' | 'refunded' | 'cancelled';
 
 export type TPayment = {
   user: Types.ObjectId | TUser;
@@ -17,5 +17,6 @@ export type TPayment = {
   vendorAmount: number;
   paymentIntentId: string;
   price: number;
+  isPaid: boolean;
   isDeleted: boolean;
 };

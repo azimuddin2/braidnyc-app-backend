@@ -20,13 +20,12 @@ const createPayment = async (payload: TPayment) => {
   session.startTransaction();
 
   try {
-    // STEP 1 — Ensure booking exists
     const booking = await Booking.findById(payload.booking).lean().exec();
     if (!booking) {
       throw new AppError(httpStatus.NOT_FOUND, 'Booking not found');
     }
 
-    // STEP 2 — Prevent duplicate payments
+    // Prevent duplicate paid record
     const existingPaid = await Payment.findOne({
       booking: payload.booking,
       status: 'paid',
@@ -40,7 +39,7 @@ const createPayment = async (payload: TPayment) => {
       );
     }
 
-    // STEP 3 — Reuse a pending payment OR create new
+    // Reuse pending payment or create new one
     let payment = await Payment.findOne({
       booking: payload.booking,
       status: 'pending',
@@ -85,7 +84,7 @@ const createPayment = async (payload: TPayment) => {
       throw new AppError(httpStatus.BAD_REQUEST, 'Payment creation failed');
     }
 
-    // STEP 4 — Get user & create stripe customer if needed
+    // Create Stripe Customer if missing
     const user = await User.findById(payment.user).session(session);
     if (!user) throw new AppError(httpStatus.NOT_FOUND, 'User not found');
 
@@ -105,7 +104,6 @@ const createPayment = async (payload: TPayment) => {
       );
     }
 
-    // STEP 5 — Stripe Line Item (simple)
     const lineItems: any = [
       {
         price_data: {
@@ -117,11 +115,9 @@ const createPayment = async (payload: TPayment) => {
       },
     ];
 
-    // STEP 6 — Success & Cancel URL
-    const successUrl = `${config.server_url}/payments/confirm-payment?sessionId={CHECKOUT_SESSION_ID}&paymentId=${payment._id}`;
-    const cancelUrl = `${config.server_url}/payments/cancel?paymentId=${payment._id}`;
+    const successUrl = `${config.server_url}/api/v1/payments/confirm-payment?sessionId={CHECKOUT_SESSION_ID}&paymentId=${payment._id}`;
+    const cancelUrl = `${config.server_url}/api/v1/payments/cancel?paymentId=${payment._id}`;
 
-    // STEP 7 — Stripe Checkout Session
     const checkoutSession = await StripePaymentService.getCheckoutSession(
       lineItems,
       successUrl,
@@ -145,7 +141,6 @@ const confirmPayment = async (query: Record<string, any>) => {
   const session = await startSession();
 
   try {
-    // STEP 1 — Get Stripe session info
     const paymentSession =
       await StripePaymentService.getPaymentSession(sessionId);
 
@@ -162,28 +157,27 @@ const confirmPayment = async (query: Record<string, any>) => {
 
     session.startTransaction();
 
-    // STEP 2 — Update Payment status → paid
     const payment = await Payment.findByIdAndUpdate(
       paymentId,
       {
         status: 'paid',
+        isPaid: true,
         paymentIntentId,
       },
       { new: true, session },
     ).populate([
-      { path: 'user', select: 'name _id email phoneNumber profile' },
-      { path: 'vendor', select: 'name _id email phoneNumber profile' },
+      { path: 'user', select: '_id fullName email phone image' },
+      { path: 'vendor', select: '_id fullName email phone image' },
     ]);
 
     if (!payment) {
       throw new AppError(httpStatus.NOT_FOUND, 'Payment not found');
     }
 
-    // STEP 3 — Update Booking status → confirmed
     const booking = await Booking.findByIdAndUpdate(
       payment.booking,
       {
-        status: 'confirmed',
+        // status: 'confirmed',
         paymentStatus: 'paid',
       },
       { new: true, session },
@@ -193,7 +187,7 @@ const confirmPayment = async (query: Record<string, any>) => {
       throw new AppError(httpStatus.NOT_FOUND, 'Booking not found');
     }
 
-    // STEP 4 — Increment vendor balance
+    // Vendor balance increment
     await User.findByIdAndUpdate(
       payment.vendor,
       {
@@ -212,19 +206,55 @@ const confirmPayment = async (query: Record<string, any>) => {
   } catch (error: any) {
     await session.abortTransaction();
 
-    // Auto-refund if something goes wrong
-    if (sessionId) {
-      try {
-        await StripePaymentService.refund(sessionId);
-      } catch (refundError: any) {
-        console.error('Refund error:', refundError.message);
-      }
+    try {
+      await StripePaymentService.refund(sessionId);
+    } catch (refundError: any) {
+      console.error('Refund error:', refundError.message);
     }
 
     throw new AppError(httpStatus.BAD_GATEWAY, error.message);
   } finally {
     session.endSession();
   }
+};
+
+const cancelPayment = async (paymentId?: string) => {
+  if (!paymentId || !mongoose.Types.ObjectId.isValid(paymentId)) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'Invalid paymentId');
+  }
+
+  const session = await startSession();
+  session.startTransaction();
+
+  try {
+    const payment = await Payment.findById(paymentId).session(session);
+
+    if (!payment) {
+      throw new AppError(httpStatus.NOT_FOUND, 'Payment not found');
+    }
+
+    if (payment.status === 'paid') {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        'Cannot cancel a completed payment',
+      );
+    }
+
+    payment.status = 'cancelled';
+    await payment.save({ session });
+
+    await session.commitTransaction();
+    return payment;
+  } catch (error) {
+    await session.abortTransaction();
+    throw error;
+  } finally {
+    session.endSession();
+  }
+};
+
+const successPayment = async (query: Record<string, any>) => {
+  return;
 };
 
 const getAllPaymentFromDB = async (query: Record<string, unknown>) => {
@@ -234,7 +264,6 @@ const getAllPaymentFromDB = async (query: Record<string, unknown>) => {
     throw new AppError(400, 'Invalid Vendor ID');
   }
 
-  // Base query -> always exclude deleted payments
   let paymentQuery = Payment.find({ vendor, isDeleted: false })
     .populate('vendor')
     .populate('user');
@@ -255,5 +284,7 @@ const getAllPaymentFromDB = async (query: Record<string, unknown>) => {
 export const PaymentService = {
   createPayment,
   confirmPayment,
+  cancelPayment,
+  successPayment,
   getAllPaymentFromDB,
 };

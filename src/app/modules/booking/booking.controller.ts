@@ -1,3 +1,4 @@
+import AppError from '../../errors/AppError';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
 import { BookingServices } from './booking.service';
@@ -9,6 +10,39 @@ const createBooking = catchAsync(async (req, res) => {
     statusCode: 201,
     success: true,
     message: 'Service booking successfully',
+    data: result,
+  });
+});
+
+const getBookingsByCustomer = catchAsync(async (req, res) => {
+  const userId = req.user.userId;
+  const status = req.query.status as string;
+
+  if (!status) {
+    throw new AppError(400, 'Status is required');
+  }
+
+  const result = await BookingServices.getBookingsByCustomerFromDB(
+    userId,
+    status,
+  );
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Bookings fetched successfully',
+    data: result,
+  });
+});
+
+const getBookingById = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const result = await BookingServices.getBookingByIdFromDB(id);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Booking retrieved successfully',
     data: result,
   });
 });
@@ -46,18 +80,6 @@ const createBooking = catchAsync(async (req, res) => {
 //     statusCode: 200,
 //     success: true,
 //     message: 'Bookings fetched successfully',
-//     data: result,
-//   });
-// });
-
-// const getBookingById = catchAsync(async (req, res) => {
-//   const { id } = req.params;
-//   const result = await BookingServices.getBookingByIdFromDB(id);
-
-//   sendResponse(res, {
-//     statusCode: 200,
-//     success: true,
-//     message: 'Booking retrieved successfully',
 //     data: result,
 //   });
 // });
@@ -120,10 +142,11 @@ const createBooking = catchAsync(async (req, res) => {
 
 export const BookingControllers = {
   createBooking,
+  getBookingsByCustomer,
+  getBookingById,
   // getAllBookingByUser,
   // getBookingAppointments,
   // getBookingsByEmail,
-  // getBookingById,
   // updateBookingRequest,
   // bookingApprovedRequest,
   // bookingAssignedToMember,

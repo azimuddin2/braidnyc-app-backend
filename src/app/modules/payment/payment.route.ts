@@ -6,13 +6,14 @@ import { PaymentController } from './payment.controller';
 const router = Router();
 
 router.get('/', PaymentController.getAllPayment);
+router.get('/confirm-payment', PaymentController.confirmPayment);
+router.get('/success', PaymentController.successPayment);
+router.get('/cancel', PaymentController.cancelPayment);
 
 router.post(
   '/checkout',
-  // auth(USER_ROLE.customer),
+  auth(USER_ROLE.customer),
   PaymentController.createPayment,
 );
-
-router.get('/confirm-payment', PaymentController.confirmPayment);
 
 export const PaymentRoutes = router;

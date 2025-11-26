@@ -161,6 +161,77 @@ const createBookingIntoDB = async (payload: TBooking, files: any) => {
   return await Booking.create(payload);
 };
 
+const getBookingsByCustomerFromDB = async (userId: string, status: string) => {
+  const user = await User.findById(userId).select('role email');
+
+  if (!user?.email) {
+    throw new AppError(404, 'User not found');
+  }
+
+  if (user.role !== 'customer') {
+    throw new AppError(403, 'Only customer can perform this access');
+  }
+
+  // If no status = throw error
+  if (!status) {
+    throw new AppError(400, 'Booking status is required');
+  }
+
+  const query = {
+    email: user.email,
+    isDeleted: false,
+    status, // required filter
+  };
+
+  const bookings = await Booking.find(query)
+    .populate('service')
+    .populate({
+      path: 'vendor',
+      select: '_id fullName email phone streetAddress city state image',
+    })
+    .populate({
+      path: 'customer',
+      select: '_id fullName email phone streetAddress city state image',
+    })
+    .populate({
+      path: 'specialist',
+      select: 'name image',
+    })
+    .sort({ createdAt: -1 })
+    .select('-__v -isDeleted');
+
+  return bookings;
+};
+
+const getBookingByIdFromDB = async (id: string) => {
+  const result = await Booking.findById(id)
+    .populate('service')
+    .populate({
+      path: 'vendor',
+      select: '_id fullName email phone streetAddress city state image',
+    })
+    .populate({
+      path: 'customer',
+      select: '_id fullName email phone streetAddress city state image',
+    })
+    .populate({
+      path: 'specialist',
+      select: 'name image',
+    })
+    .sort({ createdAt: -1 })
+    .select('-__v -isDeleted');
+
+  if (!result) {
+    throw new AppError(404, 'This Booking not found');
+  }
+
+  if (result.isDeleted === true) {
+    throw new AppError(400, 'This Booking has been deleted');
+  }
+
+  return result;
+};
+
 // const getAllBookingByUserFromDB = async (query: Record<string, unknown>) => {
 //   const { vendor, requestType, ...filters } = query;
 
@@ -213,22 +284,6 @@ const createBookingIntoDB = async (payload: TBooking, files: any) => {
 //   const bookings = await Booking.find(bookingQuery)
 //     .populate('vendor')
 //     .populate('service');
-
-//   return bookings;
-// };
-
-// const getBookingsByEmailFromDB = async (email: string) => {
-//   // ✅ Validate email
-//   if (!email) {
-//     throw new AppError(400, 'Email is required');
-//   }
-
-//   // ✅ Fetch bookings directly by email
-//   const bookings = await Booking.find({ email, isDeleted: false })
-//     .populate('service')
-//     .populate('vendor')
-//     .sort({ createdAt: -1 }) // latest first
-//     .select('-__v -isDeleted'); // exclude unwanted fields
 
 //   return bookings;
 // };
@@ -361,6 +416,8 @@ const createBookingIntoDB = async (payload: TBooking, files: any) => {
 
 export const BookingServices = {
   createBookingIntoDB,
+  getBookingsByCustomerFromDB,
+  getBookingByIdFromDB,
   // getBookingsByEmailFromDB,
   // getBookingByIdFromDB,
   // updateBookingRequestIntoDB,

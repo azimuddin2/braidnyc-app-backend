@@ -9,15 +9,38 @@ const createPayment = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, {
     statusCode: 201,
     success: true,
-    message: 'Payment created successfully',
+    message: 'Payment link get successful',
     data: url,
   });
 });
 
 const confirmPayment = catchAsync(async (req: Request, res: Response) => {
-  await PaymentService.confirmPayment(req.query);
+  const result = await PaymentService.confirmPayment(req.query);
+  res.redirect(
+    config.server_url +
+      `/api/v1/payments/success?paymentId=${result.payment._id}`,
+  );
+});
 
-  res.redirect(config.client_Url + '/payment/success');
+const cancelPayment = catchAsync(async (req: Request, res: Response) => {
+  const { paymentId } = req.query as { paymentId?: string };
+
+  if (paymentId) {
+    await PaymentService.cancelPayment(paymentId);
+  }
+
+  res.redirect(config.server_url + '/payment/cancel');
+});
+
+const successPayment = catchAsync(async (req, res) => {
+  const result = await PaymentService.successPayment(req.query);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Payment completed successfully. Thank you for your purchase!',
+    data: result,
+  });
 });
 
 const getAllPayment = catchAsync(async (req, res) => {
@@ -35,5 +58,7 @@ const getAllPayment = catchAsync(async (req, res) => {
 export const PaymentController = {
   createPayment,
   confirmPayment,
+  cancelPayment,
+  successPayment,
   getAllPayment,
 };

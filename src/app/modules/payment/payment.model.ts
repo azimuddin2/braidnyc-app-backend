@@ -14,7 +14,11 @@ const paymentSchema = new Schema<TPayment>(
       ref: 'User',
       required: true,
     },
-
+    booking: {
+      type: Schema.Types.ObjectId,
+      ref: 'Booking',
+      required: true,
+    },
     status: {
       type: String,
       enum: {
@@ -23,14 +27,33 @@ const paymentSchema = new Schema<TPayment>(
       },
       default: 'pending',
     },
-
-    trnId: { type: String, required: true },
-    adminAmount: { type: Number, required: true },
-    vendorAmount: { type: Number, required: true },
-    paymentIntentId: { type: String },
-    price: { type: Number, required: true },
-
-    isDeleted: { type: Boolean, default: false },
+    trnId: {
+      type: String,
+      required: true,
+    },
+    adminAmount: {
+      type: Number,
+      required: true,
+    },
+    vendorAmount: {
+      type: Number,
+      required: true,
+    },
+    paymentIntentId: {
+      type: String,
+    },
+    price: {
+      type: Number,
+      required: true,
+    },
+    isPaid: {
+      type: Boolean,
+      default: false,
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true },
 );
