@@ -14,6 +14,17 @@ const createBooking = catchAsync(async (req, res) => {
   });
 });
 
+const getBookings = catchAsync(async (req, res) => {
+  const result = await BookingServices.getBookingsFromDB(req.query);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Bookings retrieved successfully',
+    data: result,
+  });
+});
+
 const getBookingsByCustomer = catchAsync(async (req, res) => {
   const userId = req.user.userId;
   const status = req.query.status as string;
@@ -77,17 +88,35 @@ const bookingCanceledStatus = catchAsync(async (req, res) => {
   });
 });
 
-// const getAllBookingByUser = catchAsync(async (req, res) => {
-//   const result = await BookingServices.getAllBookingByUserFromDB(req.query);
+const bookingApprovedRequest = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const result = await BookingServices.bookingApprovedRequestIntoDB(
+    id,
+    req.body,
+  );
 
-//   sendResponse(res, {
-//     statusCode: 200,
-//     success: true,
-//     message: 'Bookings retrieved successfully',
-//     meta: result.meta,
-//     data: result.result,
-//   });
-// });
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Booking has been approved successfully.',
+    data: result,
+  });
+});
+
+const bookingDeclineRequest = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const result = await BookingServices.bookingDeclineRequestIntoDB(
+    id,
+    req.body,
+  );
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Booking has been decline successfully.',
+    data: result,
+  });
+});
 
 // const getBookingAppointments = catchAsync(async (req, res) => {
 //   const result = await BookingServices.getBookingAppointmentsFromDB(req.query);
@@ -172,10 +201,13 @@ const bookingCanceledStatus = catchAsync(async (req, res) => {
 
 export const BookingControllers = {
   createBooking,
+  getBookings,
   getBookingsByCustomer,
   getBookingById,
   bookingCompletedStatus,
   bookingCanceledStatus,
+  bookingApprovedRequest,
+  bookingDeclineRequest,
   // getAllBookingByUser,
   // getBookingAppointments,
   // getBookingsByEmail,

@@ -6,6 +6,7 @@ import { OwnerService } from '../ownerService/ownerService.model';
 import { FreelancerService } from '../freelancerService/freelancerService.model';
 import { uploadManyToS3 } from '../../utils/awsS3FileUploader';
 import { Specialist } from '../Specialist/Specialist.model';
+import mongoose from 'mongoose';
 
 const createBookingIntoDB = async (payload: TBooking, files: any) => {
   const { customer, service, vendor, date, time, specialist, serviceType } =
@@ -161,6 +162,24 @@ const createBookingIntoDB = async (payload: TBooking, files: any) => {
   return await Booking.create(payload);
 };
 
+const getBookingsFromDB = async (query: Record<string, unknown>) => {
+  const { vendor } = query;
+
+  if (!vendor || !mongoose.Types.ObjectId.isValid(vendor as string)) {
+    throw new AppError(400, 'Invalid Owner Or Freelancer ID');
+  }
+
+  const filter = { vendor: vendor as string, isDeleted: false };
+
+  const result = await Booking.find(filter);
+
+  if (!result || result.length === 0) {
+    throw new AppError(404, 'Booking not found');
+  }
+
+  return result;
+};
+
 const getBookingsByCustomerFromDB = async (userId: string, status: string) => {
   const user = await User.findById(userId).select('role email');
 
@@ -251,6 +270,34 @@ const bookingCompletedStatusIntoDB = async (
 const bookingCanceledStatusIntoDB = async (
   id: string,
   payload: { status: string },
+) => {
+  const isBookingExists = await Booking.findById(id);
+
+  if (!isBookingExists) {
+    throw new AppError(404, 'This booking is not found');
+  }
+
+  const result = await Booking.findByIdAndUpdate(id, payload, { new: true });
+  return result;
+};
+
+const bookingApprovedRequestIntoDB = async (
+  id: string,
+  payload: { request: string },
+) => {
+  const isBookingExists = await Booking.findById(id);
+
+  if (!isBookingExists) {
+    throw new AppError(404, 'This booking is not found');
+  }
+
+  const result = await Booking.findByIdAndUpdate(id, payload, { new: true });
+  return result;
+};
+
+const bookingDeclineRequestIntoDB = async (
+  id: string,
+  payload: { request: string },
 ) => {
   const isBookingExists = await Booking.findById(id);
 
@@ -446,10 +493,13 @@ const bookingCanceledStatusIntoDB = async (
 
 export const BookingServices = {
   createBookingIntoDB,
+  getBookingsFromDB,
   getBookingsByCustomerFromDB,
   getBookingByIdFromDB,
   bookingCompletedStatusIntoDB,
   bookingCanceledStatusIntoDB,
+  bookingApprovedRequestIntoDB,
+  bookingDeclineRequestIntoDB,
   // getBookingsByEmailFromDB,
   // getBookingByIdFromDB,
   // updateBookingRequestIntoDB,

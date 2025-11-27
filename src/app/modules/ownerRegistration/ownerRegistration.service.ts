@@ -212,62 +212,114 @@ const updateOwnerRegistrationIntoDB = async (
   userId: string,
   id: string,
   payload: Partial<TOwnerRegistration>,
-  file?: Express.Multer.File,
+  files?: {
+    idDocument?: Express.Multer.File[];
+    businessRegistration?: Express.Multer.File[];
+    salonFrontPhoto?: Express.Multer.File[];
+    salonInsidePhoto?: Express.Multer.File[];
+  },
 ) => {
-  // 🔍 Step 0: Check if the user exists
   const user = await User.findById(userId).select('role isRegistration');
-  if (!user) {
-    throw new AppError(404, 'User not found');
-  }
-
-  if (user.role !== 'owner') {
+  if (!user) throw new AppError(404, 'User not found');
+  if (user.role !== 'owner')
     throw new AppError(403, 'Only owner can perform this action');
-  }
-
-  if (user.isRegistration === false) {
+  if (!user.isRegistration)
     throw new AppError(400, 'Owner registration not completed');
-  }
 
-  // 🔍 Step 1: Check if the specialist member exists
   const existingOwner = await OwnerRegistration.findById(id);
-  if (!existingOwner) {
-    throw new AppError(404, 'Owner not found');
-  }
+  if (!existingOwner) throw new AppError(404, 'Owner not found');
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
   try {
-    // 📸 Step 2: Handle new image upload
-    if (file) {
-      const uploadedUrl = await uploadToS3({
-        file,
-        fileName: `images/salon/${Math.floor(100000 + Math.random() * 900000)}`,
-      });
-
-      // 🧹 Step 3: Delete the previous image from S3 (if exists)
-      if (existingOwner.salonPhoto) {
-        await deleteFromS3(existingOwner.salonPhoto);
+    // 🧰 Reusable S3 upload function
+    const uploadSingleFile = async (
+      fileArray: Express.Multer.File[] | undefined,
+      folder: string,
+    ) => {
+      if (fileArray && fileArray[0]) {
+        const file = fileArray[0];
+        const uploadedUrl = await uploadToS3({
+          file,
+          fileName: `images/owner/${folder}/${Date.now()}-${Math.floor(
+            1000 + Math.random() * 9000,
+          )}`,
+        });
+        return uploadedUrl as string;
       }
+      return undefined;
+    };
 
-      // 📝 Step 4: Set the new image URL to payload
-      payload.salonPhoto = uploadedUrl;
+    // 📸 File Uploads (Optional)
+    if (files) {
+      if (files.idDocument) {
+        payload.idDocument = await uploadSingleFile(
+          files.idDocument,
+          'idDocument',
+        );
+      }
+      if (files.businessRegistration) {
+        payload.businessRegistration = await uploadSingleFile(
+          files.businessRegistration,
+          'businessReg',
+        );
+      }
+      if (files.salonFrontPhoto) {
+        payload.salonFrontPhoto = await uploadSingleFile(
+          files.salonFrontPhoto,
+          'salonFront',
+        );
+      }
+      if (files.salonInsidePhoto) {
+        payload.salonInsidePhoto = await uploadSingleFile(
+          files.salonInsidePhoto,
+          'salonInside',
+        );
+      }
     }
 
-    // 🔄 Step 5: Update the specialist member in the database
+    // 🔄 Update Owner Registration
     const updatedOwner = await OwnerRegistration.findByIdAndUpdate(
       id,
       payload,
       {
         new: true,
         runValidators: true,
+        session,
       },
     );
 
     if (!updatedOwner) {
-      throw new AppError(400, 'Owner update failed');
+      throw new AppError(400, 'Owner registration update failed');
     }
+
+    // 🗺️ Update Location If Provided
+    if (payload.location) {
+      await User.findByIdAndUpdate(
+        userId,
+        {
+          location: {
+            type: 'Point',
+            coordinates: payload.location.coordinates,
+            streetAddress: payload.location.streetAddress,
+          },
+        },
+        { new: true, session },
+      );
+    }
+
+    await session.commitTransaction();
+    session.endSession();
 
     return updatedOwner;
   } catch (error: any) {
-    throw new AppError(500, 'Failed to update owner');
+    await session.abortTransaction();
+    session.endSession();
+    throw new AppError(
+      500,
+      error.message || 'Failed to update owner with transaction',
+    );
   }
 };
 

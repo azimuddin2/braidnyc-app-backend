@@ -24,7 +24,11 @@ router.post(
 //   BookingControllers.getBookingAppointments,
 // );
 
-// router.get('/', auth('vendor'), BookingControllers.getAllBookingByUser);
+router.get(
+  '/request',
+  auth('owner', 'freelancer'),
+  BookingControllers.getBookings,
+);
 
 router.get('/', auth('customer'), BookingControllers.getBookingsByCustomer);
 
@@ -42,6 +46,20 @@ router.put(
   auth('customer'),
   validateRequest(BookingValidation.updateBookingStatusValidationSchema),
   BookingControllers.bookingCompletedStatus,
+);
+
+router.put(
+  '/approved-request/:id',
+  auth('freelancer', 'owner'),
+  validateRequest(BookingValidation.updateBookingRequestValidationSchema),
+  BookingControllers.bookingApprovedRequest,
+);
+
+router.put(
+  '/decline-request/:id',
+  auth('freelancer', 'owner'),
+  validateRequest(BookingValidation.updateBookingRequestValidationSchema),
+  BookingControllers.bookingDeclineRequest,
 );
 
 // router.patch(

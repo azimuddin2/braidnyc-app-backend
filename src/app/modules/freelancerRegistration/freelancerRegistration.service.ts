@@ -208,62 +208,120 @@ const updateFreelancerRegistrationIntoDB = async (
   userId: string,
   id: string,
   payload: Partial<TFreelancerRegistration>,
-  file?: Express.Multer.File,
+  files?: {
+    profile?: Express.Multer.File[];
+    idDocument?: Express.Multer.File[];
+    businessRegistration?: Express.Multer.File[];
+  },
 ) => {
-  // 🔍 Step 0: Check if the user exists
   const user = await User.findById(userId).select('role isRegistration');
-  if (!user) {
-    throw new AppError(404, 'User not found');
-  }
-
-  if (user.role !== 'freelancer') {
+  if (!user) throw new AppError(404, 'User not found');
+  if (user.role !== 'freelancer')
     throw new AppError(403, 'Only freelancer can perform this action');
-  }
-
-  if (user.isRegistration === false) {
+  if (!user.isRegistration)
     throw new AppError(400, 'Freelancer registration not completed');
-  }
 
-  // 🔍 Step 1: Check if the specialist member exists
   const existingFreelancer = await FreelancerRegistration.findById(id);
-  if (!existingFreelancer) {
-    throw new AppError(404, 'Freelancer not found');
-  }
+  if (!existingFreelancer)
+    throw new AppError(404, 'Freelancer registration not found');
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
   try {
-    // 📸 Step 2: Handle new image upload
-    if (file) {
-      const uploadedUrl = await uploadToS3({
-        file,
-        fileName: `images/salon/${Math.floor(100000 + Math.random() * 900000)}`,
-      });
+    // 🔁 File Upload Handler
+    const uploadSingleFile = async (
+      fileArray: Express.Multer.File[] | undefined,
+      folder: string,
+    ) => {
+      if (fileArray && fileArray[0]) {
+        const file = fileArray[0];
+        const uploadedUrl = await uploadToS3({
+          file,
+          fileName: `images/freelancer/${folder}/${Date.now()}-${Math.floor(
+            1000 + Math.random() * 9000,
+          )}`,
+        });
+        return uploadedUrl as string;
+      }
+      return undefined;
+    };
 
-      // 🧹 Step 3: Delete the previous image from S3 (if exists)
-      if (existingFreelancer.salonPhoto) {
-        await deleteFromS3(existingFreelancer.salonPhoto);
+    // 📸 Upload Files If Provided
+    if (files) {
+      if (files.profile) {
+        const newProfile = await uploadSingleFile(files.profile, 'profile');
+
+        if (existingFreelancer.profile) {
+          await deleteFromS3(existingFreelancer.profile);
+        }
+
+        payload.profile = newProfile;
       }
 
-      // 📝 Step 4: Set the new image URL to payload
-      payload.salonPhoto = uploadedUrl;
+      if (files.idDocument) {
+        const newID = await uploadSingleFile(files.idDocument, 'idDocument');
+
+        if (existingFreelancer.idDocument) {
+          await deleteFromS3(existingFreelancer.idDocument);
+        }
+
+        payload.idDocument = newID;
+      }
+
+      if (files.businessRegistration) {
+        const newBR = await uploadSingleFile(
+          files.businessRegistration,
+          'businessReg',
+        );
+
+        if (existingFreelancer.businessRegistration) {
+          await deleteFromS3(existingFreelancer.businessRegistration);
+        }
+
+        payload.businessRegistration = newBR;
+      }
     }
 
-    // 🔄 Step 5: Update the specialist member in the database
-    const updatedOwner = await FreelancerRegistration.findByIdAndUpdate(
+    // 🔄 Update Freelancer Registration
+    const updatedFreelancer = await FreelancerRegistration.findByIdAndUpdate(
       id,
       payload,
       {
         new: true,
         runValidators: true,
+        session,
       },
     );
 
-    if (!updatedOwner) {
-      throw new AppError(400, 'Freelancer update failed');
+    if (!updatedFreelancer) throw new AppError(400, 'Freelancer update failed');
+
+    // 🗺️ Update Location If Provided
+    if (payload.location) {
+      await User.findByIdAndUpdate(
+        userId,
+        {
+          location: {
+            type: 'Point',
+            coordinates: payload.location.coordinates,
+            streetAddress: payload.location.streetAddress,
+          },
+        },
+        { new: true, session },
+      );
     }
 
-    return updatedOwner;
+    await session.commitTransaction();
+    session.endSession();
+
+    return updatedFreelancer;
   } catch (error: any) {
-    throw new AppError(500, 'Failed to update freelancer');
+    await session.abortTransaction();
+    session.endSession();
+    throw new AppError(
+      500,
+      error.message || 'Failed to update freelancer with transaction',
+    );
   }
 };
 
