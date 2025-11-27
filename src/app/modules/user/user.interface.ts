@@ -35,6 +35,11 @@ export type TUser = {
   // 🔹 Stripe customer ID for payments
   stripeCustomerId?: string;
   isRegistration: boolean;
+  location?: {
+    type: 'Point';
+    coordinates: [number, number]; // [longitude, latitude]
+    streetAddress?: string;
+  };
 };
 
 export interface UserModel extends Model<TUser> {

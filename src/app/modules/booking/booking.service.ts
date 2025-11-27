@@ -187,7 +187,8 @@ const getBookingsByCustomerFromDB = async (userId: string, status: string) => {
     .populate('service')
     .populate({
       path: 'vendor',
-      select: '_id fullName email phone streetAddress city state image',
+      select:
+        '_id fullName email phone streetAddress city state image location',
     })
     .populate({
       path: 'customer',
@@ -208,7 +209,8 @@ const getBookingByIdFromDB = async (id: string) => {
     .populate('service')
     .populate({
       path: 'vendor',
-      select: '_id fullName email phone streetAddress city state image',
+      select:
+        '_id fullName email phone streetAddress city state image location',
     })
     .populate({
       path: 'customer',

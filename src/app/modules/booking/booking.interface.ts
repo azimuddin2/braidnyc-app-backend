@@ -26,6 +26,9 @@ export type TBooking = {
   vendor: Types.ObjectId | TUser; //Owner and Freelancer ID
   customer: Types.ObjectId | TUser;
 
+  freelancerReg?: Types.ObjectId; // target freelancer
+  ownerReg?: Types.ObjectId; // target owner
+
   service: Types.ObjectId;
   serviceType: SERVICE_MODEL_TYPE;
 

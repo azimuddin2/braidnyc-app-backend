@@ -95,7 +95,16 @@ const createOwnerRegistrationIntoDB = async (
 
     await User.findByIdAndUpdate(
       user._id,
-      { isRegistration: true },
+      {
+        isRegistration: true,
+        ...(data.location && {
+          location: {
+            type: 'Point',
+            coordinates: data.location.coordinates,
+            streetAddress: data.location.streetAddress,
+          },
+        }),
+      },
       { session },
     );
 

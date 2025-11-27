@@ -36,6 +36,15 @@ const bookingSchema = new Schema<TBooking>(
       required: true,
     },
 
+    freelancerReg: {
+      type: Schema.Types.ObjectId,
+      ref: 'FreelancerRegistration',
+    },
+    ownerReg: {
+      type: Schema.Types.ObjectId,
+      ref: 'OwnerRegistration',
+    },
+
     // Polymorphic service reference
     service: {
       type: Schema.Types.ObjectId,

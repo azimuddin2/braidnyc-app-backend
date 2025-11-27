@@ -134,6 +134,22 @@ const userSchema = new Schema<TUser, UserModel>(
       type: Boolean,
       default: false,
     },
+    location: {
+      type: {
+        type: String,
+        enum: ['Point'],
+        default: 'Point',
+        required: false,
+      },
+      coordinates: {
+        type: [Number],
+        required: false,
+      },
+      streetAddress: {
+        type: String,
+        required: false,
+      },
+    },
   },
   {
     timestamps: true,
