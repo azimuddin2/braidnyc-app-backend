@@ -91,10 +91,13 @@ const createFreelancerRegistrationIntoDB = async (
       throw new AppError(400, 'Failed to create owner registration');
     }
 
+    const freelancerRegId = created[0]._id;
+
     await User.findByIdAndUpdate(
       user._id,
       {
         isRegistration: true,
+        freelancerReg: freelancerRegId,
         ...(data.location && {
           location: {
             type: 'Point',
@@ -208,82 +211,49 @@ const updateFreelancerRegistrationIntoDB = async (
   userId: string,
   id: string,
   payload: Partial<TFreelancerRegistration>,
-  files?: {
-    profile?: Express.Multer.File[];
-    idDocument?: Express.Multer.File[];
-    businessRegistration?: Express.Multer.File[];
-  },
+  file?: Express.Multer.File,
 ) => {
+  // 🔍 Step 0: Check if the user exists
   const user = await User.findById(userId).select('role isRegistration');
-  if (!user) throw new AppError(404, 'User not found');
-  if (user.role !== 'freelancer')
-    throw new AppError(403, 'Only freelancer can perform this action');
-  if (!user.isRegistration)
-    throw new AppError(400, 'Freelancer registration not completed');
+  if (!user) {
+    throw new AppError(404, 'User not found');
+  }
 
+  if (user.role !== 'freelancer') {
+    throw new AppError(403, 'Only freelancer can perform this action');
+  }
+
+  if (!user.isRegistration) {
+    throw new AppError(400, 'Freelancer registration not completed');
+  }
+
+  // 🔍 Step 1: Check if the specialist member exists
   const existingFreelancer = await FreelancerRegistration.findById(id);
-  if (!existingFreelancer)
-    throw new AppError(404, 'Freelancer registration not found');
+  if (!existingFreelancer) {
+    throw new AppError(404, 'Freelancer not found');
+  }
 
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
-    // 🔁 File Upload Handler
-    const uploadSingleFile = async (
-      fileArray: Express.Multer.File[] | undefined,
-      folder: string,
-    ) => {
-      if (fileArray && fileArray[0]) {
-        const file = fileArray[0];
-        const uploadedUrl = await uploadToS3({
-          file,
-          fileName: `images/freelancer/${folder}/${Date.now()}-${Math.floor(
-            1000 + Math.random() * 9000,
-          )}`,
-        });
-        return uploadedUrl as string;
-      }
-      return undefined;
-    };
+    // 📸 Step 2: Handle new image upload
+    if (file) {
+      const uploadedUrl = await uploadToS3({
+        file,
+        fileName: `images/salon/${Math.floor(100000 + Math.random() * 900000)}`,
+      });
 
-    // 📸 Upload Files If Provided
-    if (files) {
-      if (files.profile) {
-        const newProfile = await uploadSingleFile(files.profile, 'profile');
-
-        if (existingFreelancer.profile) {
-          await deleteFromS3(existingFreelancer.profile);
-        }
-
-        payload.profile = newProfile;
+      // 🧹 Delete old image
+      if (existingFreelancer.salonPhoto) {
+        await deleteFromS3(existingFreelancer.salonPhoto);
       }
 
-      if (files.idDocument) {
-        const newID = await uploadSingleFile(files.idDocument, 'idDocument');
-
-        if (existingFreelancer.idDocument) {
-          await deleteFromS3(existingFreelancer.idDocument);
-        }
-
-        payload.idDocument = newID;
-      }
-
-      if (files.businessRegistration) {
-        const newBR = await uploadSingleFile(
-          files.businessRegistration,
-          'businessReg',
-        );
-
-        if (existingFreelancer.businessRegistration) {
-          await deleteFromS3(existingFreelancer.businessRegistration);
-        }
-
-        payload.businessRegistration = newBR;
-      }
+      // Add new image to payload
+      payload.salonPhoto = uploadedUrl;
     }
 
-    // 🔄 Update Freelancer Registration
+    // 🔄 Step 3: Update freelancer registration
     const updatedFreelancer = await FreelancerRegistration.findByIdAndUpdate(
       id,
       payload,
@@ -294,9 +264,11 @@ const updateFreelancerRegistrationIntoDB = async (
       },
     );
 
-    if (!updatedFreelancer) throw new AppError(400, 'Freelancer update failed');
+    if (!updatedFreelancer) {
+      throw new AppError(400, 'Freelancer update failed');
+    }
 
-    // 🗺️ Update Location If Provided
+    // 📍 Step 4: Update user location inside same transaction
     if (payload.location) {
       await User.findByIdAndUpdate(
         userId,
@@ -307,10 +279,11 @@ const updateFreelancerRegistrationIntoDB = async (
             streetAddress: payload.location.streetAddress,
           },
         },
-        { new: true, session },
+        { runValidators: true, session },
       );
     }
 
+    // Commit
     await session.commitTransaction();
     session.endSession();
 
@@ -318,10 +291,7 @@ const updateFreelancerRegistrationIntoDB = async (
   } catch (error: any) {
     await session.abortTransaction();
     session.endSession();
-    throw new AppError(
-      500,
-      error.message || 'Failed to update freelancer with transaction',
-    );
+    throw new AppError(500, error.message || 'Failed to update freelancer');
   }
 };
 

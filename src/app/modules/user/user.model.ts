@@ -134,6 +134,14 @@ const userSchema = new Schema<TUser, UserModel>(
       type: Boolean,
       default: false,
     },
+    freelancerReg: {
+      type: Schema.Types.ObjectId,
+      ref: 'FreelancerRegistration',
+    },
+    ownerReg: {
+      type: Schema.Types.ObjectId,
+      ref: 'OwnerRegistration',
+    },
     location: {
       type: {
         type: String,

@@ -93,10 +93,13 @@ const createOwnerRegistrationIntoDB = async (
       throw new AppError(400, 'Failed to create owner registration');
     }
 
+    const ownerRegId = created[0]._id;
+
     await User.findByIdAndUpdate(
       user._id,
       {
         isRegistration: true,
+        ownerReg: ownerRegId,
         ...(data.location && {
           location: {
             type: 'Point',
@@ -212,74 +215,48 @@ const updateOwnerRegistrationIntoDB = async (
   userId: string,
   id: string,
   payload: Partial<TOwnerRegistration>,
-  files?: {
-    idDocument?: Express.Multer.File[];
-    businessRegistration?: Express.Multer.File[];
-    salonFrontPhoto?: Express.Multer.File[];
-    salonInsidePhoto?: Express.Multer.File[];
-  },
+  file?: Express.Multer.File,
 ) => {
+  // 🔍 Step 0: Check if the user exists
   const user = await User.findById(userId).select('role isRegistration');
-  if (!user) throw new AppError(404, 'User not found');
-  if (user.role !== 'owner')
-    throw new AppError(403, 'Only owner can perform this action');
-  if (!user.isRegistration)
-    throw new AppError(400, 'Owner registration not completed');
+  if (!user) {
+    throw new AppError(404, 'User not found');
+  }
 
+  if (user.role !== 'owner') {
+    throw new AppError(403, 'Only owner can perform this action');
+  }
+
+  if (user.isRegistration === false) {
+    throw new AppError(400, 'Owner registration not completed');
+  }
+
+  // 🔍 Step 1: Check existing owner
   const existingOwner = await OwnerRegistration.findById(id);
-  if (!existingOwner) throw new AppError(404, 'Owner not found');
+  if (!existingOwner) {
+    throw new AppError(404, 'Owner not found');
+  }
 
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
-    // 🧰 Reusable S3 upload function
-    const uploadSingleFile = async (
-      fileArray: Express.Multer.File[] | undefined,
-      folder: string,
-    ) => {
-      if (fileArray && fileArray[0]) {
-        const file = fileArray[0];
-        const uploadedUrl = await uploadToS3({
-          file,
-          fileName: `images/owner/${folder}/${Date.now()}-${Math.floor(
-            1000 + Math.random() * 9000,
-          )}`,
-        });
-        return uploadedUrl as string;
-      }
-      return undefined;
-    };
+    // 📸 Step 2: Handle new image upload
+    if (file) {
+      const uploadedUrl = await uploadToS3({
+        file,
+        fileName: `images/salon/${Math.floor(100000 + Math.random() * 900000)}`,
+      });
 
-    // 📸 File Uploads (Optional)
-    if (files) {
-      if (files.idDocument) {
-        payload.idDocument = await uploadSingleFile(
-          files.idDocument,
-          'idDocument',
-        );
+      // 🧹 Delete previous image
+      if (existingOwner.salonPhoto) {
+        await deleteFromS3(existingOwner.salonPhoto);
       }
-      if (files.businessRegistration) {
-        payload.businessRegistration = await uploadSingleFile(
-          files.businessRegistration,
-          'businessReg',
-        );
-      }
-      if (files.salonFrontPhoto) {
-        payload.salonFrontPhoto = await uploadSingleFile(
-          files.salonFrontPhoto,
-          'salonFront',
-        );
-      }
-      if (files.salonInsidePhoto) {
-        payload.salonInsidePhoto = await uploadSingleFile(
-          files.salonInsidePhoto,
-          'salonInside',
-        );
-      }
+
+      payload.salonPhoto = uploadedUrl;
     }
 
-    // 🔄 Update Owner Registration
+    // 🔄 Step 3: Update owner registration
     const updatedOwner = await OwnerRegistration.findByIdAndUpdate(
       id,
       payload,
@@ -291,10 +268,10 @@ const updateOwnerRegistrationIntoDB = async (
     );
 
     if (!updatedOwner) {
-      throw new AppError(400, 'Owner registration update failed');
+      throw new AppError(400, 'Owner update failed');
     }
 
-    // 🗺️ Update Location If Provided
+    // 📍 Step 4: Update user location
     if (payload.location) {
       await User.findByIdAndUpdate(
         userId,
@@ -305,10 +282,11 @@ const updateOwnerRegistrationIntoDB = async (
             streetAddress: payload.location.streetAddress,
           },
         },
-        { new: true, session },
+        { runValidators: true, session },
       );
     }
 
+    // Commit transaction
     await session.commitTransaction();
     session.endSession();
 
@@ -316,10 +294,7 @@ const updateOwnerRegistrationIntoDB = async (
   } catch (error: any) {
     await session.abortTransaction();
     session.endSession();
-    throw new AppError(
-      500,
-      error.message || 'Failed to update owner with transaction',
-    );
+    throw new AppError(500, error.message || 'Failed to update owner');
   }
 };
 

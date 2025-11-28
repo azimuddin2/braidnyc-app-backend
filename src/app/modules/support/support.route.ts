@@ -11,7 +11,7 @@ const upload = multer({ storage: memoryStorage() });
 
 router.post(
   '/',
-  auth('customer'),
+  auth('customer', 'freelancer', 'owner'),
   upload.single('image'),
   parseData(),
   validateRequest(SupportValidation.createSupportValidationSchema),
