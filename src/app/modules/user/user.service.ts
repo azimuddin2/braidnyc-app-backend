@@ -319,13 +319,41 @@ const signupFreelancerIntoDB = async (payload: TUser) => {
 };
 
 const getAllUsersFromDB = async (query: Record<string, unknown>) => {
-  const baseQuery = {
-    ...query,
+  const { role, ...otherQuery } = query;
+
+  // Role required
+  if (!role) {
+    throw new AppError(400, 'Role is required');
+  }
+
+  // Allowed roles
+  const validRoles = ['customer', 'owner', 'freelancer'];
+  if (!validRoles.includes(role as string)) {
+    throw new AppError(400, 'Invalid role');
+  }
+
+  // Base query
+  const baseQuery: any = {
+    ...otherQuery,
     isDeleted: false,
-    role: { $nin: ['admin'] }, // ✅ exclude admins
+    role,
   };
 
-  const queryBuilder = new QueryBuilder(User.find(), baseQuery)
+  // Build query
+  let mongooseQuery = User.find();
+
+  // Role-based populate
+  if (role === 'owner') {
+    mongooseQuery = mongooseQuery.populate('ownerReg');
+  }
+
+  if (role === 'freelancer') {
+    mongooseQuery = mongooseQuery.populate('freelancerReg');
+  }
+
+  // customer → no populate
+
+  const queryBuilder = new QueryBuilder(mongooseQuery, baseQuery)
     .search(userSearchableFields)
     .filter()
     .sort()
