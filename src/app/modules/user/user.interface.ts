@@ -26,7 +26,7 @@ export type TUser = {
   selectSalon?: string;
   role: TRole;
   status: TStatus;
-  image?: string;
+  image: string | null;
   isDeleted: boolean;
   isVerified: boolean;
   verification: {

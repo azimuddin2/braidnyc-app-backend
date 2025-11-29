@@ -57,9 +57,11 @@ const OwnerRegistrationSchema = new Schema<TOwnerRegistration>(
     },
     salonPhoto: {
       type: String,
+      default: null,
     },
     businessRegistrationNumber: {
       type: Number,
+      default: null,
     },
 
     location: {

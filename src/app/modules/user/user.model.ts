@@ -79,6 +79,7 @@ const userSchema = new Schema<TUser, UserModel>(
       enum: ['male', 'female', 'other'],
       trim: true,
       required: false,
+      default: null,
     },
     selectSalon: {
       type: String,
@@ -102,6 +103,7 @@ const userSchema = new Schema<TUser, UserModel>(
     image: {
       type: String,
       trim: true,
+      default: null,
     },
     isDeleted: {
       type: Boolean,

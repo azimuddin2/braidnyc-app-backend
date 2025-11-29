@@ -45,7 +45,6 @@ const loginUser = async (payload: TLoginUser) => {
     name: user?.fullName,
     email: user?.email,
     role: user?.role,
-    image: user?.image,
   };
 
   const accessToken = createToken(
@@ -95,7 +94,6 @@ const refreshToken = async (token: string) => {
     name: user?.fullName,
     email: user?.email,
     role: user?.role,
-    image: user?.image,
   };
 
   const accessToken = createToken(
@@ -178,7 +176,6 @@ const forgotPassword = async (email: string) => {
     name: user?.fullName,
     email: user?.email,
     role: user?.role,
-    image: user?.image,
   };
 
   const accessToken = createToken(

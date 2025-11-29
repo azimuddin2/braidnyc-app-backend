@@ -37,6 +37,7 @@ const FreelancerRegistrationSchema = new Schema<TFreelancerRegistration>(
     },
     businessRegistration: {
       type: String,
+      default: null,
     },
     openingHours: {
       type: [OpeningHourSchema],
@@ -57,12 +58,15 @@ const FreelancerRegistrationSchema = new Schema<TFreelancerRegistration>(
 
     salonPhoto: {
       type: String,
+      default: null,
     },
     name: {
       type: String,
+      default: null,
     },
     businessRegistrationNumber: {
       type: Number,
+      default: null,
     },
 
     location: {
@@ -80,12 +84,15 @@ const FreelancerRegistrationSchema = new Schema<TFreelancerRegistration>(
 
     city: {
       type: String,
+      default: null,
     },
     postalCode: {
       type: Number,
+      default: null,
     },
     country: {
       type: String,
+      default: null,
     },
     services: [
       {

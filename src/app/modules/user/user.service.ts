@@ -44,7 +44,6 @@ const signupCustomerIntoDB = async (payload: TUser) => {
     name: result?.fullName,
     email: result?.email,
     role: result?.role,
-    image: result?.image,
   };
 
   const accessToken = createToken(
@@ -146,7 +145,6 @@ const signupOwnerIntoDB = async (payload: TUser) => {
     name: result?.fullName,
     email: result?.email,
     role: result?.role,
-    image: result?.image,
   };
 
   const accessToken = createToken(
@@ -248,7 +246,6 @@ const signupFreelancerIntoDB = async (payload: TUser) => {
     name: result?.fullName,
     email: result?.email,
     role: result?.role,
-    image: result?.image,
   };
 
   const accessToken = createToken(
@@ -342,16 +339,34 @@ const getAllUsersFromDB = async (query: Record<string, unknown>) => {
   // Build query
   let mongooseQuery = User.find();
 
-  // Role-based populate
+  // Role-based populate with nested user info in reviews
   if (role === 'owner') {
-    mongooseQuery = mongooseQuery.populate('ownerReg');
+    mongooseQuery = mongooseQuery.populate({
+      path: 'ownerReg',
+      populate: {
+        path: 'reviews',
+        model: 'Review',
+        populate: {
+          path: 'user',
+          select: 'fullName image',
+        },
+      },
+    });
   }
 
   if (role === 'freelancer') {
-    mongooseQuery = mongooseQuery.populate('freelancerReg');
+    mongooseQuery = mongooseQuery.populate({
+      path: 'freelancerReg',
+      populate: {
+        path: 'reviews',
+        model: 'Review',
+        populate: {
+          path: 'user',
+          select: 'fullName image',
+        },
+      },
+    });
   }
-
-  // customer → no populate
 
   const queryBuilder = new QueryBuilder(mongooseQuery, baseQuery)
     .search(userSearchableFields)

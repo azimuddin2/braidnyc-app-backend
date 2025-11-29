@@ -171,7 +171,23 @@ const getBookingsFromDB = async (query: Record<string, unknown>) => {
 
   const filter = { vendor: vendor as string, isDeleted: false };
 
-  const result = await Booking.find(filter);
+  const result = await Booking.find(filter)
+    .populate('service')
+    .populate({
+      path: 'vendor',
+      select:
+        '_id fullName email phone streetAddress city state image location',
+    })
+    .populate({
+      path: 'customer',
+      select: '_id fullName email phone streetAddress city state image',
+    })
+    .populate({
+      path: 'specialist',
+      select: 'name image',
+    })
+    .sort({ createdAt: -1 })
+    .select('-__v -isDeleted');
 
   if (!result || result.length === 0) {
     throw new AppError(404, 'Booking not found');
