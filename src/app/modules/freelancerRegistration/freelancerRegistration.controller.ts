@@ -38,6 +38,21 @@ const getAllFreelancers = catchAsync(async (req, res) => {
   });
 });
 
+const getAllFreelancerRequest = catchAsync(async (req, res) => {
+  const result =
+    await FreelancerRegistrationService.getAllFreelancerRequestFromDB(
+      req.query,
+    );
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Freelancers request retrieved successfully',
+    meta: result.meta,
+    data: result.result,
+  });
+});
+
 const getFreelancerById = catchAsync(async (req, res) => {
   const { id } = req.params;
   const result =
@@ -87,6 +102,7 @@ const updateFreelancerRegistration = catchAsync(async (req, res) => {
 export const FreelancerRegistrationController = {
   createFreelancerRegistration,
   getAllFreelancers,
+  getAllFreelancerRequest,
   getFreelancerById,
   getFreelancerProfile,
   updateFreelancerRegistration,

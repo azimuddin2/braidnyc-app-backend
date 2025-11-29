@@ -170,10 +170,34 @@ const getAllOwnerRegistrationFromDB = async (
   return { meta, result };
 };
 
+const getAllOwnerRequestFromDB = async (query: Record<string, unknown>) => {
+  let mongooseQuery = OwnerRegistration.find({ isDeleted: false });
+
+  const ownersQuery = new QueryBuilder(mongooseQuery, query)
+    .search(OwnerSearchableFields)
+    .filter()
+    .sort()
+    .paginate()
+    .fields();
+
+  // ⚠️ IMPORTANT:
+  // After QB, you must apply populate on ownersQuery.modelQuery
+
+  ownersQuery.modelQuery = ownersQuery.modelQuery.populate({
+    path: 'user',
+    select: 'fullName email phone image gender role',
+  });
+
+  const meta = await ownersQuery.countTotal();
+  const result = await ownersQuery.modelQuery;
+
+  return { meta, result };
+};
+
 const getOwnerRegistrationByIdFromDB = async (id: string) => {
   const result = await OwnerRegistration.findById(id).populate({
     path: 'user',
-    select: '-password -needsPasswordChange',
+    select: 'fullName email phone image gender role',
   });
 
   if (!result) {
@@ -301,6 +325,7 @@ const updateOwnerRegistrationIntoDB = async (
 export const OwnerRegistrationService = {
   createOwnerRegistrationIntoDB,
   getAllOwnerRegistrationFromDB,
+  getAllOwnerRequestFromDB,
   getOwnerRegistrationByIdFromDB,
   getOwnerProfileFromDB,
   updateOwnerRegistrationIntoDB,

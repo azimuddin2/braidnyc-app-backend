@@ -20,6 +20,7 @@ export type TFreelancerRegistration = {
   }[];
 
   approvalStatus: TApprovalStatus;
+  notes: string;
   availability: string[];
 
   salonPhoto: string | null;

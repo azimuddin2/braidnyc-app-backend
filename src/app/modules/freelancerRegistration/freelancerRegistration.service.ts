@@ -7,6 +7,8 @@ import { FreelancerRegistration } from './freelancerRegistration.model';
 import QueryBuilder from '../../builder/QueryBuilder';
 import { FreelancerSearchableFields } from './freelancerRegistration.constant';
 import { FreelancerService } from '../freelancerService/freelancerService.model';
+import { sendEmail } from '../../utils/sendEmail';
+import { TUser } from '../user/user.interface';
 
 const createFreelancerRegistrationIntoDB = async (
   userId: string,
@@ -88,7 +90,7 @@ const createFreelancerRegistrationIntoDB = async (
 
     const created = await FreelancerRegistration.create([payload], { session });
     if (!created || created.length === 0) {
-      throw new AppError(400, 'Failed to create owner registration');
+      throw new AppError(400, 'Failed to create freelancer registration');
     }
 
     const freelancerRegId = created[0]._id;
@@ -116,7 +118,7 @@ const createFreelancerRegistrationIntoDB = async (
   } catch (error: any) {
     await session.abortTransaction();
     session.endSession();
-    throw new AppError(500, error.message || 'Owner registration failed');
+    throw new AppError(500, error.message || 'Freelancer registration failed');
   }
 };
 
@@ -166,10 +168,36 @@ const getAllFreelancersFromDB = async (query: Record<string, unknown>) => {
   return { meta, result };
 };
 
+const getAllFreelancerRequestFromDB = async (
+  query: Record<string, unknown>,
+) => {
+  let mongooseQuery = FreelancerRegistration.find({ isDeleted: false });
+
+  const freelancersQuery = new QueryBuilder(mongooseQuery, query)
+    .search(FreelancerSearchableFields)
+    .filter()
+    .sort()
+    .paginate()
+    .fields();
+
+  // ⚠️ IMPORTANT:
+  // After QB, you must apply populate on freelancerQuery.modelQuery
+
+  freelancersQuery.modelQuery = freelancersQuery.modelQuery.populate({
+    path: 'user',
+    select: 'fullName email phone image gender role',
+  });
+
+  const meta = await freelancersQuery.countTotal();
+  const result = await freelancersQuery.modelQuery;
+
+  return { meta, result };
+};
+
 const getFreelancerByIdFromDB = async (id: string) => {
   const result = await FreelancerRegistration.findById(id).populate({
     path: 'user',
-    select: '-password -needsPasswordChange',
+    select: 'fullName email phone image gender role',
   });
 
   if (!result) {
@@ -295,10 +323,183 @@ const updateFreelancerRegistrationIntoDB = async (
   }
 };
 
+const freelancerApprovalRequestIntoDB = async (
+  id: string,
+  payload: { approvalStatus: string },
+) => {
+  // 1️⃣ Check freelancer + populate user
+  const isFreelancerExists = await FreelancerRegistration.findById(id).populate(
+    {
+      path: 'user',
+      select: 'fullName email',
+    },
+  );
+
+  if (!isFreelancerExists) {
+    throw new AppError(404, 'This freelancer is not found');
+  }
+
+  // 2️⃣ Type narrow populated user safely
+  const user = isFreelancerExists.user as unknown as TUser;
+
+  if (!user.email) {
+    throw new AppError(500, 'User email not found');
+  }
+
+  // 3️⃣ Update status
+  const result = await FreelancerRegistration.findByIdAndUpdate(id, payload, {
+    new: true,
+  });
+
+  // 4️⃣ Send approval email
+  if (payload.approvalStatus === 'approved') {
+    await sendEmail(
+      user.email,
+      `🎉 Your Freelancer Profile Has Been Approved!`,
+      `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Freelancer Approved</title>
+      </head>
+      <body style="margin:0;padding:0;background:#f5f5f5;font-family:Arial, sans-serif;">
+        
+        <table align="center" width="600" cellpadding="0" cellspacing="0"
+          style="background:#ffffff;padding:30px;border-radius:8px;
+                 box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+          
+          <tr>
+            <td>
+              <h2 style="color:#28a745;margin:0 0 15px 0;">
+                Congratulations ${user.fullName}! 🎉
+              </h2>
+
+              <p style="font-size:15px;color:#333;margin-bottom:20px;">
+                Great news! Your freelancer profile has been successfully approved.
+              </p>
+
+              <p style="font-size:14px;color:#444;margin-bottom:20px;">
+                You can now start receiving bookings and providing services through our platform.
+                We’re excited to have you on board!
+              </p>
+
+              <p style="font-size:14px;color:#666;margin-top:20px;">
+                If you have any questions, feel free to contact our support team anytime.
+              </p>
+
+              <p style="margin-top:30px;font-size:13px;color:#999;">
+                Best Regards,<br/>
+                <strong>BraidNYC Team</strong>
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </body>
+      </html>
+      `,
+    );
+  }
+
+  return result;
+};
+
+const freelancerRejectedRequestIntoDB = async (
+  id: string,
+  payload: { approvalStatus: string },
+) => {
+  // 1️⃣ Get freelancer with user info
+  const freelancer = await FreelancerRegistration.findById(id).populate({
+    path: 'user',
+    select: 'fullName email',
+  });
+
+  if (!freelancer) {
+    throw new AppError(404, 'This freelancer is not found');
+  }
+
+  // 2️⃣ Safely narrow user type
+  const user = freelancer.user as unknown as TUser;
+
+  if (!user?.email) {
+    throw new AppError(500, 'User email not found');
+  }
+
+  // 3️⃣ Update approval status
+  const updatedFreelancer = await FreelancerRegistration.findByIdAndUpdate(
+    id,
+    payload,
+    { new: true },
+  );
+
+  // 4️⃣ If rejected → Send rejection email
+  if (payload.approvalStatus === 'rejected') {
+    const subject = `❗ Your Freelancer Profile Request Was Rejected`;
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Freelancer Rejected</title>
+      </head>
+      <body style="margin:0;padding:0;background:#fafafa;font-family:Arial, sans-serif;">
+        
+        <table align="center" width="600" cellpadding="0" cellspacing="0"
+          style="
+            background:#ffffff;
+            padding:30px;
+            border-radius:8px;
+            box-shadow:0 2px 8px rgba(0,0,0,0.06);
+          ">
+          
+          <tr>
+            <td>
+              <h2 style="color:#d9534f;margin:0 0 15px 0;">
+                Hello ${user.fullName},
+              </h2>
+
+              <p style="font-size:15px;color:#333;margin-bottom:20px;">
+                We regret to inform you that your freelancer profile request has been <strong>rejected</strong>.
+              </p>
+
+              <p style="font-size:14px;color:#555;margin-bottom:20px;line-height:1.6;">
+                This decision may be due to missing information or failing to meet our platform requirements.
+                Please review your submitted details and try applying again after making necessary changes.
+              </p>
+
+              <p style="font-size:14px;color:#666;">
+                If you believe this was a mistake or need more clarification, feel free to contact our support team.
+              </p>
+
+              <p style="margin-top:30px;font-size:13px;color:#999;">
+                Best Regards,<br/>
+                <strong>BraidNYC Team</strong>
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </body>
+      </html>
+    `;
+
+    await sendEmail(user.email, subject, htmlContent);
+  }
+
+  return updatedFreelancer;
+};
+
 export const FreelancerRegistrationService = {
   createFreelancerRegistrationIntoDB,
   getAllFreelancersFromDB,
+  getAllFreelancerRequestFromDB,
   getFreelancerByIdFromDB,
   getFreelancerProfileFromDB,
   updateFreelancerRegistrationIntoDB,
+  freelancerApprovalRequestIntoDB,
+  freelancerRejectedRequestIntoDB,
 };

@@ -51,6 +51,10 @@ const FreelancerRegistrationSchema = new Schema<TFreelancerRegistration>(
       },
       default: 'pending',
     },
+    notes: {
+      type: String,
+      default: null,
+    },
     availability: {
       type: [String],
       required: true,

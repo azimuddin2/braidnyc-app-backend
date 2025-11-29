@@ -27,6 +27,12 @@ router.post(
 router.get('/', OwnerRegistrationController.getAllOwnerRegistration);
 
 router.get(
+  '/requests',
+  auth('admin'),
+  OwnerRegistrationController.getAllOwnerRequest,
+);
+
+router.get(
   '/profile',
   auth('owner'),
   OwnerRegistrationController.getOwnerProfile,

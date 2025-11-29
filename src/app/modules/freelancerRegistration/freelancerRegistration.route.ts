@@ -27,6 +27,12 @@ router.post(
 router.get('/', FreelancerRegistrationController.getAllFreelancers);
 
 router.get(
+  '/requests',
+  auth('admin'),
+  FreelancerRegistrationController.getAllFreelancerRequest,
+);
+
+router.get(
   '/profile',
   auth('freelancer'),
   FreelancerRegistrationController.getFreelancerProfile,

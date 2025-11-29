@@ -39,6 +39,20 @@ const getAllOwnerRegistration = catchAsync(async (req, res) => {
   });
 });
 
+const getAllOwnerRequest = catchAsync(async (req, res) => {
+  const result = await OwnerRegistrationService.getAllOwnerRequestFromDB(
+    req.query,
+  );
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Owners request retrieved successfully',
+    meta: result.meta,
+    data: result.result,
+  });
+});
+
 const getOwnerRegistrationById = catchAsync(async (req, res) => {
   const { id } = req.params;
   const result =
@@ -87,6 +101,7 @@ const updateOwnerRegistration = catchAsync(async (req, res) => {
 export const OwnerRegistrationController = {
   createOwnerRegistration,
   getAllOwnerRegistration,
+  getAllOwnerRequest,
   getOwnerRegistrationById,
   getOwnerProfile,
   updateOwnerRegistration,
