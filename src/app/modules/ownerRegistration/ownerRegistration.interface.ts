@@ -19,6 +19,7 @@ export type TOwnerRegistration = {
   }[];
 
   approvalStatus: TApprovalStatus;
+  notes: string;
 
   salonPhoto?: string | null;
   businessRegistrationNumber?: number;

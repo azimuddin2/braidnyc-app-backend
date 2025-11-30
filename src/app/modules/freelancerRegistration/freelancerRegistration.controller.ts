@@ -99,6 +99,38 @@ const updateFreelancerRegistration = catchAsync(async (req, res) => {
   });
 });
 
+const freelancerApprovalRequest = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const result =
+    await FreelancerRegistrationService.freelancerApprovalRequestIntoDB(
+      id,
+      req.body,
+    );
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'The freelancer account has been approved successfully.',
+    data: result,
+  });
+});
+
+const freelancerRejectedRequest = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const result =
+    await FreelancerRegistrationService.freelancerRejectedRequestIntoDB(
+      id,
+      req.body,
+    );
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Freelancer account has been rejected successfully.',
+    data: result,
+  });
+});
+
 export const FreelancerRegistrationController = {
   createFreelancerRegistration,
   getAllFreelancers,
@@ -106,4 +138,6 @@ export const FreelancerRegistrationController = {
   getFreelancerById,
   getFreelancerProfile,
   updateFreelancerRegistration,
+  freelancerApprovalRequest,
+  freelancerRejectedRequest,
 };

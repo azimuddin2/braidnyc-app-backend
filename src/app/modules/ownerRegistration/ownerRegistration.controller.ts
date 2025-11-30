@@ -98,6 +98,38 @@ const updateOwnerRegistration = catchAsync(async (req, res) => {
   });
 });
 
+const ownerApprovalRequest = catchAsync(async (req, res) => {
+  const { id } = req.params;
+
+  const result = await OwnerRegistrationService.ownerApprovalRequestIntoDB(
+    id,
+    req.body,
+  );
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'The salon owner account has been approved successfully.',
+    data: result,
+  });
+});
+
+const ownerRejectedRequest = catchAsync(async (req, res) => {
+  const { id } = req.params;
+
+  const result = await OwnerRegistrationService.ownerRejectedRequestIntoDB(
+    id,
+    req.body,
+  );
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'The salon owner account has been rejected successfully.',
+    data: result,
+  });
+});
+
 export const OwnerRegistrationController = {
   createOwnerRegistration,
   getAllOwnerRegistration,
@@ -105,4 +137,6 @@ export const OwnerRegistrationController = {
   getOwnerRegistrationById,
   getOwnerProfile,
   updateOwnerRegistration,
+  ownerApprovalRequest,
+  ownerRejectedRequest,
 };

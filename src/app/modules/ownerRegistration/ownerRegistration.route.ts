@@ -53,4 +53,18 @@ router.patch(
   OwnerRegistrationController.updateOwnerRegistration,
 );
 
+router.put(
+  '/approval-request/:id',
+  auth('admin'),
+  validateRequest(OwnerRegistrationValidation.approvalStatusValidationSchema),
+  OwnerRegistrationController.ownerApprovalRequest,
+);
+
+router.put(
+  '/rejected-request/:id',
+  auth('admin'),
+  validateRequest(OwnerRegistrationValidation.rejectedStatusValidationSchema),
+  OwnerRegistrationController.ownerRejectedRequest,
+);
+
 export const OwnerRegistrationRoutes = router;

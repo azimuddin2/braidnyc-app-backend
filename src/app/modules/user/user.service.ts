@@ -323,7 +323,6 @@ const getAllUsersFromDB = async (query: Record<string, unknown>) => {
     throw new AppError(400, 'Role is required');
   }
 
-  // Allowed roles
   const validRoles = ['customer', 'owner', 'freelancer'];
   if (!validRoles.includes(role as string)) {
     throw new AppError(400, 'Invalid role');
@@ -336,13 +335,13 @@ const getAllUsersFromDB = async (query: Record<string, unknown>) => {
     role,
   };
 
-  // Build query
   let mongooseQuery = User.find();
 
-  // Role-based populate with nested user info in reviews
+  // ===== Owner with ONLY approved registration =====
   if (role === 'owner') {
     mongooseQuery = mongooseQuery.populate({
       path: 'ownerReg',
+      match: { approvalStatus: 'approved' }, // ✅ Only approved
       populate: {
         path: 'reviews',
         model: 'Review',
@@ -354,9 +353,11 @@ const getAllUsersFromDB = async (query: Record<string, unknown>) => {
     });
   }
 
+  // ===== Freelancer with ONLY approved registration =====
   if (role === 'freelancer') {
     mongooseQuery = mongooseQuery.populate({
       path: 'freelancerReg',
+      match: { approvalStatus: 'approved' }, // ✅ Only approved
       populate: {
         path: 'reviews',
         model: 'Review',
@@ -368,6 +369,7 @@ const getAllUsersFromDB = async (query: Record<string, unknown>) => {
     });
   }
 
+  // Query builder (pagination, sort, search, filter)
   const queryBuilder = new QueryBuilder(mongooseQuery, baseQuery)
     .search(userSearchableFields)
     .filter()
@@ -376,7 +378,17 @@ const getAllUsersFromDB = async (query: Record<string, unknown>) => {
     .fields();
 
   const meta = await queryBuilder.countTotal();
-  const result = await queryBuilder.modelQuery;
+
+  let result = await queryBuilder.modelQuery;
+
+  // Remove users whose reg is NOT approved (null after match)
+  if (role === 'owner') {
+    result = result.filter((user: any) => user.ownerReg);
+  }
+
+  if (role === 'freelancer') {
+    result = result.filter((user: any) => user.freelancerReg);
+  }
 
   return { meta, result };
 };

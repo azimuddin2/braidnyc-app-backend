@@ -14,37 +14,83 @@ import bcrypt from 'bcrypt';
 import { generateOtp } from '../../utils/generateOtp';
 import moment from 'moment';
 import { sendEmail } from '../../utils/sendEmail';
+import { TFreelancerRegistration } from '../freelancerRegistration/freelancerRegistration.interface';
+import { TOwnerRegistration } from '../ownerRegistration/ownerRegistration.interface';
 
 const loginUser = async (payload: TLoginUser) => {
-  const user = await User.findOne({ email: payload.email });
+  // 1️⃣ Find user and populate profiles
+  const user = await User.findOne({ email: payload.email })
+    .populate('freelancerReg')
+    .populate('ownerReg');
 
-  if (!user) {
-    throw new AppError(404, 'This user is not found!');
-  }
-
-  if (user?.isDeleted === true) {
-    throw new AppError(403, 'This user account is deleted!');
-  }
-
-  if (user?.status === 'blocked') {
+  if (!user) throw new AppError(404, 'This user is not found!');
+  if (user.isDeleted) throw new AppError(403, 'This user account is deleted!');
+  if (user.status === 'blocked')
     throw new AppError(403, 'This user is blocked!');
-  }
 
-  // checking if the password is correct
+  // 2️⃣ Password check
   const isPasswordMatched = await User.isPasswordMatched(
-    payload?.password,
-    user?.password,
+    payload.password,
+    user.password,
   );
-  if (!isPasswordMatched) {
-    throw new AppError(403, 'Password do not matched!');
+  if (!isPasswordMatched) throw new AppError(403, 'Password does not match!');
+
+  // 3️⃣ Handle incomplete owner registration
+  if (user.role === 'owner' && !user.ownerReg) {
+    const jwtPayload: TJwtPayload = {
+      userId: user._id.toString(),
+      name: user.fullName,
+      email: user.email,
+      role: 'owner', // special limited token
+    };
+
+    const token = createToken(
+      jwtPayload,
+      config.jwt_access_secret as string,
+      config.jwt_access_expires_in as string,
+    );
+
+    return {
+      accessToken: token,
+      registrationRequired: true, // frontend can redirect
+    };
   }
 
-  // create token and sent to the client
+  // 4️⃣ Approval status check (freelancer/owner)
+  if (user.role === 'freelancer') {
+    const freelancer = user.freelancerReg as TFreelancerRegistration | any;
+
+    if (!freelancer)
+      throw new AppError(400, 'Your freelancer profile is incomplete.');
+    if (freelancer.approvalStatus === 'pending')
+      throw new AppError(403, 'Your freelancer account is under review.');
+    if (freelancer.approvalStatus === 'rejected')
+      throw new AppError(
+        403,
+        `Your freelancer account was rejected: "${freelancer.notes}"`,
+      );
+  }
+
+  if (user.role === 'owner') {
+    const owner = user.ownerReg as TOwnerRegistration | any;
+
+    if (!owner)
+      throw new AppError(400, 'Your salon owner profile is incomplete.');
+    if (owner.approvalStatus === 'pending')
+      throw new AppError(403, 'Your salon owner account is under review.');
+    if (owner.approvalStatus === 'rejected')
+      throw new AppError(
+        403,
+        `Your salon owner account was rejected: "${owner.notes}"`,
+      );
+  }
+
+  // 5️⃣ Generate JWT tokens for approved accounts
   const jwtPayload: TJwtPayload = {
     userId: user._id.toString(),
-    name: user?.fullName,
-    email: user?.email,
-    role: user?.role,
+    name: user.fullName,
+    email: user.email,
+    role: user.role,
   };
 
   const accessToken = createToken(
@@ -52,17 +98,13 @@ const loginUser = async (payload: TLoginUser) => {
     config.jwt_access_secret as string,
     config.jwt_access_expires_in as string,
   );
-
   const refreshToken = createToken(
     jwtPayload,
     config.jwt_refresh_secret as string,
     config.jwt_refresh_expires_in as string,
   );
 
-  return {
-    accessToken,
-    refreshToken,
-  };
+  return { accessToken, refreshToken };
 };
 
 const refreshToken = async (token: string) => {

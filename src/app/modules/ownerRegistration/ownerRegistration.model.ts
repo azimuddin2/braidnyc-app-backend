@@ -55,6 +55,10 @@ const OwnerRegistrationSchema = new Schema<TOwnerRegistration>(
       },
       default: 'pending',
     },
+    notes: {
+      type: String,
+      default: null,
+    },
     salonPhoto: {
       type: String,
       default: null,

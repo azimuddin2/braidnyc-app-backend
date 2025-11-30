@@ -7,6 +7,8 @@ import { OwnerRegistration } from './ownerRegistration.model';
 import QueryBuilder from '../../builder/QueryBuilder';
 import { OwnerSearchableFields } from './ownerRegistration.constant';
 import { OwnerService } from '../ownerService/ownerService.model';
+import { TUser } from '../user/user.interface';
+import { sendEmail } from '../../utils/sendEmail';
 
 const createOwnerRegistrationIntoDB = async (
   userId: string,
@@ -171,8 +173,13 @@ const getAllOwnerRegistrationFromDB = async (
 };
 
 const getAllOwnerRequestFromDB = async (query: Record<string, unknown>) => {
-  let mongooseQuery = OwnerRegistration.find({ isDeleted: false });
+  // 1️⃣ Base query: only pending or rejected
+  let mongooseQuery = OwnerRegistration.find({
+    isDeleted: false,
+    approvalStatus: { $in: ['pending', 'rejected'] }, // <-- filter
+  });
 
+  // 2️⃣ Apply search, filter, sort, paginate, fields
   const ownersQuery = new QueryBuilder(mongooseQuery, query)
     .search(OwnerSearchableFields)
     .filter()
@@ -180,14 +187,13 @@ const getAllOwnerRequestFromDB = async (query: Record<string, unknown>) => {
     .paginate()
     .fields();
 
-  // ⚠️ IMPORTANT:
-  // After QB, you must apply populate on ownersQuery.modelQuery
-
+  // 3️⃣ Populate user info after QueryBuilder
   ownersQuery.modelQuery = ownersQuery.modelQuery.populate({
     path: 'user',
     select: 'fullName email phone image gender role',
   });
 
+  // 4️⃣ Get total count and results
   const meta = await ownersQuery.countTotal();
   const result = await ownersQuery.modelQuery;
 
@@ -322,6 +328,187 @@ const updateOwnerRegistrationIntoDB = async (
   }
 };
 
+const ownerApprovalRequestIntoDB = async (
+  id: string,
+  payload: { approvalStatus: string },
+) => {
+  // 1️⃣ Check salon owner + populate user
+  const isOwnerExists = await OwnerRegistration.findById(id).populate({
+    path: 'user',
+    select: 'fullName email',
+  });
+
+  if (!isOwnerExists) {
+    throw new AppError(404, 'This salon owner is not found');
+  }
+
+  // 2️⃣ Type narrow populated user safely
+  const user = isOwnerExists.user as unknown as TUser;
+
+  if (!user.email) {
+    throw new AppError(500, 'User email not found');
+  }
+
+  // 3️⃣ Update status
+  const result = await OwnerRegistration.findByIdAndUpdate(id, payload, {
+    new: true,
+  });
+
+  // 4️⃣ Send approval email
+  if (payload.approvalStatus === 'approved') {
+    await sendEmail(
+      user.email,
+      `🎉 Your Salon Owner Account Has Been Approved!`,
+      `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Salon Owner Approved</title>
+      </head>
+      <body style="margin:0;padding:0;background:#f5f5f5;font-family:Arial, sans-serif;">
+        
+        <table align="center" width="600" cellpadding="0" cellspacing="0"
+          style="background:#ffffff;padding:30px;border-radius:8px;
+                 box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+          
+          <tr>
+            <td>
+              <h2 style="color:#28a745;margin:0 0 15px 0;">
+                Congratulations ${user.fullName}! 🎉
+              </h2>
+
+              <p style="font-size:15px;color:#333;margin-bottom:20px;">
+                Great news! Your salon owner account has been successfully approved.
+              </p>
+
+              <p style="font-size:14px;color:#444;margin-bottom:20px;">
+                You can now manage your salon, receive appointments, and access the full features of our platform.
+              </p>
+
+              <p style="font-size:14px;color:#666;margin-top:20px;">
+                If you have any questions, feel free to contact our support team anytime.
+              </p>
+
+              <p style="margin-top:30px;font-size:13px;color:#999;">
+                Best Regards,<br/>
+                <strong>BraidNYC Team</strong>
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </body>
+      </html>
+      `,
+    );
+  }
+
+  return result;
+};
+
+const ownerRejectedRequestIntoDB = async (
+  id: string,
+  payload: { approvalStatus: string; notes: string },
+) => {
+  // 1️⃣ Get salon owner with user info
+  const owner = await OwnerRegistration.findById(id).populate({
+    path: 'user',
+    select: 'fullName email',
+  });
+
+  if (!owner) {
+    throw new AppError(404, 'This salon owner is not found');
+  }
+
+  // 2️⃣ Safely narrow user type
+  const user = owner.user as unknown as TUser;
+
+  if (!user?.email) {
+    throw new AppError(500, 'User email not found');
+  }
+
+  // 3️⃣ Update approval status + notes
+  const updatedOwner = await OwnerRegistration.findByIdAndUpdate(id, payload, {
+    new: true,
+  });
+
+  // 4️⃣ If rejected → Send rejection email
+  if (payload.approvalStatus === 'rejected') {
+    const subject = `❗ Your Salon Owner Account Request Was Rejected`;
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Salon Owner Rejected</title>
+      </head>
+      <body style="margin:0;padding:0;background:#fafafa;font-family:Arial, sans-serif;">
+        
+        <table align="center" width="600" cellpadding="0" cellspacing="0"
+          style="
+            background:#ffffff;
+            padding:30px;
+            border-radius:8px;
+            box-shadow:0 2px 8px rgba(0,0,0,0.06);
+          ">
+          
+          <tr>
+            <td>
+              <h2 style="color:#d9534f;margin:0 0 15px 0;">
+                Hello ${user.fullName},
+              </h2>
+
+              <p style="font-size:15px;color:#333;margin-bottom:20px;">
+                We regret to inform you that your salon owner account request has been 
+                <strong>rejected</strong>.
+              </p>
+
+              <p style="font-size:14px;color:#555;margin-bottom:20px;line-height:1.6;">
+                Below is the feedback provided by our review team:
+              </p>
+
+              <blockquote 
+                style="
+                  border-left:4px solid #d9534f;
+                  padding-left:10px;
+                  margin:15px 0;
+                  color:#444;
+                  font-size:14px;
+                  line-height:1.6;
+                ">
+                ${payload.notes || 'No additional notes were provided.'}
+              </blockquote>
+
+              <p style="font-size:14px;color:#555;margin-bottom:20px;line-height:1.6;">
+                Please review the remarks above and try applying again after updating your information.
+              </p>
+
+              <p style="font-size:14px;color:#666;">
+                If you believe this was a mistake or need more clarification, feel free to contact our support team.
+              </p>
+
+              <p style="margin-top:30px;font-size:13px;color:#999;">
+                Best Regards,<br/>
+                <strong>BraidNYC Team</strong>
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </body>
+      </html>
+    `;
+
+    await sendEmail(user.email, subject, htmlContent);
+  }
+
+  return updatedOwner;
+};
+
 export const OwnerRegistrationService = {
   createOwnerRegistrationIntoDB,
   getAllOwnerRegistrationFromDB,
@@ -329,4 +516,6 @@ export const OwnerRegistrationService = {
   getOwnerRegistrationByIdFromDB,
   getOwnerProfileFromDB,
   updateOwnerRegistrationIntoDB,
+  ownerApprovalRequestIntoDB,
+  ownerRejectedRequestIntoDB,
 };

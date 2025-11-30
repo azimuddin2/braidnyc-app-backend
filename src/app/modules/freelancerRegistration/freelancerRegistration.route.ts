@@ -55,4 +55,22 @@ router.patch(
   FreelancerRegistrationController.updateFreelancerRegistration,
 );
 
+router.put(
+  '/approval-request/:id',
+  auth('admin'),
+  validateRequest(
+    FreelancerRegistrationValidation.approvalStatusValidationSchema,
+  ),
+  FreelancerRegistrationController.freelancerApprovalRequest,
+);
+
+router.put(
+  '/rejected-request/:id',
+  auth('admin'),
+  validateRequest(
+    FreelancerRegistrationValidation.rejectedStatusValidationSchema,
+  ),
+  FreelancerRegistrationController.freelancerRejectedRequest,
+);
+
 export const FreelancerRegistrationRoutes = router;

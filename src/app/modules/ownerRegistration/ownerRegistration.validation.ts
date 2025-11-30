@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { ApprovalStatus } from './ownerRegistration.constant';
 
 // Opening hour validation
 const OpeningHourZodSchema = z.object({
@@ -67,7 +68,26 @@ const updateOwnerRegistrationZodSchema = z.object({
   }),
 });
 
+const approvalStatusValidationSchema = z.object({
+  body: z.object({
+    approvalStatus: z.enum([...ApprovalStatus] as [string, ...string[]], {
+      required_error: 'Approval status is required',
+    }),
+  }),
+});
+
+const rejectedStatusValidationSchema = z.object({
+  body: z.object({
+    approvalStatus: z.enum([...ApprovalStatus] as [string, ...string[]], {
+      required_error: 'Rejected status is required',
+    }),
+    notes: z.string({ required_error: 'Notes is required' }),
+  }),
+});
+
 export const OwnerRegistrationValidation = {
   createOwnerRegistrationZodSchema,
   updateOwnerRegistrationZodSchema,
+  approvalStatusValidationSchema,
+  rejectedStatusValidationSchema,
 };

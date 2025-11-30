@@ -171,8 +171,13 @@ const getAllFreelancersFromDB = async (query: Record<string, unknown>) => {
 const getAllFreelancerRequestFromDB = async (
   query: Record<string, unknown>,
 ) => {
-  let mongooseQuery = FreelancerRegistration.find({ isDeleted: false });
+  // 1️⃣ Start with base query only for pending or rejected
+  let mongooseQuery = FreelancerRegistration.find({
+    isDeleted: false,
+    approvalStatus: { $in: ['pending', 'rejected'] }, // <-- filter
+  });
 
+  // 2️⃣ Apply search, filter, sort, paginate, fields
   const freelancersQuery = new QueryBuilder(mongooseQuery, query)
     .search(FreelancerSearchableFields)
     .filter()
@@ -180,14 +185,13 @@ const getAllFreelancerRequestFromDB = async (
     .paginate()
     .fields();
 
-  // ⚠️ IMPORTANT:
-  // After QB, you must apply populate on freelancerQuery.modelQuery
-
+  // 3️⃣ Populate user info after QueryBuilder
   freelancersQuery.modelQuery = freelancersQuery.modelQuery.populate({
     path: 'user',
     select: 'fullName email phone image gender role',
   });
 
+  // 4️⃣ Get total count and final results
   const meta = await freelancersQuery.countTotal();
   const result = await freelancersQuery.modelQuery;
 
@@ -355,7 +359,7 @@ const freelancerApprovalRequestIntoDB = async (
   if (payload.approvalStatus === 'approved') {
     await sendEmail(
       user.email,
-      `🎉 Your Freelancer Profile Has Been Approved!`,
+      `🎉 Your Freelancer Account Has Been Approved!`,
       `
       <!DOCTYPE html>
       <html lang="en">
@@ -408,7 +412,7 @@ const freelancerApprovalRequestIntoDB = async (
 
 const freelancerRejectedRequestIntoDB = async (
   id: string,
-  payload: { approvalStatus: string },
+  payload: { approvalStatus: string; notes: string },
 ) => {
   // 1️⃣ Get freelancer with user info
   const freelancer = await FreelancerRegistration.findById(id).populate({
@@ -427,7 +431,7 @@ const freelancerRejectedRequestIntoDB = async (
     throw new AppError(500, 'User email not found');
   }
 
-  // 3️⃣ Update approval status
+  // 3️⃣ Update approval status + notes
   const updatedFreelancer = await FreelancerRegistration.findByIdAndUpdate(
     id,
     payload,
@@ -436,7 +440,7 @@ const freelancerRejectedRequestIntoDB = async (
 
   // 4️⃣ If rejected → Send rejection email
   if (payload.approvalStatus === 'rejected') {
-    const subject = `❗ Your Freelancer Profile Request Was Rejected`;
+    const subject = `❗ Your Freelancer Account Request Was Rejected`;
 
     const htmlContent = `
       <!DOCTYPE html>
@@ -463,12 +467,28 @@ const freelancerRejectedRequestIntoDB = async (
               </h2>
 
               <p style="font-size:15px;color:#333;margin-bottom:20px;">
-                We regret to inform you that your freelancer profile request has been <strong>rejected</strong>.
+                We regret to inform you that your freelancer profile request has been 
+                <strong>rejected</strong>.
               </p>
 
               <p style="font-size:14px;color:#555;margin-bottom:20px;line-height:1.6;">
-                This decision may be due to missing information or failing to meet our platform requirements.
-                Please review your submitted details and try applying again after making necessary changes.
+                Below is the feedback provided by our review team:
+              </p>
+
+              <blockquote 
+                style="
+                  border-left:4px solid #d9534f;
+                  padding-left:10px;
+                  margin:15px 0;
+                  color:#444;
+                  font-size:14px;
+                  line-height:1.6;
+                ">
+                ${payload.notes || 'No additional notes were provided.'}
+              </blockquote>
+
+              <p style="font-size:14px;color:#555;margin-bottom:20px;line-height:1.6;">
+                Please review the remarks above and try applying again after updating your information.
               </p>
 
               <p style="font-size:14px;color:#666;">
