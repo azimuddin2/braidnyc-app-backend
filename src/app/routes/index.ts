@@ -21,6 +21,7 @@ import { CustomerRoutes } from '../modules/customer/customer.route';
 import { BookingRoutes } from '../modules/booking/booking.route';
 import { PaymentRoutes } from '../modules/payment/payment.route';
 import { AnnouncementRoutes } from '../modules/announcement/announcement.route';
+import { DashboardRoutes } from '../modules/dashboard/dashboard.route';
 
 const router = Router();
 
@@ -112,6 +113,10 @@ const moduleRoutes = [
   {
     path: '/announcement',
     route: AnnouncementRoutes,
+  },
+  {
+    path: '/dashboard',
+    route: DashboardRoutes,
   },
 
   // TODO: ROUTE UPDATE

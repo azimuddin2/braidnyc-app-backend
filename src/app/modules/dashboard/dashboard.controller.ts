@@ -2,8 +2,8 @@ import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
 import { DashboardService } from './dashboard.service';
 
-const getAdminDashboardStats = catchAsync(async (req, res) => {
-  const result = await DashboardService.getAdminDashboardStats();
+const getRequestStats = catchAsync(async (req, res) => {
+  const result = await DashboardService.getRequestStatsFromDB();
 
   sendResponse(res, {
     statusCode: 200,
@@ -14,5 +14,5 @@ const getAdminDashboardStats = catchAsync(async (req, res) => {
 });
 
 export const DashboardControllers = {
-  getAdminDashboardStats,
+  getRequestStats,
 };

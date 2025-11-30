@@ -1,31 +1,113 @@
-import { Payment } from '../payment/payment.model';
-import { User } from '../user/user.model';
+import { FreelancerRegistration } from '../freelancerRegistration/freelancerRegistration.model';
+import { OwnerRegistration } from '../ownerRegistration/ownerRegistration.model';
 
-const getAdminDashboardStats = async () => {
-  // 🔹 Total Users
-  const totalUsers = await User.countDocuments({ isDeleted: false });
+const getRequestStatsFromDB = async () => {
+  // 1. Define Date Ranges
+  const now = new Date();
+  const todayStart = new Date(now.setHours(0, 0, 0, 0));
+  const todayEnd = new Date(now.setHours(23, 59, 59, 999));
 
-  // 🔹 Total Earnings (vendorAmount)
-  const [paymentStats] = await Payment.aggregate([
-    {
-      $match: {
-        status: 'paid',
-        isDeleted: false,
+  const yesterdayStart = new Date(new Date().setDate(now.getDate() - 1));
+  yesterdayStart.setHours(0, 0, 0, 0);
+  const yesterdayEnd = new Date(new Date().setDate(now.getDate() - 1));
+  yesterdayEnd.setHours(23, 59, 59, 999);
+
+  // 🔹 Helper function to calculate percentage change
+  const calculatePercentage = (current: number, previous: number) => {
+    if (previous === 0) return current > 0 ? 100 : 0;
+    const percent = ((current - previous) / previous) * 100;
+    return Number(percent.toFixed(2)); // Returns 15.03 format
+  };
+
+  // 🔹 Helper to get counts for both collections (Owner + Freelancer)
+  const getCombinedCounts = async (filter: any) => {
+    const ownerCount = await OwnerRegistration.countDocuments({
+      isDeleted: false,
+      ...filter,
+    });
+    const freelancerCount = await FreelancerRegistration.countDocuments({
+      isDeleted: false,
+      ...filter,
+    });
+    return ownerCount + freelancerCount;
+  };
+
+  // ==========================================
+  // 1. TOTAL REQUESTS (All Time)
+  // ==========================================
+  const totalRequestsCount = await getCombinedCounts({});
+
+  // To get growth for Total, we compare with Total count 30 days ago (or yesterday)
+  // Here assuming growth compared to previous month for "Total"
+  const lastMonthDate = new Date();
+  lastMonthDate.setDate(lastMonthDate.getDate() - 30);
+  const totalRequestsLastMonth = await getCombinedCounts({
+    createdAt: { $lte: lastMonthDate },
+  });
+
+  const totalRequestsGrowth = calculatePercentage(
+    totalRequestsCount,
+    totalRequestsLastMonth,
+  );
+
+  // ==========================================
+  // 2. PENDING REQUESTS
+  // ==========================================
+  const pendingRequestsCount = await getCombinedCounts({
+    approvalStatus: 'pending',
+  });
+
+  // For Pending Growth, we compare "New Pending Requests Today" vs "Yesterday"
+  // (Because we don't track historical status snapshots easily)
+  const pendingToday = await getCombinedCounts({
+    approvalStatus: 'pending',
+    createdAt: { $gte: todayStart, $lte: todayEnd },
+  });
+  const pendingYesterday = await getCombinedCounts({
+    approvalStatus: 'pending',
+    createdAt: { $gte: yesterdayStart, $lte: yesterdayEnd },
+  });
+
+  const pendingRequestsGrowth = calculatePercentage(
+    pendingToday,
+    pendingYesterday,
+  );
+
+  // ==========================================
+  // 3. TODAY REQUESTS
+  // ==========================================
+  const todayRequestsCount = await getCombinedCounts({
+    createdAt: { $gte: todayStart, $lte: todayEnd },
+  });
+
+  const yesterdayRequestsCount = await getCombinedCounts({
+    createdAt: { $gte: yesterdayStart, $lte: yesterdayEnd },
+  });
+
+  const todayRequestsGrowth = calculatePercentage(
+    todayRequestsCount,
+    yesterdayRequestsCount,
+  );
+
+  // 🔹 FINAL RETURN
+  return {
+    stats: {
+      totalRequest: {
+        count: totalRequestsCount,
+        growth: totalRequestsGrowth, // e.g., 15.03
+      },
+      pendingRequest: {
+        count: pendingRequestsCount,
+        growth: pendingRequestsGrowth, // e.g., 15.03
+      },
+      todayRequest: {
+        count: todayRequestsCount,
+        growth: todayRequestsGrowth, // e.g., 15.03
       },
     },
-    {
-      $group: { _id: null, total: { $sum: '$vendorAmount' } },
-    },
-  ]);
-
-  const totalIncome = paymentStats?.total || 0;
-
-  return {
-    totalUsers,
-    totalIncome,
   };
 };
 
 export const DashboardService = {
-  getAdminDashboardStats,
+  getRequestStatsFromDB,
 };
