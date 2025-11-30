@@ -20,6 +20,7 @@ import { MemberRoutes } from '../modules/member/member.route';
 import { CustomerRoutes } from '../modules/customer/customer.route';
 import { BookingRoutes } from '../modules/booking/booking.route';
 import { PaymentRoutes } from '../modules/payment/payment.route';
+import { AnnouncementRoutes } from '../modules/announcement/announcement.route';
 
 const router = Router();
 
@@ -107,6 +108,10 @@ const moduleRoutes = [
   {
     path: '/payments',
     route: PaymentRoutes,
+  },
+  {
+    path: '/announcement',
+    route: AnnouncementRoutes,
   },
 
   // TODO: ROUTE UPDATE

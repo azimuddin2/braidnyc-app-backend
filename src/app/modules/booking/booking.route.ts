@@ -30,6 +30,8 @@ router.get(
   BookingControllers.getBookings,
 );
 
+router.get('/all', auth('admin'), BookingControllers.getAllBookings);
+
 router.get('/', auth('customer'), BookingControllers.getBookingsByCustomer);
 
 router.get('/:id', BookingControllers.getBookingById);

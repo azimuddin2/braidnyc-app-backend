@@ -7,6 +7,8 @@ import { FreelancerService } from '../freelancerService/freelancerService.model'
 import { uploadManyToS3 } from '../../utils/awsS3FileUploader';
 import { Specialist } from '../Specialist/Specialist.model';
 import mongoose from 'mongoose';
+import QueryBuilder from '../../builder/QueryBuilder';
+import { bookingSearchableFields } from './booking.constant';
 
 const createBookingIntoDB = async (payload: TBooking, files: any) => {
   const { customer, service, vendor, date, time, specialist, serviceType } =
@@ -160,6 +162,34 @@ const createBookingIntoDB = async (payload: TBooking, files: any) => {
   // 1️⃣1️⃣ Save Booking
   // -------------------------------
   return await Booking.create(payload);
+};
+
+const getAllBookingsFromDB = async (query: Record<string, unknown>) => {
+  const mongooseQuery = Booking.find({ isDeleted: false })
+    .populate({
+      path: 'customer',
+      select: 'fullName email phone image',
+    })
+    .populate({
+      path: 'vendor',
+      select: 'fullName email phone image',
+    })
+    .populate({
+      path: 'service',
+      select: 'name price duration category images',
+    });
+
+  const bookingQuery = new QueryBuilder(mongooseQuery, query)
+    .search(bookingSearchableFields)
+    .filter()
+    .sort()
+    .paginate()
+    .fields();
+
+  const meta = await bookingQuery.countTotal();
+  const result = await bookingQuery.modelQuery;
+
+  return { meta, result };
 };
 
 const getBookingsFromDB = async (query: Record<string, unknown>) => {
@@ -509,6 +539,7 @@ const bookingDeclineRequestIntoDB = async (
 
 export const BookingServices = {
   createBookingIntoDB,
+  getAllBookingsFromDB,
   getBookingsFromDB,
   getBookingsByCustomerFromDB,
   getBookingByIdFromDB,
