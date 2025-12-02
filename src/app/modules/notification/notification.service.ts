@@ -1,66 +1,122 @@
-import { Notification } from './notification.model';
-import httpStatus from 'http-status';
-import moment from 'moment';
-import AppError from '../../errors/AppError';
 import QueryBuilder from '../../builder/QueryBuilder';
+import { sendEmail } from '../../utils/sendEmail';
+import { INotification } from './notification.interface';
+import Notification from './notification.model';
 
-// Insert notifications into the database
-const insertNotificationIntoDB = async (payload: any) => {
-  const result = await Notification.insertMany(payload);
-  if (!result) {
-    throw new AppError(httpStatus.BAD_REQUEST, 'Notification created failed');
-  }
-  //@ts-ignore
-  const io = global.socketio;
-  if (io) {
-    const ver = 'notification::' + payload?.receiver;
-    io.emit(ver, { ...payload, createdAt: moment().format('YYYY-MM-DD') });
-  }
+const getNotificationFromDb = async (query: Record<string, any>) => {
+  const { receiver } = query;
+  const notificationQuery = Notification.find({ isRead: false, receiver });
 
-  return result;
-};
-
-// Get all notifications
-const getAllNotificationsFromDB = async (query: Record<string, any>) => {
-  const notificationQuery = new QueryBuilder(Notification.find(), query)
-    .search([])
+  const queryModel = new QueryBuilder(notificationQuery, query)
     .filter()
-    .paginate()
     .sort()
-    .fields();
-
-  const meta = await notificationQuery.countTotal();
-  const data = await notificationQuery.modelQuery;
-
+    .fields()
+    .paginate();
+  const data: any = await queryModel.modelQuery;
+  const meta = await queryModel.countTotal();
   return {
-    data,
     meta,
+    data,
   };
 };
 
-// Mark notifications as read
-const markAsDone = async (id: string) => {
-  const result = await Notification.updateMany(
-    { receiver: id },
+const updateNotification = async (
+  id: string,
+  payload: Partial<INotification>,
+) => {
+  const result = await Notification.findByIdAndUpdate(id, payload, {
+    new: true,
+  });
+  return result;
+};
+
+const makeMeRead = async (id: string, user: string) => {
+  const result = await Notification.findOneAndUpdate(
+    { _id: id, receiver: user },
+    { isRead: true },
     {
-      $set: {
-        read: true,
-      },
+      new: true,
     },
-    { new: true },
   );
   return result;
 };
 
-// Delete many notification
-const deleteNotificationFromDB = async (id: string) => {
-  const result = await Notification.deleteMany({ receiver: id });
+const makeReadAll = async (user: string) => {
+  const result = await Notification.updateMany(
+    { receiver: user, isRead: true },
+    {
+      new: true,
+    },
+  );
   return result;
 };
 
-export const NotificationServices = {
-  insertNotificationIntoDB,
-  getAllNotificationsFromDB,
-  markAsDone,
-  deleteNotificationFromDB,
+const getAdminAllNotification = async (query: Record<string, any>) => {
+  const baseQuery = Notification.find();
+  const notificationQuery = new QueryBuilder(baseQuery, query)
+    .filter()
+    .sort()
+    .fields()
+    .paginate();
+  const data: any = await notificationQuery.modelQuery;
+  const meta = await notificationQuery.countTotal();
+  return {
+    meta,
+    data,
+  };
+};
+
+const pushNotificationUser = async (payload: any, role: string) => {
+  const htmlContent = `
+  <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9fafb; padding: 40px 0;">
+    <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+      
+      <!-- Header -->
+      <div style="background-color: #165940; color: #ffffff; padding: 24px 32px;">
+        <h1 style="margin: 0; font-size: 22px; font-weight: 600;">
+          ${payload.title}
+        </h1>
+        <p style="margin: 6px 0 0; font-size: 14px; opacity: 0.9;">
+          Notification from ${role ? role.charAt(0).toUpperCase() + role.slice(1) : 'User'}
+        </p>
+      </div>
+
+      <!-- Body -->
+      <div style="padding: 32px;">
+        <p style="font-size: 16px; color: #333; line-height: 1.6;">
+          ${payload.message}
+        </p>
+
+        <div style="margin-top: 24px; padding: 16px; background-color: #f3f4f6; border-radius: 8px;">
+          <p style="margin: 0; font-size: 15px; color: #444;">
+            <strong>Date:</strong> ${payload.date}
+          </p>
+          <p style="margin: 4px 0 0; font-size: 15px; color: #444;">
+            <strong>Time:</strong> ${payload.time}
+          </p>
+        </div>
+
+        <p style="margin-top: 32px; font-size: 13px; color: #777;">
+          This is an automated system notification — please do not reply to this email.
+        </p>
+      </div>
+
+      <!-- Footer -->
+      <div style="background-color: #165940; color: #ffffff; text-align: center; padding: 16px; font-size: 13px;">
+        <p style="margin: 0;">© ${new Date().getFullYear()} The Reflective Spirit</p>
+      </div>
+    </div>
+  </div>
+  `;
+
+  await sendEmail(payload.email, payload.title, htmlContent);
+};
+
+export const notificationServices = {
+  getNotificationFromDb,
+  updateNotification,
+  makeMeRead,
+  makeReadAll,
+  getAdminAllNotification,
+  pushNotificationUser,
 };
