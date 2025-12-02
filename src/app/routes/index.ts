@@ -22,6 +22,9 @@ import { BookingRoutes } from '../modules/booking/booking.route';
 import { PaymentRoutes } from '../modules/payment/payment.route';
 import { AnnouncementRoutes } from '../modules/announcement/announcement.route';
 import { DashboardRoutes } from '../modules/dashboard/dashboard.route';
+import { chatRoutes } from '../modules/chat/chat.route';
+import { messagesRoutes } from '../modules/message/message.route';
+import { NotificationRoutes } from '../modules/notification/notification.route';
 
 const router = Router();
 
@@ -118,68 +121,18 @@ const moduleRoutes = [
     path: '/dashboard',
     route: DashboardRoutes,
   },
-
-  // TODO: ROUTE UPDATE
-  // {
-  //   path: '/product-type',
-  //   route: ProductTypeRoutes,
-  // },
-  // {
-  //   path: '/products',
-  //   route: ProductRoutes,
-  // },
-  // {
-  //   path: '/service-type',
-  //   route: ServiceTypeRoutes,
-  // },
-  // {
-  //   path: '/services',
-  //   route: PackagesRoutes,
-  // },
-  // {
-  //   path: '/team-members',
-  //   route: TeamRoutes,
-  // },
-  // {
-  //   path: '/tasks',
-  //   route: TaskRoutes,
-  // },
-  // {
-  //   path: '/reviews',
-  //   route: ReviewRoutes,
-  // },
-  // {
-  //   path: '/bookings',
-  //   route: BookingRoutes,
-  // },
-  // {
-  //   path: '/orders',
-  //   route: OrderRoutes,
-  // },
-  // {
-  //   path: '/sub-payments',
-  //   route: SubPaymentsRoutes,
-  // },
-  // {
-  //   path: '/plans',
-  //   route: PlanRoutes,
-  // },
-  // {
-  //   path: '/dashboard',
-  //   route: DashboardRoutes,
-  // },
-  // {
-  //   path: '/supports',
-  //   route: SupportRoutes,
-  // },
-  // {
-  //   path: '/notifications',
-  //   route: NotificationRoutes,
-  // },
-  // {
-  //   path: '/subscriptions',
-  //   route: SubscriptionRoutes,
-  // },
+  {
+    path: '/chats',
+    route: chatRoutes,
+  },
+  {
+    path: '/messages',
+    route: messagesRoutes,
+  },
+  {
+    path: '/notifications',
+    route: NotificationRoutes,
+  },
 ];
 
 moduleRoutes.forEach((route) => router.use(route.path, route.route));

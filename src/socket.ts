@@ -42,6 +42,7 @@ const initializeSocketIO = (server: HttpServer) => {
         socket.handshake.auth?.token || socket.handshake.headers?.token;
       //----------------------check Token and return user details-------------------------//
       const user: any = await getUserDetailsFromToken(token);
+
       if (!user) {
         // io.emit('io-error', {success:false, message:'invalid Token'});
         throw new AppError(httpStatus.UNAUTHORIZED, 'Invalid token');
@@ -64,7 +65,9 @@ const initializeSocketIO = (server: HttpServer) => {
       io.emit('onlineUser', Array.from(onlineUser));
 
       socket.on('message-page', async (userId, callback) => {
+        console.log('-----------------');
         console.log({ userId });
+        console.log('-------------------');
 
         if (!userId) {
           callbackFn(callback, {
@@ -250,6 +253,10 @@ const initializeSocketIO = (server: HttpServer) => {
       socket.on('send-message', async (payload, callback) => {
         try {
           payload.sender = user?._id;
+
+          console.log('---------------------------');
+          console.log(user.id);
+          console.log('-------------------------');
 
           const alreadyExists = await Chat.findOne({
             participants: { $all: [payload.sender, payload.receiver] },

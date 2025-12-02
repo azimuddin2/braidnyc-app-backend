@@ -21,6 +21,7 @@ export default {
   aws_secret_access_key: process.env.AWS_SECRET_ACCESS_KEY,
   aws_bucket: process.env.AWS_BUCKET,
   socket_port: process.env.SOCKET_PORT,
+  ip: process.env.IP,
 
   stripe_api_key: process.env.STRIPE_API_KEY,
   stripe_api_secret: process.env.STRIPE_API_SECRET,
