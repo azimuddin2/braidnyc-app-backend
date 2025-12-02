@@ -1,18 +1,18 @@
-import { ObjectId } from 'mongodb';
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
-export enum ModeType {
-  Booking = 'Booking',
-  Order = 'Order',
-  Payment = 'Payment',
-}
+import { Types } from 'mongoose';
+import { ObjectId as mongoId } from 'mongodb';
 
-export type TNotification = {
-  receiver: ObjectId;
+export interface INotification {
+  sender: Types.ObjectId;
+  receiver: Types.ObjectId;
+  receiverEmail: string;
+  receiverRole: string;
+  product?: mongoId;
   message: string;
-  description?: string;
-  refference: ObjectId;
-  model_type: ModeType;
-  date?: Date;
-  read: boolean;
-  isDeleted: boolean;
-};
+  fcmToken?: string;
+  type?: 'text' | 'accept' | 'reject' | 'cancelled' | 'payment' | 'product';
+  title?: string;
+  isRead?: boolean;
+  link?: string;
+}

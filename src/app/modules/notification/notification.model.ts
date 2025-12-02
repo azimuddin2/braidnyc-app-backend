@@ -1,60 +1,69 @@
-import { Schema, model } from 'mongoose';
-import { ModeType, TNotification } from './notification.interface';
+import { model, Schema } from 'mongoose';
+import { INotification } from './notification.interface';
 
-const notificationSchema = new Schema<TNotification>(
+const NotificationSchema = new Schema<INotification>(
   {
+    sender: {
+      type: Schema.Types.ObjectId,
+      ref: 'users',
+      default: '',
+    },
+
     receiver: {
       type: Schema.Types.ObjectId,
-      ref: 'User',
-      required: [true, 'Receiver id is required'],
+      ref: 'users',
+      required: true,
     },
-    refference: {
-      type: Schema.Types.ObjectId,
-      //   dynamic refference
-      refPath: 'model_type',
-      required: [true, 'Receiver id is required'],
-    },
-    model_type: {
-      type: String,
-      enum: Object.values(ModeType),
-    },
-    message: {
-      type: String,
-      required: [true, 'Message is required'],
-    },
-    description: {
+
+    receiverEmail: {
       type: String,
       default: '',
     },
-    read: {
+
+    receiverRole: {
+      type: String,
+      enum: ['user', 'admin'],
+      required: true,
+    },
+    product: {
+      type: Schema.Types.ObjectId,
+      ref: 'products',
+      default: null,
+    },
+
+    type: {
+      type: String,
+      default: 'text',
+    },
+
+    title: {
+      type: String,
+      required: true,
+    },
+
+    message: {
+      type: String,
+      required: true,
+    },
+
+    isRead: {
       type: Boolean,
       default: false,
     },
-    isDeleted: {
-      type: Boolean,
-      default: false,
+
+    link: {
+      type: String,
+      default: null,
+    },
+
+    fcmToken: {
+      type: String,
     },
   },
-  { timestamps: true },
+  {
+    timestamps: true,
+  },
 );
 
-// filter out deleted documents
-notificationSchema.pre('find', function (next) {
-  this.find({ isDeleted: { $ne: true } });
-  next();
-});
-
-notificationSchema.pre('findOne', function (next) {
-  this.find({ isDeleted: { $ne: true } });
-  next();
-});
-
-notificationSchema.pre('aggregate', function (next) {
-  this.pipeline().unshift({ $match: { isDeleted: { $ne: true } } });
-  next();
-});
-
-export const Notification = model<TNotification>(
-  'Notification',
-  notificationSchema,
-);
+const Notification = model<INotification>('Notification', NotificationSchema);
+export default Notification;
